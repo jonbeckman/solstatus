@@ -58,7 +58,7 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "@cloudflare/workers-types": "catalog:",
-    "@libsql/client": "^0.15.9",
+    "@libsql/client": "^0.15.10",
     "@types/node": "catalog:",
     "dotenv": "catalog:",
     "drizzle-kit": "catalog:",
