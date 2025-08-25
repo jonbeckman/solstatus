@@ -7,7 +7,7 @@ catalog:
   react-dom: ^19.0.0
   zod: ^3.25.69
   tsx: ^4.20.3
-  typescript: ^5.8.3
+  typescript: ^5.9.2
   wrangler: ^4.22.0
   '@cloudflare/workers-types': ^4.20250702.0
   '@types/node': ^22.16.0
