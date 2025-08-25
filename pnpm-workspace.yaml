@@ -16,7 +16,7 @@ catalog:
   drizzle-kit: ^0.31.4
   alchemy: ^0.43.0
   http-status-codes: ^2.3.0
-  dotenv: 16.5.0
+  dotenv: 17.2.1
   drizzle-orm: ^0.44.2
   drizzle-seed: ^0.3.1
   drizzle-zod: 0.7.1
