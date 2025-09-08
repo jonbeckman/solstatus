@@ -1,6 +1,6 @@
 {
   "name": "solstatus",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Self host a low-cost, globally-distributed uptime monitoring service on Cloudflare",
   "keywords": [
     "solstatus",
