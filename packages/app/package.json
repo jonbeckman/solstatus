@@ -1,6 +1,6 @@
 {
   "name": "@solstatus/app",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Web application for SolStatus uptime monitoring service",
   "keywords": [
     "solstatus",
