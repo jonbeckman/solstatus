@@ -52,18 +52,18 @@
     "types:each": "pnpm run --filter '@solstatus/common' types && pnpm run --filter '@solstatus/api' types && pnpm run --filter '@solstatus/app' types && pnpm run --filter '@solstatus/infra' types"
   },
   "dependencies": {
-    "@effect/cli": "^0.66.4",
-    "@effect/platform-node": "^0.88.6",
+    "@effect/cli": "^0.77.0",
+    "@effect/platform-node": "^0.108.1",
     "@solstatus/infra": "workspace:*",
     "dotenv": "catalog:",
-    "effect": "^3.16.11"
+    "effect": "^3.22.1"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "@cloudflare/workers-types": "catalog:",
     "@types/node": "catalog:",
     "concurrently": "catalog:",
-    "release-please": "^17.1.1",
+    "release-please": "^17.11.1",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "wait-on": "catalog:",
