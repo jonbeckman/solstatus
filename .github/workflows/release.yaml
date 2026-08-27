@@ -22,7 +22,7 @@ jobs:
       infra_release_created: ${{ steps.release.outputs['@solstatus/infra--release_created'] }}
       common_release_created: ${{ steps.release.outputs['@solstatus/common--release_created'] }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: release
         with:
           config-file: release-please-config.json
