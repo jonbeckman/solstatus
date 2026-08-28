@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out trusted release tooling
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Nub
         uses: nubjs/setup-nub@v0.4.0
