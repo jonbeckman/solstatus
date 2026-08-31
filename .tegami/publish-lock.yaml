@@ -1,0 +1,31 @@
+core:changelogs:
+  - content: "---\npackages:\n  solstatus:\n    type: major\n  \"@solstatus/common\":\n    type: major\n  \"@solstatus/api\":\n    type: major\n  \"@solstatus/app\":\n    type: major\n  \"@solstatus/infra\":\n    type: major\n---\n\n## Align the published toolchain with Shared Project DNA\n\nPackage consumers now get Nub 0.4.11, TypeScript 7.0.2, Effect 4.0.0-beta.107,\nDrizzle ORM 1.0.0-rc.5, Zod 4.4.3, and Alchemy 2.0.0-beta.72. The dashboard is\nTanStack Start on Cloudflare instead of Next.js + OpenNext. The CLI stays on\nEffect 4 `effect/unstable/cli` because `@effect/cli` still peers Effect 3.\n\nInstall with `nub install`. The previous `pnpm` workspace, Biome lint/format\npath, and Next.js app entrypoints are gone.\n"
+    filename: 2026-08-27-shared-project-dna.md
+    v: 0.0.0
+core:packages:
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+    id: npm:solstatus
+    updated: true
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+    id: npm:@solstatus/api
+    updated: true
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+    id: npm:@solstatus/common
+    updated: true
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+    id: npm:@solstatus/infra
+    updated: true
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+    id: npm:@solstatus/app
+    updated: true
+npm:packages:
+  - id: npm:solstatus
+  - id: npm:@solstatus/api
+  - id: npm:@solstatus/common
+  - id: npm:@solstatus/infra
+  - id: npm:@solstatus/app
