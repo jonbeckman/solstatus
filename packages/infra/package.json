@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
-    "@libsql/client": "^0.15.9",
+    "@libsql/client": "^0.17.4",
     "@types/node": "^24.12.4",
     "dotenv": "16.5.0",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",

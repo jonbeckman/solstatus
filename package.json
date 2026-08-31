@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
-    "@mpsuesser/oxlint-plugin-effect": "0.2.2",
+    "@mpsuesser/oxlint-plugin-effect": "0.4.3",
     "@oxlint/plugins": "1.80.0",
     "@types/node": "^24.12.4",
     "anti-slop": "github:dmmulroy/anti-slop",
