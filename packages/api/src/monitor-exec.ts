@@ -59,6 +59,7 @@ export default class MonitorExec extends WorkerEntrypoint<MonitorExecEnv> {
 
       responseTime = Date.now() - startTime
       status = response.status
+      await response.body?.cancel()
       // Use expectedStatusCode if provided, otherwise default to 2xx/3xx
       isExpectedStatus =
         endpointMonitor.expectedStatusCode != null

@@ -127,6 +127,7 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
       console.log(
         `Received an alarm retry #${alarmInfo.retryCount} for [${monitorId}]. Not retrying.`,
       )
+      await this.ctx.storage.setAlarm(Date.now() + checkInterval * 1000)
       return
     }
 
@@ -167,7 +168,7 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
     }
 
     // Schedule the next check regardless of delegation outcome
-    this.ctx.storage.setAlarm(Date.now() + checkInterval * 1000)
+    await this.ctx.storage.setAlarm(Date.now() + checkInterval * 1000)
     console.log(`Scheduled next check for [${monitorId}] in ${checkInterval} seconds`)
   }
 
@@ -178,7 +179,7 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
 
     this.#state.checkInterval = checkInterval
     // Reschedule alarm immediately with new interval
-    this.ctx.storage.setAlarm(Date.now() + checkInterval * 1000)
+    await this.ctx.storage.setAlarm(Date.now() + checkInterval * 1000)
 
     console.log(`Updated check interval for [${monitorId}] to [${checkInterval}]`)
   }
@@ -219,8 +220,7 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
       `Resuming MonitorTrigger DO for [${monitorId}] (${monitorType}) with interval [${checkInterval}]`,
     )
 
-    // Reschedule alarm
-    this.ctx.storage.setAlarm(Date.now() + checkInterval * 1000)
+    await this.ctx.storage.setAlarm(Date.now() + checkInterval * 1000)
 
     const db = useDrizzle(this.env.DB)
     try {

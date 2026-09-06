@@ -4,6 +4,7 @@ import type { DBResource } from "@solstatus/common/infra"
 import type { InfraMetadata } from "@solstatus/common/utils/types"
 import * as Cloudflare from "alchemy/Cloudflare"
 import * as Effect from "effect/Effect"
+import * as Redacted from "effect/Redacted"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -51,7 +52,7 @@ export function createMonitorExecWorker(
     },
     env: {
       DB: db,
-      OPSGENIE_API_KEY: process.env.OPSGENIE_API_KEY || "",
+      OPSGENIE_API_KEY: Redacted.make(process.env.OPSGENIE_API_KEY || ""),
       APP_ENV: stage,
       MONITOR_EXEC_NAME: infraMetadata.monitorExecName,
       MONITOR_TRIGGER_NAME: infraMetadata.monitorTriggerName,
