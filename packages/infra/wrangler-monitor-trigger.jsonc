@@ -1,10 +1,11 @@
+// Local `wrangler dev` for monitor-trigger. Production workers deploy through Alchemy.
 // https://developers.cloudflare.com/workers/wrangler/configuration/
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "monitor-trigger",
   "main": "../api/src/monitor-trigger.ts",
   // https://developers.cloudflare.com/workers/configuration/compatibility-flags/#flags-history
-  "compatibility_date": "2025-04-01",
+  "compatibility_date": "2026-07-21",
   "compatibility_flags": ["nodejs_compat"],
   "minify": true,
   "workers_dev": false,
@@ -12,14 +13,14 @@
     "enabled": true,
   },
   "vars": {
-    "ENVIRONMENT": "dev",
+    "APP_ENV": "dev",
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "solstatus-local",
       "database_id": "solstatus-local",
-      "migrations_dir": "src/db/migrations",
+      "migrations_dir": "../common/src/db/migrations",
     },
   ],
   "services": [
@@ -42,34 +43,4 @@
       "new_sqlite_classes": ["MonitorTrigger"],
     },
   ],
-  "env": {
-    "prod": {
-      "vars": {
-        "ENVIRONMENT": "prod",
-      },
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "solstatus-prod",
-          "database_id": "37c24e7a-7bb0-47c7-87e9-5f1f5a4e237d",
-          "migrations_dir": "src/db/migrations",
-        },
-      ],
-      "services": [
-        {
-          "binding": "MONITOR_EXEC",
-          "service": "solstatus-prod-monitor-exec",
-        },
-      ],
-      "durable_objects": {
-        "bindings": [
-          {
-            "name": "MONITOR_TRIGGER",
-            "class_name": "MonitorTrigger",
-            "script_name": "solstatus-prod-monitor-trigger",
-          },
-        ],
-      },
-    },
-  },
 }

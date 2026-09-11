@@ -81,9 +81,10 @@ nub run --filter '@solstatus/api' dev:api-trigger
 
 ### Deployment
 
-To deploy the entire application:
+Production workers and the dashboard deploy through Alchemy, not Wrangler:
+
 ```sh
-nub run deploy:prod
+nub run cli -- --fqdn uptime.example.com --stage prod
 ```
 
 To deploy components separately:
@@ -94,6 +95,8 @@ nub run deploy:prod:app
 # Deploy just the API workers
 nub run deploy:prod:api
 ```
+
+Wrangler stays for local D1 (`nub run db:setup`) and local API workers (`nub run dev:api`). Those commands share D1 state under `packages/infra/.wrangler/state`.
 
 ### Maintenance
 Update dependencies

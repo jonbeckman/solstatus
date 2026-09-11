@@ -39,9 +39,6 @@
     "dev": "concurrently --kill-others --names \"EXEC,TRGR\" --prefix-colors \"blue,magenta\" \"nub run dev:api-exec\" \"wait-on http://localhost:8787 && nub run dev:api-trigger\"",
     "dev:api-exec": "wrangler dev --persist-to=../infra/.wrangler/state -c ../infra/wrangler-monitor-exec.jsonc --port 8787",
     "dev:api-trigger": "wrangler dev --persist-to=../infra/.wrangler/state -c ../infra/wrangler-monitor-trigger.jsonc --port 8788",
-    "deploy:prod": "nub run deploy:prod:api-exec && nub run deploy:prod:api-trigger",
-    "deploy:prod:api-exec": "wrangler deploy --env prod -c ../infra/wrangler-monitor-exec.jsonc",
-    "deploy:prod:api-trigger": "wrangler deploy --env prod -c ../infra/wrangler-monitor-trigger.jsonc",
     "types": "tsc"
   },
   "dependencies": {

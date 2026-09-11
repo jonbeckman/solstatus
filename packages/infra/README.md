@@ -10,6 +10,11 @@ nub add @solstatus/infra
 
 ## Database Management
 
+Local D1 for `db:create`, `db:migrate`, `db:seed`, and `nub run dev:api` lives
+under `packages/infra/.wrangler/state`. Alchemy `infra:dev` uses a separate
+store at `.alchemy/local`. Production workers deploy with the Alchemy CLI
+(`nub run cli -- --stage prod`).
+
 To generate the latest migration files, run:
 ```shell
 nub run db:generate

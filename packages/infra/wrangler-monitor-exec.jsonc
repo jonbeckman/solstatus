@@ -1,10 +1,11 @@
+// Local `wrangler dev` for monitor-exec. Production workers deploy through Alchemy.
 // https://developers.cloudflare.com/workers/wrangler/configuration/
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "monitor-exec",
   "main": "../api/src/monitor-exec.ts",
   // https://developers.cloudflare.com/workers/configuration/compatibility-flags/#flags-history
-  "compatibility_date": "2025-04-01",
+  "compatibility_date": "2026-07-21",
   "compatibility_flags": ["nodejs_compat"],
   "minify": true,
   "workers_dev": false,
@@ -19,22 +20,7 @@
       "binding": "DB",
       "database_name": "solstatus-local",
       "database_id": "solstatus-local",
-      "migrations_dir": "src/db/migrations",
+      "migrations_dir": "../common/src/db/migrations",
     },
   ],
-  "env": {
-    "prod": {
-      "vars": {
-        "APP_ENV": "prod",
-      },
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "solstatus-prod",
-          "database_id": "37c24e7a-7bb0-47c7-87e9-5f1f5a4e237d",
-          "migrations_dir": "src/db/migrations",
-        },
-      ],
-    },
-  },
 }

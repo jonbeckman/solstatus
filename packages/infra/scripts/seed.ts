@@ -122,7 +122,11 @@ seedDatabase()
 
 function getLocalD1DB() {
   try {
-    const basePath = path.resolve(".wrangler")
+    // API local workers persist D1 at packages/infra/.wrangler/state
+    // (`wrangler dev --persist-to=../infra/.wrangler/state` from @solstatus/api).
+    // db:create / db:migrate use the same persist-to. Alchemy `infra:dev` stores a
+    // separate local D1 under .alchemy/local and is not used here.
+    const basePath = path.resolve(import.meta.dirname, "../.wrangler")
     const files = fs
       .readdirSync(basePath, { encoding: "utf-8", recursive: true })
       .filter((f) => f.endsWith(".sqlite"))

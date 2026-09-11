@@ -1,93 +1,27 @@
+// Local D1 only (`db:create`, `db:migrate`). Production workers deploy through Alchemy.
 // https://developers.cloudflare.com/workers/wrangler/configuration/
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "solstatus",
-  "main": ".open-next/worker.js",
   // https://developers.cloudflare.com/workers/configuration/compatibility-flags/#flags-history
-  "compatibility_date": "2025-04-01",
-  "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": true,
-  "minify": true,
-  "observability": {
-    "enabled": true,
-  },
-  "vars": {
-    "APP_ENV": "dev",
-  },
-  "assets": {
-    "binding": "ASSETS",
-    "directory": ".open-next/assets",
-  },
-  "kv_namespaces": [
-    {
-      "binding": "NEXT_INC_CACHE_KV",
-      "id": "solstatus-local",
-    },
-  ],
+  "compatibility_date": "2026-07-21",
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "solstatus-local",
       "database_id": "solstatus-local",
-      "migrations_dir": "../../packages/common/src/db/migrations",
+      "migrations_dir": "../common/src/db/migrations",
     },
   ],
-  "services": [
-    {
-      "binding": "MONITOR_EXEC",
-      "service": "monitor-exec",
-    },
-    {
-      "binding": "MONITOR_TRIGGER_RPC",
-      "service": "monitor-trigger",
-    },
-  ],
-  "durable_objects": {
-    "bindings": [
-      {
-        "name": "MONITOR_TRIGGER",
-        "class_name": "MonitorTrigger",
-        "script_name": "api",
-      },
-    ],
-  },
   "env": {
     "prod": {
-      "routes": [
-        {
-          "pattern": "uptime.example.com",
-          "custom_domain": true,
-        },
-      ],
-      "vars": {
-        "APP_ENV": "prod",
-      },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "solstatus-prod",
-          "migrations_dir": "src/db/migrations",
+          "migrations_dir": "../common/src/db/migrations",
         },
       ],
-      "services": [
-        {
-          "binding": "MONITOR_EXEC",
-          "service": "solstatus-prod-monitor-exec",
-        },
-        {
-          "binding": "MONITOR_TRIGGER_RPC",
-          "service": "solstatus-prod-monitor-trigger",
-        },
-      ],
-      "durable_objects": {
-        "bindings": [
-          {
-            "name": "MONITOR_TRIGGER",
-            "class_name": "MonitorTrigger",
-            "script_name": "solstatus-prod-monitor-trigger",
-          },
-        ],
-      },
     },
   },
 }

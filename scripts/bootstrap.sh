@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-cp .dev.vars.example .dev.vars 2>/dev/null || true
+cp packages/infra/.dev.vars.example packages/infra/.dev.vars
 cp .env.example .env
 
 # Install dependencies
