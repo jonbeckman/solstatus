@@ -80,11 +80,6 @@ function mockApiPlugin(): Plugin {
           return
         }
 
-        if (req.method === "GET" && pathname === "/endpoint-monitors/count") {
-          send(monitors.length)
-          return
-        }
-
         if (req.method === "POST" && pathname === "/endpoint-monitors") {
           let raw = ""
           req.on("data", (chunk) => {
@@ -133,7 +128,7 @@ function mockApiPlugin(): Plugin {
             send([sampleCheck(id, 20), sampleCheck(id, 10), sampleCheck(id, 1)])
             return
           }
-          if (req.method === "GET" && (rest === "execute-check" || rest === "status")) {
+          if (req.method === "GET" && rest === "execute-check") {
             send({ message: "ok" })
             return
           }

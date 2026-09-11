@@ -1,12 +1,5 @@
 import { z } from "zod"
 
-/**
- * General params schemas
- */
-export const idNumParamsSchema = z.object({
-  id: z.number(),
-})
-
 export const idStringParamsSchema = z.object({
   id: z.string(),
 })
@@ -18,15 +11,3 @@ export const paginationQuerySchema = (orderBy = "createdAt", order: "asc" | "des
     orderBy: z.string().optional().default(orderBy),
     order: z.enum(["asc", "desc"]).optional().default(order),
   })
-
-/**
- * Specific query schemas
- */
-export const daysQuerySchema = (defaultDays = 1) =>
-  z.object({
-    days: z.coerce.number().optional().default(defaultDays),
-  })
-
-export const timeRangeQuerySchema = z.object({
-  timeRange: z.enum(["30m", "1h", "3h", "6h", "1d", "2d", "7d"]).optional().default("1d"),
-})

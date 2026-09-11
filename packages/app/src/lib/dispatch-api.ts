@@ -2,15 +2,10 @@ import { getWorkerEnv } from "@/lib/worker-env"
 import { auth } from "@/lib/auth"
 import * as endpointMonitors from "@/app/api/endpoint-monitors/route"
 import * as endpointMonitorById from "@/app/api/endpoint-monitors/[id]/route"
-import * as endpointMonitorCount from "@/app/api/endpoint-monitors/count/route"
 import * as endpointMonitorStats from "@/app/api/endpoint-monitors/stats/route"
-import * as endpointMonitorChecks from "@/app/api/endpoint-monitors/[id]/checks/route"
-import * as endpointMonitorChecksHistory from "@/app/api/endpoint-monitors/[id]/checks/history/route"
 import * as endpointMonitorExecuteCheck from "@/app/api/endpoint-monitors/[id]/execute-check/route"
-import * as endpointMonitorInitDo from "@/app/api/endpoint-monitors/[id]/init-do/route"
 import * as endpointMonitorPause from "@/app/api/endpoint-monitors/[id]/pause/route"
 import * as endpointMonitorResume from "@/app/api/endpoint-monitors/[id]/resume/route"
-import * as endpointMonitorStatus from "@/app/api/endpoint-monitors/[id]/status/route"
 import * as endpointMonitorUptime from "@/app/api/endpoint-monitors/[id]/uptime/route"
 import * as endpointMonitorUptimeLimit from "@/app/api/endpoint-monitors/[id]/uptime/limit/route"
 import * as endpointMonitorUptimeRange from "@/app/api/endpoint-monitors/[id]/uptime/range/route"
@@ -25,9 +20,6 @@ function matchRoute(
 ): { handlers: RouteModule; params: Record<string, string> } | null {
   if (pathname === "/api/endpoint-monitors") {
     return { handlers: endpointMonitors, params: {} }
-  }
-  if (pathname === "/api/endpoint-monitors/count") {
-    return { handlers: endpointMonitorCount, params: {} }
   }
   if (pathname === "/api/endpoint-monitors/stats") {
     return { handlers: endpointMonitorStats, params: {} }
@@ -45,26 +37,14 @@ function matchRoute(
   if (rest === "") {
     return { handlers: endpointMonitorById, params }
   }
-  if (rest === "checks") {
-    return { handlers: endpointMonitorChecks, params }
-  }
-  if (rest === "checks/history") {
-    return { handlers: endpointMonitorChecksHistory, params }
-  }
   if (rest === "execute-check") {
     return { handlers: endpointMonitorExecuteCheck, params }
-  }
-  if (rest === "init-do") {
-    return { handlers: endpointMonitorInitDo, params }
   }
   if (rest === "pause") {
     return { handlers: endpointMonitorPause, params }
   }
   if (rest === "resume") {
     return { handlers: endpointMonitorResume, params }
-  }
-  if (rest === "status") {
-    return { handlers: endpointMonitorStatus, params }
   }
   if (rest === "uptime") {
     return { handlers: endpointMonitorUptime, params }
