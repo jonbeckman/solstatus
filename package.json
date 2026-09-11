@@ -81,6 +81,7 @@
   },
   "overrides": {
     "@effect/platform-node": "4.0.0-beta.107",
+    "@effect/platform-node-shared": "4.0.0-beta.107",
     "@libsql/client": "0.17.4",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
