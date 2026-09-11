@@ -1,0 +1,46 @@
+core:changelogs:
+  - content: "---\npackages:\n  solstatus:\n    type: major\n  \"@solstatus/common\":\n    type: major\n  \"@solstatus/api\":\n    type: major\n  \"@solstatus/app\":\n    type: major\n  \"@solstatus/infra\":\n    type: major\n---\n\n## Align the published toolchain with Shared Project DNA\n\nPackage consumers now get Nub 0.4.11, TypeScript 7.0.2, Effect 4.0.0-beta.107,\nDrizzle ORM 1.0.0-rc.5, Zod 4.4.3, and Alchemy 2.0.0-beta.72. The dashboard is\nTanStack Start on Cloudflare instead of Next.js + OpenNext. The CLI stays on\nEffect 4 `effect/unstable/cli` because `@effect/cli` still peers Effect 3.\n\nInstall with `nub install`. The previous `pnpm` workspace, Biome lint/format\npath, and Next.js app entrypoints are gone.\n"
+    filename: 2026-08-27-shared-project-dna.md
+    v: 0.0.0
+  - content: "---\npackages:\n  solstatus:\n    type: patch\n  \"@solstatus/api\":\n    type: patch\n  \"@solstatus/infra\":\n    type: patch\n---\n\n## Reconcile Alchemy production deploy with leftover Wrangler\n\nProduction deploy is the Alchemy CLI (`nub run cli -- --stage prod`). Wrangler\nconfigs in `@solstatus/infra` are local D1 and local monitor-worker dev only;\nOpenNext worker keys and the unused `wrangler:gen` script are gone. `db:seed`\nreads the same `packages/infra/.wrangler` persist directory that\n`nub run dev:api` uses.\n"
+    filename: 2026-09-11-reconcile-alchemy-wrangler.md
+    v: 0.0.0
+  - content: "---\npackages:\n  \"@solstatus/api\":\n    type: major\n  \"@solstatus/common\":\n    type: major\n---\n\n## Remove unfinished synthetic monitor types\n\n`InitPayload` is endpoint-only. It no longer accepts `monitorType: \"synthetic\"`,\n`timeoutSeconds`, or `runtime`. `PRE_ID.syntheticMonitor` is removed. Endpoint\nmonitor init, alarm, pause, and resume are unchanged. App callers may keep\npassing `monitorType: \"endpoint\"`.\n"
+    filename: 2026-09-06-drop-synthetic-monitor.md
+    v: 0.0.0
+  - content: "---\npackages:\n  \"@solstatus/api\":\n    type: patch\n---\n\n## Keep monitor alarms running after a failed first check\n\nDurable Object alarm retries now reschedule the next check instead of\nreturning without an alarm. Unused monitor-exec response bodies are\ncancelled. Opsgenie down-alert details point at jonbeckman/solstatus.\nAlchemy binds OPSGENIE_API_KEY as a Worker secret.\n"
+    filename: 2026-09-06-worker-do-platform-hygiene.md
+    v: 0.0.0
+core:packages:
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+      - 2026-09-11-reconcile-alchemy-wrangler.md
+    id: npm:solstatus
+    updated: true
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+      - 2026-09-06-drop-synthetic-monitor.md
+      - 2026-09-06-worker-do-platform-hygiene.md
+      - 2026-09-11-reconcile-alchemy-wrangler.md
+    id: npm:@solstatus/api
+    updated: true
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+    id: npm:@solstatus/app
+    updated: true
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+      - 2026-09-06-drop-synthetic-monitor.md
+    id: npm:@solstatus/common
+    updated: true
+  - changelogIds:
+      - 2026-08-27-shared-project-dna.md
+      - 2026-09-11-reconcile-alchemy-wrangler.md
+    id: npm:@solstatus/infra
+    updated: true
+npm:packages:
+  - id: npm:solstatus
+  - id: npm:@solstatus/api
+  - id: npm:@solstatus/app
+  - id: npm:@solstatus/common
+  - id: npm:@solstatus/infra

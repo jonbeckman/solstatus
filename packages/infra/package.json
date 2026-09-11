@@ -1,6 +1,6 @@
 {
   "name": "@solstatus/infra",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Infrastructure configuration and deployment tools for SolStatus",
   "keywords": [
     "cloudflare",
