@@ -9,16 +9,6 @@ import { idStringParamsSchema, timeRangeQuerySchema } from "@/lib/route-schemas"
 import { getTimeRangeInMinutes } from "@/lib/uptime-utils"
 import type { TimeRange } from "@/types/endpointMonitor"
 
-/**
- * GET /api/endpoint-monitors/[id]/checks
- *
- * Retrieves uptime checks for a specific endpointMonitor within a given time range.
- *
- * @params {string} id - EndpointMonitor ID
- * @query {TimeRange} timeRange - Time range to filter results
- * @returns {Promise<NextResponse>} JSON response with uptime checks
- * @throws {NextResponse} 500 Internal Server Error on database errors
- */
 export const GET = createRoute
   .params(idStringParamsSchema)
   .query(timeRangeQuerySchema)

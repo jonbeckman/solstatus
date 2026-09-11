@@ -51,7 +51,6 @@ export function NavMain({
                             ? { target: "_blank", rel: "noopener noreferrer" }
                             : {})}
                         >
-                          {/* <a href={item.url} target={item.external ? "_blank" : undefined}> */}
                           {item.title} <item.icon className="ml-auto" />
                         </a>
                       </SidebarMenuSubButton>
@@ -61,15 +60,6 @@ export function NavMain({
               ) : null}
             </SidebarMenuItem>
           ))}
-
-          {/* {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))} */}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

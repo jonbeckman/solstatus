@@ -6,18 +6,6 @@ import { StatusCodes } from "http-status-codes"
 import { NextResponse } from "@/lib/http"
 import { createRoute } from "@/lib/api-utils"
 
-// TODO: re-enable this, but since we use createZodRoute this endpoint can't be rendered statically
-// Cache duration in seconds
-// export const revalidate = 120
-
-/**
- * GET /api/endpoint-monitors/stats
- *
- * Retrieves aggregate statistics for endpointMonitor monitoring dashboard.
- *
- * @returns {Promise<NextResponse>} JSON response with aggregate statistics
- * @throws {NextResponse} 500 Internal Server Error on database errors
- */
 export const GET = createRoute.handler(async (_request, _context) => {
   const { env } = getWorkerEnv()
   const db = useDrizzle(env.DB)

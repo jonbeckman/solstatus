@@ -14,16 +14,6 @@ const querySchema = z.object({
   range: z.enum(["30m", "1h", "3h", "6h", "1d", "2d", "7d"]).default("1h"),
 })
 
-/**
- * GET /api/endpoint-monitors/[id]/uptime/range
- *
- * Retrieves uptime data for a specific endpointMonitor within a given time range.
- *
- * @params {string} id - EndpointMonitor ID
- * @query {string} range - Time range ('30m', '1h', '3h', '6h', '1d', '2d', '7d', default: '1h')
- * @returns {Promise<NextResponse>} JSON response with uptime data
- * @throws {NextResponse} 500 Internal Server Error on database errors
- */
 export const GET = createRoute
   .params(idStringParamsSchema)
   .query(querySchema)

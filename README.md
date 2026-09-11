@@ -59,7 +59,7 @@ nub run db:setup
 This repo uses multiple workers, each split into their own workspace. To run everything together:
 
 ```sh
-# Start both the API (monitor workers) and the Next.js app
+# Start both the API (monitor workers) and the TanStack Start app
 nub run dev
 ```
 
@@ -69,7 +69,7 @@ If you need to run components separately:
 # Run just the API (includes both executor and trigger workers)
 nub run dev:api
 
-# Run just the Next.js app
+# Run just the TanStack Start app
 nub run dev:app
 
 # Run the API executor worker
@@ -88,7 +88,7 @@ nub run deploy:prod
 
 To deploy components separately:
 ```sh
-# Deploy just the Next.js app
+# Deploy just the TanStack Start app
 nub run deploy:prod:app
 
 # Deploy just the API workers

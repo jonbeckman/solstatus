@@ -8,14 +8,6 @@ import { NextResponse } from "@/lib/http"
 import { createRoute } from "@/lib/api-utils"
 import { idStringParamsSchema } from "@/lib/route-schemas"
 
-/**
- * POST /api/endpoint-monitors/[id]/init-do
- *
- * Initializes a new Monitor DO for a specific endpointMonitor.
- *
- * @params {string} id - Endpoint Monitor ID
- * @returns {Promise<NextResponse>} JSON response confirming the Monitor DO has been initialized
- */
 export const POST = createRoute.params(idStringParamsSchema).handler(async (_request, context) => {
   const { env } = getWorkerEnv()
   const db = useDrizzle(env.DB)

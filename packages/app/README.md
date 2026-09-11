@@ -1,12 +1,13 @@
 # @solstatus/app
 
 ## Overview
-Standard NextJS v15, shadcn, TailwindCSS v4, and Drizzle stack. Some other notable points:
+TanStack Start on Vite, with shadcn, TailwindCSS v4, and Drizzle. Some other notable points:
 - nub as package manager
 - oxlint and oxfmt as linter/formatter
 - zustand for state management
-- opennext with the CF adapter (not that it changes much)
-- OpenAPI support via scalar
+- Cloudflare Workers via TanStack Start (not Next.js or OpenNext)
+
+API handlers under `src/app/api/` are dispatched by `dispatchApi` from the TanStack Start server entry.
 
 ## Development
 

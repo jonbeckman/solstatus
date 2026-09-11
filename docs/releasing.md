@@ -5,7 +5,7 @@ This repository publishes five npm packages:
 - `solstatus` — CLI
 - `@solstatus/common` — shared schema and utilities
 - `@solstatus/api` — monitor workers
-- `@solstatus/app` — Next.js dashboard
+- `@solstatus/app` — TanStack Start dashboard
 - `@solstatus/infra` — Alchemy and Wrangler infrastructure
 
 [Tegami](https://tegami.fuma-nama.dev) prepares versions, updates
