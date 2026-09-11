@@ -6,17 +6,6 @@ import { NextResponse } from "@/lib/http"
 import { z } from "zod"
 import { createRoute } from "@/lib/api-utils"
 
-/**
- * GET /api/endpoint-monitors/count
- *
- * Retrieves the total count of endpointMonitors in the database, subject to optional search and filter parameters.
- *
- * @query {string} search - Optional search term to filter endpointMonitors
- * @query {string} isRunning - Optional filter by running status
- * @query {number} checkIntervalMin - Optional filter by minimum check interval
- * @query {number} checkIntervalMax - Optional filter by maximum check interval
- * @returns {Promise<NextResponse>} JSON response with the total count as a number
- */
 const querySchema = z.object({
   search: z.string().optional(),
   isRunning: z.string().optional(),

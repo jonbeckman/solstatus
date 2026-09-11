@@ -17,21 +17,6 @@ import { createRoute } from "@/lib/api-utils"
 import { paginationQuerySchema } from "@/lib/route-schemas"
 import type { ConflictEndpointMonitorResponse } from "@/types/endpointMonitor"
 
-/**
- * GET /api/endpoint-monitors
- *
- * Retrieves a paginated list of endpointMonitors with ordering options.
- *
- * @query {number} pageSize - Number of items per page
- * @query {number} page - Page number (zero-based)
- * @query {string} orderBy - Column to order by
- * @query {string} order - Order direction ('asc' or 'desc')
- * @query {string} search - Search term
- * @query {string} isRunning - Filter by running status
- * @query {number} checkIntervalMin - Minimum check interval
- * @query {number} checkIntervalMax - Maximum check interval
- * @returns {Promise<NextResponse>} JSON response with paginated endpointMonitors
- */
 const extendedQuerySchema = paginationQuerySchema().extend({
   search: z.string().optional(),
   isRunning: z.string().optional(),
@@ -100,15 +85,6 @@ export const GET = createRoute.query(extendedQuerySchema).handler(async (_reques
   })
 })
 
-/**
- * POST /api/endpoint-monitors
- *
- * Creates a new endpointMonitor entry. Checks for URL conflicts before creating.
- *
- * @body {websitesInsertDTOSchema} - Endpoint Monitor data to insert
- * @returns {Promise<NextResponse>} JSON response with created endpointMonitor or conflict error
- * @throws {NextResponse} 409 Conflict if a similar URL already exists
- */
 export const POST = createRoute
   .body(endpointMonitorsInsertDTOSchema)
   .handler(async (_request, context) => {

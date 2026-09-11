@@ -11,7 +11,6 @@ function setThemeCookie(theme: string) {
     return
   }
 
-  // biome-ignore lint/suspicious/noDocumentCookie: Should use nextjs lib, but we're migrating to RedwoodJS soon, so not worrying about this
   document.cookie = `${COOKIE_NAME}=${theme}; path=/; max-age=31536000; SameSite=Lax; ${window.location.protocol === "https:" ? "Secure;" : ""}`
 }
 

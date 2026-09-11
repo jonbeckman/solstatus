@@ -1,11 +1,6 @@
 ---
-description: 
-globs: 
-alwaysApply: false
----
----
 description: How to create rules for project features, including feature summaries and related files by usage type
-globs: 
+globs:
 alwaysApply: false
 ---
 # Project Feature Rule Creation
@@ -44,41 +39,4 @@ How to create new rules for project features in our project
     - Start with a summary of the feature
     - Include sections for related files grouped by usage type (e.g., routes, UI components and pages, DB schemas)
     - Provide examples of implementation or usage
-
-Example:
-```
----
-description: Guidelines for implementing and improving the user auth feature
-globs:
-alwaysApply: false
----
-# User Auth Feature Rule
-
-## Feature Summary
-The auth feature enables users to securely access their accounts in the application.
-It supports multiple authentication methods including email/password, OAuth, and two-factor authentication.
-It works by validating credentials and generating secure tokens for authorized sessions.
-It uses a combination of standard security protocols and custom validation rules.
-It uses both Cloudflare D1 SQLite (Drizzle) for persistent user data and Cloudflare KV for session management.
-We store short-lived session tokens in Cloudflare KV that expire after a few hours. This includes minimal user identifiers needed for authentication while keeping sensitive data in the secure database, balancing security with performance.
-Once authenticated, users receive a secure JWT token that's validated with each subsequent request to protected resources.
-
-## Related Files by Usage Type
-
-### Routes
-- `src/routes/auth.ts`: Defines login endpoints (e.g., POST /login)
-- `src/routes/index.ts`: Entry point registering auth routes
-
-### UI Components and Pages
-- `src/components/LoginForm.tsx`: Reusable login form component
-- `src/pages/LoginPage.tsx`: Main login page assembling the form and handling submission
-
-### DB Schemas
-- `src/db/schemas/users.ts`: User table schema with fields like email, password_hash, and role
-- `src/db/schemas/sessions.ts`: Session table for tracking active logins
-
-## Implementation Guidelines
-1. Use secure password hashing (e.g., bcrypt) in the backend
-2. Validate inputs on both client and server sides
-3. Handle errors with user-friendly messages
-```
+    - Cite only files that exist in this repository

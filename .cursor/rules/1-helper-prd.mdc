@@ -1,11 +1,6 @@
 ---
-description: 
-globs: 
-alwaysApply: false
----
----
 description: Guide for ideating new features and generating a PRD based on succinct feature statements and codebase context
-globs: 
+globs:
 alwaysApply: false
 ---
 # Feature Ideation and PRD Generation Rule
@@ -26,53 +21,8 @@ This rule helps transform basic feature statements into a fully-fledged Product 
 - **User Stories**: Example scenarios from the user’s perspective.
 - **Functional Requirements**: Specific capabilities the feature must have.
 - **Non-Functional Requirements**: Performance, security, and scalability needs.
-- **Technical Considerations**: Implementation approach, dependencies, and risks.
+- **Technical Considerations**: Implementation approach, dependencies, and risks. Cite only files that exist in this repository.
 - **Open Questions**: Areas needing clarification or additional input.
-
-## Example
-### Input
-"Add user profile customization"
-
-### Generated PRD
-```
-# User Profile Customization PRD
-
-## Feature Overview
-The user profile customization feature allows users to personalize their profiles with details such as display names, avatars, bios, and theme preferences, enhancing user engagement and identity within the application.
-
-## Goals and Objectives
-- Increase user retention by enabling personal expression.
-- Provide a seamless and secure way to update profile data.
-- Ensure compatibility with existing authentication and UI systems in `@codebase`.
-
-## User Stories
-- As a user, I want to upload an avatar so my profile feels unique.
-- As a user, I want to set a custom theme so the app matches my preferences.
-
-## Functional Requirements
-1. Users can edit their display name, bio, and avatar via a profile settings page.
-2. Support avatar uploads (e.g., JPEG/PNG, max 5MB).
-3. Allow selection of predefined themes (e.g., light, dark, custom colors).
-4. Save changes to the database and reflect them in real-time across the app.
-
-## Non-Functional Requirements
-- **Performance**: Profile updates should complete within 2 seconds.
-- **Security**: Validate and sanitize all user inputs; store avatars in a secure CDN (e.g., Cloudflare).
-- **Scalability**: Support up to 100,000 profile updates daily without degradation.
-
-## Technical Considerations
-- **Existing Codebase (@codebase)**:
-  - Leverage `src/db/schemas/users.ts` to extend the user schema with new fields (e.g., bio, avatar_url, theme).
-  - Reuse `src/routes/auth.ts` patterns for secure API endpoints (e.g., PATCH /profile).
-  - Integrate with `src/components/LoginForm.tsx` styling for a consistent UI in a new `ProfileSettings.tsx`.
-- **Dependencies**: Use a file upload library (e.g., multer) and Cloudflare CDN for avatar storage.
-- **Risks**: Ensure backward compatibility with existing user data; handle large avatar uploads gracefully.
-
-## Open Questions
-- Should users be allowed to preview themes before applying them?
-- Are there specific limits on bio length or content (e.g., no profanity)?
-- Does `@codebase` already include a CDN integration, or do we need to add one?
-```
 
 ## Guidelines for Best Practices
 1. **Modularity**: Design components and APIs to be reusable across features.

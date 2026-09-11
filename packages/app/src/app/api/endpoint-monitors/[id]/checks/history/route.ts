@@ -7,16 +7,6 @@ import { NextResponse } from "@/lib/http"
 import { createRoute } from "@/lib/api-utils"
 import { daysQuerySchema, idStringParamsSchema } from "@/lib/route-schemas"
 
-/**
- * GET /api/endpoint-monitors/[id]/checks/history
- *
- * Retrieves the history of uptime checks for a specific endpointMonitor within a given time period.
- *
- * @params {string} id - Endpoint Monitor ID
- * @query {number} days - Number of days to look back
- * @returns {Promise<NextResponse>} JSON response with uptime check history
- * @throws {NextResponse} 500 Internal Server Error on database errors
- */
 export const GET = createRoute
   .params(idStringParamsSchema)
   .query(daysQuerySchema())

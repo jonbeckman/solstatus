@@ -9,16 +9,6 @@ import type { z } from "zod"
 import { createRoute } from "@/lib/api-utils"
 import { idStringParamsSchema } from "@/lib/route-schemas"
 
-/**
- * GET /api/endpoint-monitors/[id]/uptime
- *
- * Get the latest uptime check for a endpointMonitor
- *
- * @params {string} id - EndpointMonitor ID
- * @returns {Promise<NextResponse>} JSON response with uptime percentage and period
- * @throws {NextResponse} 404 Not Found if no uptime checks found for the endpointMonitor
- * @throws {NextResponse} 500 Internal Server Error on database errors
- */
 export const GET = createRoute.params(idStringParamsSchema).handler(async (_request, context) => {
   const { env } = getWorkerEnv()
   const db = useDrizzle(env.DB)

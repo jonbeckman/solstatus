@@ -19,6 +19,6 @@ Use Plain Language in introductory, expository, friendly, and other sensible com
 
 ## Local Development
 
-- Use `nub run dev` from the repository root to start the API workers and the Next.js app together.
+- Use `nub run dev` from the repository root to start the API workers and the TanStack Start app together.
 - Copy `.env.example` to `.env` and `packages/infra/.dev.vars.example` to `packages/infra/.dev.vars` before local infra work.
 - Do not deploy production infrastructure from a cloud agent without explicit approval.

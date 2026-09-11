@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/suspicious/noDuplicateCustomProperties: this is intention with @variant */
-
 .theme-stone {
   --radius: 0.625rem;
   --background: oklch(1 0 0);

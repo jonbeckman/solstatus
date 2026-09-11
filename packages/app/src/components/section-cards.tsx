@@ -22,22 +22,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/registry/new-york-v4/ui/card"
-import { useStatsStore } from "@/store/dashboard-stats-store" // Corrected import path if necessary
+import { useStatsStore } from "@/store/dashboard-stats-store"
 
 export function SectionCards() {
-  // Select the state directly
   const statsStore = useStatsStore()
 
-  // Destructure the needed values from the state object
   const { stats, isLoading, error, fetchDashboardStats } = statsStore
 
-  // Fetch stats on component mount
   useEffect(() => {
     fetchDashboardStats()
-    // Set up interval if needed
     const intervalId = setInterval(fetchDashboardStats, 60 * 1000)
     return () => clearInterval(intervalId)
-  }, [fetchDashboardStats]) // Dependency array is correct
+  }, [fetchDashboardStats])
 
   if (isLoading && !stats) {
     return (

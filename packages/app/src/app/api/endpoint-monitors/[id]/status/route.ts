@@ -7,14 +7,6 @@ import { NextResponse } from "@/lib/http"
 import { createRoute } from "@/lib/api-utils"
 import { idStringParamsSchema } from "@/lib/route-schemas"
 
-/**
- * GET /api/endpoint-monitors/[id]/status
- *
- * Retrieves the current monitoring status of a specific endpointMonitor.
- *
- * @params {string} id - Endpoint Monitor ID
- * @returns {Promise<NextResponse>} JSON response with the endpointMonitor's running status
- */
 export const GET = createRoute.params(idStringParamsSchema).handler(async (_request, context) => {
   const { env } = getWorkerEnv()
   const db = useDrizzle(env.DB)

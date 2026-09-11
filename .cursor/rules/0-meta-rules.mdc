@@ -16,7 +16,7 @@ To get help on how to use this meta rule in Cursor, reference the rule by starti
 
 To use this meta rule in Cursor to create a new rule or update a new rule, reference it like above and add context for the rule. For example:
 ```
-@0-meta-rules.mdc create a api-routes.mdc rule for how routes should be created based our current project usage. Be sure to include schema validation, stoker usage, cloudflare context, createRoute util, JSDoc for OpenAPI, error handling, caching behavior if needed, tools and frameworks to use, and any other common patterns you notice.
+@0-meta-rules.mdc create a api-routes.mdc rule for how routes should be created based our current project usage. Be sure to include schema validation, cloudflare context, createRoute util, error handling, tools and frameworks to use, and any other common patterns you notice.
 ```
 
 This command will:

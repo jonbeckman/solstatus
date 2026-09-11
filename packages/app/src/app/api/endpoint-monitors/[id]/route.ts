@@ -13,16 +13,6 @@ import type { z } from "zod"
 import { createRoute } from "@/lib/api-utils"
 import { idStringParamsSchema } from "@/lib/route-schemas"
 
-/**
- * GET /api/endpoint-monitors/[id]
- *
- * Retrieves a specific endpointMonitor by ID.
- *
- * @params {string} id - Endpoint Monitor ID
- * @returns {Promise<NextResponse>} JSON response with endpointMonitor data
- * @throws {NextResponse} 404 Not Found if endpointMonitor doesn't exist
- * @throws {NextResponse} 500 Internal Server Error on database errors
- */
 export const GET = createRoute.params(idStringParamsSchema).handler(async (_request, context) => {
   const { env } = getWorkerEnv()
   const db = useDrizzle(env.DB)
@@ -36,7 +26,6 @@ export const GET = createRoute.params(idStringParamsSchema).handler(async (_requ
       .then((rows) => rows[0])
   } catch (error) {
     console.error("Error fetching endpointMonitor: ", error)
-    // TODO: Use HttpStatusCodes.INTERNAL_SERVER_ERROR
     return NextResponse.json(
       { error: "Failed to fetch endpointMonitor" },
       { status: StatusCodes.INTERNAL_SERVER_ERROR },
@@ -53,17 +42,6 @@ export const GET = createRoute.params(idStringParamsSchema).handler(async (_requ
   return NextResponse.json(endpointMonitor)
 })
 
-/**
- * PATCH /api/endpoint-monitors/[id]
- *
- * Updates a specific endpointMonitor by ID with partial data.
- *
- * @params {string} id - Endpoint Monitor ID
- * @body {websitesPatchSchema} - Partial endpointMonitor data to update
- * @returns {Promise<NextResponse>} JSON response with updated endpointMonitor
- * @throws {NextResponse} 404 Not Found if endpointMonitor doesn't exist
- * @throws {NextResponse} 500 Internal Server Error on database errors
- */
 export const PATCH = createRoute
   .params(idStringParamsSchema)
   .body(endpointMonitorsPatchSchema)
@@ -108,15 +86,6 @@ export const PATCH = createRoute
     return NextResponse.json(updatedWebsite, { status: StatusCodes.OK })
   })
 
-/**
- * DELETE /api/endpoint-monitors/[id]
- *
- * Deletes a specific endpointMonitor by ID and its associated monitor.
- *
- * @params {string} id - Endpoint Monitor ID
- * @returns {Promise<NextResponse>} Empty response with 204 No Content status
- * @throws {NextResponse} 500 Internal Server Error on database errors
- */
 export const DELETE = createRoute
   .params(idStringParamsSchema)
   .handler(async (_request, context) => {

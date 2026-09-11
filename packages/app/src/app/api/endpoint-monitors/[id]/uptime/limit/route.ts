@@ -13,16 +13,6 @@ const querySchema = z.object({
   limit: z.coerce.number().optional().default(30),
 })
 
-/**
- * GET /api/endpoint-monitors/[id]/uptime/limit
- *
- * Retrieves uptime limit data for a specific endpointMonitor.
- *
- * @params {string} id - EndpointMonitor ID
- * @query {number} limit - Maximum number of data points to return (default: 30)
- * @returns {Promise<NextResponse>} JSON response with uptime limit data in chronological order
- * @throws {NextResponse} 500 Internal Server Error on database errors
- */
 export const GET = createRoute
   .params(idStringParamsSchema)
   .query(querySchema)
