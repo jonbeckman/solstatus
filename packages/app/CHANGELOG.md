@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.1.1](https://github.com/unibeck/solstatus/compare/@solstatus/app@v2.1.0...@solstatus/app@v2.1.1) (2025-09-08)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @solstatus/api bumped to 2.1.0
+
 ## [2.1.0](https://github.com/unibeck/solstatus/compare/@solstatus/app@v2.0.0...@solstatus/app@v2.1.0) (2025-07-09)
 
 
