@@ -1,5 +1,3 @@
-"use client"
-
 import { Skeleton } from "@/registry/new-york-v4/ui/skeleton"
 import {
   Table,

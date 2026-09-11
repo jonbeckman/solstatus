@@ -1,9 +1,7 @@
-"use client"
-
 import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import { IconChevronDown, IconLayoutColumns, IconSearch, IconX } from "@tabler/icons-react"
 import type { Table } from "@tanstack/react-table"
-import { usePathname, useRouter, useSearchParams } from "@/lib/navigation"
+import { useLocation, useNavigate } from "@tanstack/react-router"
 import type * as React from "react"
 import { useDebouncedCallback } from "use-debounce"
 import type { z } from "zod"
@@ -26,9 +24,12 @@ interface ToolbarProps {
 export function Toolbar({ table }: ToolbarProps) {
   "use no memo"
 
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const navigate = useNavigate()
+  const pathname = useLocation({ select: (location) => location.pathname })
+  const searchStr = useLocation({ select: (location) => location.searchStr })
+  const searchParams = new URLSearchParams(
+    searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
+  )
 
   // Get state and actions from the store
   const searchValue = useDataTableStore((state) => state.searchValue)
@@ -68,8 +69,7 @@ export function Toolbar({ table }: ToolbarProps) {
     const queryString = newParams.toString()
     const newUrl = queryString ? `${pathname}?${queryString}` : pathname
 
-    // @ts-ignore - Ignoring type error as pathname comes from usePathname and we know it's is a valid typed route
-    router.push(newUrl, { scroll: false })
+    void navigate({ href: newUrl })
   }
 
   // Update search value

@@ -1,5 +1,3 @@
-"use client"
-
 import { toast } from "sonner"
 import { DEFAULT_TOAST_OPTIONS } from "@/lib/toasts"
 

@@ -1,7 +1,5 @@
 // https://github.com/list-jonas/shadcn-ui-animated-tabs/blob/main/registry/animated-tabs/animated-tabs.tsx
 
-"use client"
-
 import { Content, List, Root, Trigger } from "@radix-ui/react-tabs"
 import React, { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"

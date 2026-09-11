@@ -1,5 +1,3 @@
-"use client"
-
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react"
 import { useHeaderContext } from "@/context/header-context"
 

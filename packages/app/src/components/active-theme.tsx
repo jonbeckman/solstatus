@@ -1,5 +1,3 @@
-"use client"
-
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react"
 
 import { siteConfig } from "@/lib/site"

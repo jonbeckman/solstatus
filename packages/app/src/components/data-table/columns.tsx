@@ -1,5 +1,3 @@
-"use client"
-
 import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import { secsToHumanReadable } from "@solstatus/common/utils"
 import { IconBellExclamation, IconLayoutSidebarRightExpand } from "@tabler/icons-react"

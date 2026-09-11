@@ -1,5 +1,3 @@
-"use client"
-
 import {
   IconAppWindow,
   IconBell,
@@ -13,7 +11,6 @@ import {
   IconSparkles,
   IconTargetArrow,
 } from "@tabler/icons-react"
-import Image from "@/lib/image"
 import { useTheme } from "next-themes"
 import type * as React from "react"
 import { useState } from "react"
@@ -125,13 +122,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 onMouseLeave={() => setIsHovered(false)}
               >
                 {isHovered ? (
-                  <Image
+                  <img
                     src={gifSrc}
                     alt="SolStatus Animated Logo"
                     width={32}
                     height={32}
                     className="!size-8"
-                    priority={false}
                   />
                 ) : (
                   <SolStatusLogo className="!size-8 fill-black dark:fill-white" />

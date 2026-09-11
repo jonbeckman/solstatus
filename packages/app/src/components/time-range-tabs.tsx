@@ -1,5 +1,3 @@
-"use client"
-
 import { Tabs, TabsList, TabsTrigger } from "@/components/animated-tabs"
 import type { TimeRange } from "@/types/endpointMonitor"
 

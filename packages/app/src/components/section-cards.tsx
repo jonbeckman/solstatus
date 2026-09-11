@@ -1,5 +1,3 @@
-"use client"
-
 import { msToHumanReadable } from "@solstatus/common/utils"
 import {
   IconActivityHeartbeat,

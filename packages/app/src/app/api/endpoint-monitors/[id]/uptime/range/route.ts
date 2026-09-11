@@ -5,7 +5,6 @@ import { UptimeChecksTable } from "@solstatus/common/db/schema"
 import { subDays, subHours, subMinutes, subWeeks } from "date-fns"
 import { and, eq, gt } from "drizzle-orm"
 import { StatusCodes } from "http-status-codes"
-import { NextResponse } from "@/lib/http"
 import { z } from "zod"
 import { createRoute } from "@/lib/api-utils"
 import { idStringParamsSchema } from "@/lib/route-schemas"
@@ -14,6 +13,16 @@ const querySchema = z.object({
   range: z.enum(["30m", "1h", "3h", "6h", "1d", "2d", "7d"]).default("1h"),
 })
 
+/**
+ * GET /api/endpoint-monitors/[id]/uptime/range
+ *
+ * Retrieves uptime data for a specific endpointMonitor within a given time range.
+ *
+ * @params {string} id - EndpointMonitor ID
+ * @query {string} range - Time range ('30m', '1h', '3h', '6h', '1d', '2d', '7d', default: '1h')
+ * @returns {Promise<Response>} JSON response with uptime data
+ * @throws {Response} 500 Internal Server Error on database errors
+ */
 export const GET = createRoute
   .params(idStringParamsSchema)
   .query(querySchema)
@@ -67,10 +76,10 @@ export const GET = createRoute
       console.log(
         `Uptime checks in range [${range}] for endpointMonitor [${endpointMonitorId}]: ${results.length}`,
       )
-      return NextResponse.json(results, { status: StatusCodes.OK })
+      return Response.json(results, { status: StatusCodes.OK })
     } catch (error) {
       console.error("Error fetching uptime data: ", error)
-      return NextResponse.json(
+      return Response.json(
         { error: "Failed to fetch uptime data" },
         { status: StatusCodes.INTERNAL_SERVER_ERROR },
       )

@@ -1,5 +1,4 @@
 // @ts-nocheck -- recharts 2 class components are not valid JSX under React 19 types
-"use client"
 
 import type { uptimeChecksSelectSchema } from "@solstatus/common/db"
 import {

@@ -1,5 +1,3 @@
-"use client"
-
 import type { endpointMonitorsSelectSchema, uptimeChecksSelectSchema } from "@solstatus/common/db"
 import { msToHumanReadable, secsToHumanReadable } from "@solstatus/common/utils"
 import {

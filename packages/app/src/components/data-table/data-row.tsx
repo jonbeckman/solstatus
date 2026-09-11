@@ -1,5 +1,3 @@
-"use client"
-
 import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import type { Row } from "@tanstack/react-table"
 import { flexRender } from "@tanstack/react-table"

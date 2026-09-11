@@ -1,5 +1,3 @@
-"use client"
-
 import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import { msToHumanReadable } from "@solstatus/common/utils"
 import {

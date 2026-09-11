@@ -5,10 +5,17 @@ import { EndpointMonitorsTable } from "@solstatus/common/db/schema"
 import { getErrorMessage, MonitorTriggerNotInitializedError } from "@solstatus/common/utils"
 import { eq } from "drizzle-orm"
 import { StatusCodes } from "http-status-codes"
-import { NextResponse } from "@/lib/http"
 import { createRoute } from "@/lib/api-utils"
 import { idStringParamsSchema } from "@/lib/route-schemas"
 
+/**
+ * POST /api/endpoint-monitors/[id]/resume
+ *
+ * Resumes monitoring for a specific endpointMonitor.
+ *
+ * @params {string} id - Endpoint Monitor ID
+ * @returns {Promise<Response>} JSON response confirming the monitoring has been resumed
+ */
 export const POST = createRoute.params(idStringParamsSchema).handler(async (_request, context) => {
   const { env } = getWorkerEnv()
   const db = useDrizzle(env.DB)
@@ -40,5 +47,5 @@ export const POST = createRoute.params(idStringParamsSchema).handler(async (_req
     }
   }
 
-  return NextResponse.json({ message: "Resumed Monitor DO" }, { status: StatusCodes.OK })
+  return Response.json({ message: "Resumed Monitor DO" }, { status: StatusCodes.OK })
 })

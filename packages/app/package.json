@@ -24,8 +24,7 @@
     "infra",
     "public",
     "README.md",
-    "vite.config.ts",
-    "tailwind.config.ts"
+    "vite.config.ts"
   ],
   "type": "module",
   "exports": {

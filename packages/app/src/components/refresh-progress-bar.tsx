@@ -1,5 +1,3 @@
-"use client"
-
 import { IconSettings } from "@tabler/icons-react"
 import { memo, useState } from "react"
 import { type RefreshInterval, useHeaderContext } from "@/context/header-context"

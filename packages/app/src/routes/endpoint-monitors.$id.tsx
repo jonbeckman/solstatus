@@ -1,10 +1,8 @@
 import type { endpointMonitorsSelectSchema, uptimeChecksSelectSchema } from "@solstatus/common/db"
 import { msToHumanReadable, secsToHumanReadable } from "@solstatus/common/utils"
 import { IconPointFilled } from "@tabler/icons-react"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link, useLocation, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
-import Link from "@/lib/link"
-import { useRouter, useSearchParams } from "@/lib/navigation"
 import { startTransition, useCallback, useDeferredValue, useEffect, useRef, useState } from "react"
 import type { z } from "zod"
 import { PolkaDots } from "@/components/bg-patterns/polka-dots"
@@ -64,9 +62,12 @@ export const Route = createFileRoute("/endpoint-monitors/$id")({
 
 function EndpointMonitorDetailPage() {
   const { id: endpointMonitorId } = Route.useParams()
-  const router = useRouter()
+  const navigate = useNavigate()
   const { setHeaderLeftContent, setHeaderRightContent } = useHeaderContentOnly()
-  const searchParams = useSearchParams()
+  const searchStr = useLocation({ select: (location) => location.searchStr })
+  const searchParams = new URLSearchParams(
+    searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
+  )
   const { isEditEndpointMonitorDialogOpen } = useDialogStore()
 
   const [endpointMonitor, setEndpointMonitor] = useState<z.infer<
@@ -105,7 +106,7 @@ function EndpointMonitorDetailPage() {
       const response = await fetch(`/api/endpoint-monitors/${endpointMonitorId}`)
       if (!response.ok) {
         if (response.status === 404) {
-          router.push("/")
+          void navigate({ href: "/" })
           return
         }
         throw new Error(`Failed to fetch endpointMonitor: ${response.statusText}`)
@@ -125,7 +126,7 @@ function EndpointMonitorDetailPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [endpointMonitorId, router, searchParams])
+  }, [endpointMonitorId, navigate, searchParams])
 
   const fetchUptimeData = useCallback(async () => {
     if (!endpointMonitorId) {
@@ -323,7 +324,7 @@ function EndpointMonitorDetailPage() {
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center mb-6">
           <Button variant="ghost" size="sm" asChild className="mr-4">
-            <Link href="/">
+            <Link to="/">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
             </Link>
@@ -363,7 +364,7 @@ function EndpointMonitorDetailPage() {
                     newTimeRange === "1d"
                       ? `/endpoint-monitors/${endpointMonitorId}`
                       : `/endpoint-monitors/${endpointMonitorId}?range=${newTimeRange}`
-                  router.push(newPath, { scroll: false })
+                  void navigate({ href: newPath })
 
                   // Clear transitioning state after a delay
                   setTimeout(() => {

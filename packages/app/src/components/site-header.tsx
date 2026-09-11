@@ -1,5 +1,3 @@
-"use client"
-
 import { RefreshProgressBar } from "@/components/refresh-progress-bar"
 import { useHeaderContentOnly } from "@/context/header-context"
 import { Separator } from "@/registry/new-york-v4/ui/separator"

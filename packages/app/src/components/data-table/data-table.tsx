@@ -1,4 +1,3 @@
-"use client"
 import {
   type ColumnFiltersState,
   flexRender,
@@ -15,7 +14,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { usePathname, useRouter, useSearchParams } from "@/lib/navigation"
+import { useLocation, useNavigate } from "@tanstack/react-router"
 import React from "react"
 import {
   Table,
@@ -41,9 +40,12 @@ const DEFAULT_PAGE_SIZE = 10
 export function DataTable() {
   "use no memo"
 
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const navigate = useNavigate()
+  const pathname = useLocation({ select: (location) => location.pathname })
+  const searchStr = useLocation({ select: (location) => location.searchStr })
+  const searchParams = new URLSearchParams(
+    searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
+  )
 
   // Get state and actions from the store
   const data = useDataTableStore((state) => state.data)
@@ -125,10 +127,9 @@ export function DataTable() {
       const queryString = newParams.toString()
       const newUrl = queryString ? `${pathname}?${queryString}` : pathname
 
-      // @ts-ignore - Ignoring type error as pathname comes from usePathname and we know it's is a valid typed route
-      router.push(newUrl, { scroll: false })
+      void navigate({ href: newUrl })
     },
-    [pathname, searchParams, router],
+    [pathname, searchParams, navigate],
   )
 
   // Handle state changes with proper typing

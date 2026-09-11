@@ -1,5 +1,3 @@
-"use client"
-
 import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import type { InfraMetadata } from "@solstatus/common/utils/types"
 import { IconActivity, IconLogs, IconMetronome, IconPencil } from "@tabler/icons-react"
