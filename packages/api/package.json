@@ -47,7 +47,7 @@
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "drizzle-seed": "1.0.0-rc.5-ab785fc",
     "http-status-codes": "^2.3.0",
-    "zod": "4.5.4"
+    "zod": "4.6.2"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
