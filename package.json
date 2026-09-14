@@ -57,7 +57,7 @@
     "types:each": "nub run --filter '@solstatus/common' types && nub run --filter '@solstatus/api' types && nub run --filter '@solstatus/app' types && nub run --filter '@solstatus/infra' types"
   },
   "dependencies": {
-    "@effect/platform-node": "4.0.0-beta.107",
+    "@effect/platform-node": "4.0.0-rc.114",
     "@solstatus/infra": "workspace:*",
     "alchemy": "2.0.0-beta.72",
     "dotenv": "16.5.0",
@@ -80,7 +80,7 @@
     "wrangler": "^4.22.0"
   },
   "overrides": {
-    "@effect/platform-node": "4.0.0-beta.107",
+    "@effect/platform-node": "4.0.0-rc.114",
     "@effect/platform-node-shared": "4.0.0-beta.107",
     "@libsql/client": "0.17.4",
     "@types/react": "19.2.18",
