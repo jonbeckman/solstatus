@@ -50,7 +50,7 @@
     "zod": "4.5.4"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250702.0",
+    "@cloudflare/workers-types": "^5.20260911.1",
     "@types/node": "^24.12.4",
     "alchemy": "2.0.0-beta.72",
     "concurrently": "^9.2.0",
