@@ -64,7 +64,7 @@
     "effect": "4.0.0-beta.107"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250702.0",
+    "@cloudflare/workers-types": "^5.20260911.1",
     "@mpsuesser/oxlint-plugin-effect": "0.2.2",
     "@oxlint/plugins": "1.81.0",
     "@types/node": "^24.12.4",

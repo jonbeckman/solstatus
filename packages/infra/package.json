@@ -56,7 +56,7 @@
     "alchemy": "2.0.0-beta.72"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250702.0",
+    "@cloudflare/workers-types": "^5.20260911.1",
     "@libsql/client": "0.17.4",
     "@types/node": "^24.12.4",
     "dotenv": "16.5.0",
