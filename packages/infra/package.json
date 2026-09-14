@@ -64,7 +64,7 @@
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "drizzle-seed": "1.0.0-rc.5-ab785fc",
     "typescript": "7.0.2",
-    "wrangler": "^4.22.0",
+    "wrangler": "^4.131.0",
     "zod": "4.5.4"
   }
 }
