@@ -77,7 +77,7 @@
     "typescript": "7.0.2",
     "vitest": "^3.2.7",
     "wait-on": "^8.0.3",
-    "wrangler": "^4.22.0"
+    "wrangler": "^4.131.0"
   },
   "overrides": {
     "@effect/platform-node": "4.0.0-beta.107",

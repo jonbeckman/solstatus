@@ -92,6 +92,6 @@
     "dotenv": "16.5.0",
     "tsx": "^4.20.3",
     "typescript": "7.0.2",
-    "wrangler": "^4.22.0"
+    "wrangler": "^4.131.0"
   }
 }
