@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useEffect, useState } from "react"
+import { createContext, type ReactNode, useEffect, useState } from "react"
 
 import { siteConfig } from "@/lib/site"
 
@@ -49,12 +49,4 @@ export function ActiveThemeProvider({
       {children}
     </ThemeContext.Provider>
   )
-}
-
-export function useThemeConfig() {
-  const context = useContext(ThemeContext)
-  if (context === undefined) {
-    throw new Error("useThemeConfig must be used within an ActiveThemeProvider")
-  }
-  return context
 }
