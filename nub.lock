@@ -90,9 +90,6 @@ importers:
       drizzle-orm:
         specifier: 1.0.0-rc.5-ab785fc
         version: 1.0.0-rc.5-ab785fc(@cloudflare/workers-types@4.20260702.1)(@effect/sql-d1@4.0.0-rc.113(effect@4.0.0-beta.107))(@effect/sql-sqlite-do@4.0.0-rc.113(effect@4.0.0-beta.107))(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.4)(effect@4.0.0-beta.107)(valibot@1.2.0(typescript@7.0.2))(zod@4.5.4)
-      drizzle-seed:
-        specifier: 1.0.0-rc.5-ab785fc
-        version: 1.0.0-rc.5-ab785fc(drizzle-orm@1.0.0-rc.5-ab785fc(@cloudflare/workers-types@4.20260702.1)(@effect/sql-d1@4.0.0-rc.113(effect@4.0.0-beta.107))(@effect/sql-sqlite-do@4.0.0-rc.113(effect@4.0.0-beta.107))(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.4)(effect@4.0.0-beta.107)(valibot@1.2.0(typescript@7.0.2))(zod@4.5.4))
       http-status-codes:
         specifier: ^2.3.0
         version: 2.3.0
@@ -112,9 +109,6 @@ importers:
       concurrently:
         specifier: ^9.2.0
         version: 9.2.4
-      drizzle-kit:
-        specifier: 1.0.0-rc.5-ab785fc
-        version: 1.0.0-rc.5-ab785fc
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -193,9 +187,6 @@ importers:
       drizzle-orm:
         specifier: 1.0.0-rc.5-ab785fc
         version: 1.0.0-rc.5-ab785fc(@cloudflare/workers-types@4.20260702.1)(@effect/sql-d1@4.0.0-rc.113(effect@4.0.0-beta.107))(@effect/sql-sqlite-do@4.0.0-rc.113(effect@4.0.0-beta.107))(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.4)(effect@4.0.0-beta.107)(valibot@1.2.0(typescript@7.0.2))(zod@4.5.4)
-      drizzle-seed:
-        specifier: 1.0.0-rc.5-ab785fc
-        version: 1.0.0-rc.5-ab785fc(drizzle-orm@1.0.0-rc.5-ab785fc(@cloudflare/workers-types@4.20260702.1)(@effect/sql-d1@4.0.0-rc.113(effect@4.0.0-beta.107))(@effect/sql-sqlite-do@4.0.0-rc.113(effect@4.0.0-beta.107))(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.4)(effect@4.0.0-beta.107)(valibot@1.2.0(typescript@7.0.2))(zod@4.5.4))
       http-status-codes:
         specifier: ^2.3.0
         version: 2.3.0
@@ -269,12 +260,6 @@ importers:
       alchemy:
         specifier: 2.0.0-beta.72
         version: 2.0.0-beta.72(@effect/platform-node@4.0.0-beta.107(effect@4.0.0-beta.107)(ioredis@5.11.1))(@types/react@19.2.18)(drizzle-kit@1.0.0-rc.5-ab785fc)(drizzle-orm@1.0.0-rc.5-ab785fc(@cloudflare/workers-types@4.20260702.1)(@effect/sql-d1@4.0.0-rc.113(effect@4.0.0-beta.107))(@effect/sql-sqlite-do@4.0.0-rc.113(effect@4.0.0-beta.107))(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.4)(effect@4.0.0-beta.107)(valibot@1.2.0(typescript@7.0.2))(zod@4.5.4))(effect@4.0.0-beta.107)(vite@8.3.0(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))(vitest@3.2.7(@types/node@24.13.4))(ws@8.21.3)
-      dotenv:
-        specifier: 16.5.0
-        version: 16.5.0
-      tsx:
-        specifier: ^4.20.3
-        version: 4.23.13
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -290,9 +275,6 @@ importers:
       drizzle-orm:
         specifier: 1.0.0-rc.5-ab785fc
         version: 1.0.0-rc.5-ab785fc(@cloudflare/workers-types@4.20260702.1)(@effect/sql-d1@4.0.0-rc.113(effect@4.0.0-beta.107))(@effect/sql-sqlite-do@4.0.0-rc.113(effect@4.0.0-beta.107))(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.4)(effect@4.0.0-beta.107)(valibot@1.2.0(typescript@7.0.2))(zod@4.5.4)
-      drizzle-seed:
-        specifier: 1.0.0-rc.5-ab785fc
-        version: 1.0.0-rc.5-ab785fc(drizzle-orm@1.0.0-rc.5-ab785fc(@cloudflare/workers-types@4.20260702.1)(@effect/sql-d1@4.0.0-rc.113(effect@4.0.0-beta.107))(@effect/sql-sqlite-do@4.0.0-rc.113(effect@4.0.0-beta.107))(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.4)(effect@4.0.0-beta.107)(valibot@1.2.0(typescript@7.0.2))(zod@4.5.4))
       nanoid:
         specifier: ^5.1.5
         version: 5.1.16
