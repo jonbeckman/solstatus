@@ -11,7 +11,6 @@ const __dirname = dirname(__filename)
 
 export function createApi(
   resPrefix: string,
-  stage: string,
   db: DBResource,
   cloudflareAccountId: string,
 ) {
@@ -21,7 +20,7 @@ export function createApi(
       monitorExecName: `${resPrefix}-monitor-exec`,
       monitorTriggerName: `${resPrefix}-monitor-trigger`,
     }
-    const monitorExecWorker = yield* createMonitorExecWorker(infraMetadata, stage, db)
+    const monitorExecWorker = yield* createMonitorExecWorker(infraMetadata, db)
     const monitorTriggerWorker = yield* createMonitorTriggerWorker(
       infraMetadata,
       db,
@@ -34,11 +33,7 @@ export function createApi(
   })
 }
 
-export function createMonitorExecWorker(
-  infraMetadata: InfraMetadata,
-  stage: string,
-  db: DBResource,
-) {
+export function createMonitorExecWorker(infraMetadata: InfraMetadata, db: DBResource) {
   const entrypoint = resolve(__dirname, "../src/monitor-exec.ts")
   return Cloudflare.Worker("monitor-exec", {
     name: infraMetadata.monitorExecName,
@@ -53,7 +48,6 @@ export function createMonitorExecWorker(
     env: {
       DB: db,
       OPSGENIE_API_KEY: Redacted.make(process.env.OPSGENIE_API_KEY || ""),
-      APP_ENV: stage,
       MONITOR_EXEC_NAME: infraMetadata.monitorExecName,
       MONITOR_TRIGGER_NAME: infraMetadata.monitorTriggerName,
       CLOUDFLARE_ACCOUNT_ID: infraMetadata.cloudflareAccountId,
@@ -84,9 +78,6 @@ export function createMonitorTriggerWorker(
       DB: db,
       MONITOR_EXEC: monitorExecWorker,
       MONITOR_TRIGGER: monitorTriggerDo,
-      MONITOR_EXEC_NAME: infraMetadata.monitorExecName,
-      MONITOR_TRIGGER_NAME: infraMetadata.monitorTriggerName,
-      CLOUDFLARE_ACCOUNT_ID: infraMetadata.cloudflareAccountId,
     },
   })
 }

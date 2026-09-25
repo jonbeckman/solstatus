@@ -5,7 +5,7 @@ import { endpointSignature } from "@solstatus/common/utils"
 import { eq } from "drizzle-orm"
 import { ReasonPhrases, StatusCodes } from "http-status-codes"
 import type { MonitorExecEnv } from "../infra/types/env"
-import { handleFailureTracking, sendAlert } from "./utils/error-tracking"
+import { handleFailureTracking } from "./utils/error-tracking"
 
 export default class MonitorExec extends WorkerEntrypoint<MonitorExecEnv> {
   // export default class MonitorExec extends WorkerEntrypoint {
@@ -96,21 +96,5 @@ export default class MonitorExec extends WorkerEntrypoint<MonitorExecEnv> {
       db,
       this.env,
     )
-  }
-
-  async testSendAlert(endpointMonitorId: string, status: number, errorMessage: string) {
-    console.log(this.env.APP_ENV)
-    const db = useDrizzle(this.env.DB)
-
-    const endpointMonitor = await db
-      .select()
-      .from(EndpointMonitorsTable)
-      .where(eq(EndpointMonitorsTable.id, endpointMonitorId))
-      .then(takeFirstOrNull)
-    if (!endpointMonitor) {
-      throw new Error(`EndpointMonitor [${endpointMonitorId}] does not exist`)
-    }
-
-    await sendAlert(status, errorMessage, endpointMonitor, this.env)
   }
 }
