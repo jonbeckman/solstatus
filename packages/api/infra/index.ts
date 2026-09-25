@@ -9,14 +9,19 @@ import * as Redacted from "effect/Redacted"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-export function createApi(resPrefix: string, db: DBResource, cloudflareAccountId: string) {
+export function createApi(
+  resPrefix: string,
+  stage: string,
+  db: DBResource,
+  cloudflareAccountId: string,
+) {
   return Effect.gen(function* () {
     const infraMetadata = {
       cloudflareAccountId,
       monitorExecName: `${resPrefix}-monitor-exec`,
       monitorTriggerName: `${resPrefix}-monitor-trigger`,
     }
-    const monitorExecWorker = yield* createMonitorExecWorker(infraMetadata, db)
+    const monitorExecWorker = yield* createMonitorExecWorker(infraMetadata, stage, db)
     const monitorTriggerWorker = yield* createMonitorTriggerWorker(
       infraMetadata,
       db,
@@ -29,7 +34,11 @@ export function createApi(resPrefix: string, db: DBResource, cloudflareAccountId
   })
 }
 
-export function createMonitorExecWorker(infraMetadata: InfraMetadata, db: DBResource) {
+export function createMonitorExecWorker(
+  infraMetadata: InfraMetadata,
+  _stage: string,
+  db: DBResource,
+) {
   const entrypoint = resolve(__dirname, "../src/monitor-exec.ts")
   return Cloudflare.Worker("monitor-exec", {
     name: infraMetadata.monitorExecName,
