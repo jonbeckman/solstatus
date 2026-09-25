@@ -9,11 +9,7 @@ import * as Redacted from "effect/Redacted"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-export function createApi(
-  resPrefix: string,
-  db: DBResource,
-  cloudflareAccountId: string,
-) {
+export function createApi(resPrefix: string, db: DBResource, cloudflareAccountId: string) {
   return Effect.gen(function* () {
     const infraMetadata = {
       cloudflareAccountId,
