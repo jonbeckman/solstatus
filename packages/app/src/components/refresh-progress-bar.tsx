@@ -62,7 +62,6 @@ export const RefreshProgressBar = memo(function RefreshProgressBar() {
             <div
               className={"h-full bg-black dark:bg-white transition-all duration-300 ease-linear"}
               style={{ width: `${refreshProgress}%` }}
-              // style={{ width: "10%" }}
             />
           </div>
         )}

@@ -5,10 +5,6 @@ import { and, count, desc, eq, gt, isNotNull } from "drizzle-orm"
 import { StatusCodes } from "http-status-codes"
 import { createRoute } from "@/lib/api-utils"
 
-// TODO: re-enable this, but since we use createZodRoute this endpoint can't be rendered statically
-// Cache duration in seconds
-// export const revalidate = 120
-
 /**
  * GET /api/endpoint-monitors/stats
  *

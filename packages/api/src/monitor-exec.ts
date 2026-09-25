@@ -8,16 +8,13 @@ import type { MonitorExecEnv } from "../infra/types/env"
 import { handleFailureTracking, sendAlert } from "./utils/error-tracking"
 
 export default class MonitorExec extends WorkerEntrypoint<MonitorExecEnv> {
-  // export default class MonitorExec extends WorkerEntrypoint {
   async fetch(_request: Request) {
-    //Use service or RPC binding to work with the Monitor Durable Object
     return new Response(
       `${ReasonPhrases.OK}\nMonitorExec: Use service or RPC binding to work with the Monitor Durable Object`,
       { status: StatusCodes.OK },
     )
   }
 
-  //waitUntil is used to avoid immediately return a response so that the durable object is not charged for wall time
   async executeCheck(endpointMonitorId: string) {
     this.ctx.waitUntil(this._executeCheck(endpointMonitorId))
   }

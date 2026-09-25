@@ -32,16 +32,11 @@ export function Pagination({ table }: PaginationProps) {
   // Calculate page count locally to ensure it's consistent
   const pageCount = Math.max(1, Math.ceil(totalEndpointMonitors / pagination.pageSize))
 
-  // Function to handle page changes - Simplified to rely on table handler
   const changePage = React.useCallback(
     (newPageIndex: number) => {
-      // const newPagination = { ...pagination, pageIndex: newPageIndex }
-      // setPagination(newPagination)
-      // Trigger the table's pagination change which will fetch data
       table.setPageIndex(newPageIndex)
     },
-    // [pagination, setPagination, table],
-    [table], // Dependency only on table
+    [table],
   )
 
   return (
@@ -64,7 +59,6 @@ export function Pagination({ table }: PaginationProps) {
             value={`${pagination.pageSize}`}
             onValueChange={(value) => {
               const size = Number(value)
-              // setPagination({ ...pagination, pageSize: size })
               table.setPageSize(size)
             }}
           >

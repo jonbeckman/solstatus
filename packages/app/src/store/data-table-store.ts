@@ -80,9 +80,6 @@ export const useDataTableStore = create<DataTableState>((set, get) => ({
 
     set({ isLoading: true })
 
-    // Add a delay for testing purposes
-    // await new Promise(resolve => setTimeout(resolve, 3000));
-
     try {
       // Construct URL with search and pagination parameters
       const queryParams = new URLSearchParams({
