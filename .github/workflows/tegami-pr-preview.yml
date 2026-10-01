@@ -35,7 +35,7 @@ jobs:
         run: nub run tegami pr preview --artifact tegami-pr-preview.md
 
       - name: Upload release preview
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tegami-pr-preview
           path: tegami-pr-preview.md
