@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Nub
-        uses: nubjs/setup-nub@v0.4.0
+        uses: nubjs/setup-nub@v0.6.0
         with:
           nub-version: 0.4.11
           node-version-file: .nvmrc
