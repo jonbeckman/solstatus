@@ -9,6 +9,6 @@ describe("createId", () => {
   })
 
   it("creates distinct ids", () => {
-    expect(createId(PRE_ID.uptimeCheck)).not.toBe(createId(PRE_ID.uptimeCheck))
+    expect(createId(PRE_ID.endpointMonitor)).not.toBe(createId(PRE_ID.endpointMonitor))
   })
 })
