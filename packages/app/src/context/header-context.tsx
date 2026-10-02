@@ -75,7 +75,6 @@ export function HeaderProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// Main hook for header content and refresh settings (not progress)
 export function useHeaderContext() {
   const headerContext = useContext(HeaderContentContext)
   const progressContext = useContext(RefreshProgressContext)
@@ -84,20 +83,10 @@ export function useHeaderContext() {
     throw new Error("useHeaderContext must be used within a HeaderProvider")
   }
 
-  // For backward compatibility, combine both contexts
   return {
     ...headerContext,
     ...progressContext,
   }
-}
-
-// Specialized hook for components that only need refresh progress
-export function useRefreshProgress() {
-  const context = useContext(RefreshProgressContext)
-  if (context === undefined) {
-    throw new Error("useRefreshProgress must be used within a HeaderProvider")
-  }
-  return context
 }
 
 // Specialized hook for components that don't need refresh progress
