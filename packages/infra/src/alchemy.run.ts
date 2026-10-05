@@ -7,7 +7,7 @@ export class SolStatusStack extends Alchemy.Stack<SolStatusStack, SolStatusOutpu
 
 export const SolStatusProgram = Effect.gen(function* () {
   const appName = process.env.APP_NAME || "solstatus"
-  const stage = process.env.STAGE || "dev"
+  const stage = process.env.ALCHEMY_STAGE || process.env.STAGE || "dev"
   const cloudflareAccountId =
     process.env.CLOUDFLARE_ACCOUNT_ID || "00000000000000000000000000000000"
   return yield* SolStatus(`${appName}-${stage}`, {
