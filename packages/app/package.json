@@ -55,7 +55,7 @@
     "@tabler/icons-react": "^3.34.0",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-router": "^1.169.2",
-    "@tanstack/react-start": "^1.167.65",
+    "@tanstack/react-start": "^1.168.52",
     "@tanstack/react-table": "^8.21.3",
     "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",
