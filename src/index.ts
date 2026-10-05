@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url"
 import { NodeRuntime, NodeServices } from "@effect/platform-node"
 import dotenv from "dotenv"
 import { Console, Effect, Option } from "effect"
-import { Command, Flag } from "effect/unstable/cli"
+import { Command, Flag } from "effect/cli"
 import packageJson from "../package.json" with { type: "json" }
 
 const __filename = fileURLToPath(import.meta.url)
@@ -43,39 +43,39 @@ const alchemyCommandByPhase = {
 const main = Command.make(
   "solstatus",
   {
-    cloudflareAccountId: Flag.string("cloudflare-account-id").pipe(
+    cloudflareAccountId: Flag.String("cloudflare-account-id").pipe(
       Flag.optional,
       Flag.withDescription("Cloudflare Account ID"),
     ),
-    cloudflareApiToken: Flag.string("cloudflare-api-token").pipe(
+    cloudflareApiToken: Flag.String("cloudflare-api-token").pipe(
       Flag.optional,
       Flag.withDescription("Cloudflare API Token"),
     ),
-    secretAlchemyPassphrase: Flag.string("secret-alchemy-passphrase").pipe(
+    secretAlchemyPassphrase: Flag.String("secret-alchemy-passphrase").pipe(
       Flag.optional,
       Flag.withDescription("Alchemy Passphrase for state secrets"),
     ),
-    betterAuthSecret: Flag.string("better-auth-secret").pipe(
+    betterAuthSecret: Flag.String("better-auth-secret").pipe(
       Flag.optional,
       Flag.withDescription("Better Auth Secret for authentication"),
     ),
-    stage: Flag.string("stage").pipe(
+    stage: Flag.String("stage").pipe(
       Flag.withDefault("dev"),
       Flag.withDescription("Deployment stage (default: dev)"),
     ),
-    phase: Flag.choice("phase", ["destroy", "up", "read", "deploy", "plan", "dev"]).pipe(
+    phase: Flag.Literals("phase", ["destroy", "up", "read", "deploy", "plan", "dev"]).pipe(
       Flag.withDefault("up" as const),
       Flag.withDescription("Phase to execute (up/deploy, destroy, read/plan, dev)"),
     ),
-    quiet: Flag.boolean("quiet").pipe(
+    quiet: Flag.Boolean("quiet").pipe(
       Flag.withDefault(false),
       Flag.withDescription("Run in quiet mode"),
     ),
-    appName: Flag.string("app-name").pipe(
+    appName: Flag.String("app-name").pipe(
       Flag.withDefault("solstatus"),
       Flag.withDescription("Application name (default: solstatus)"),
     ),
-    fqdn: Flag.string("fqdn").pipe(
+    fqdn: Flag.String("fqdn").pipe(
       Flag.optional,
       Flag.withDescription(
         "Fully qualified domain name (optional - if not provided, a worker URL will be generated)",
@@ -132,6 +132,7 @@ const main = Command.make(
         BETTER_AUTH_SECRET: betterAuthSecret,
         APP_NAME: config.appName,
         STAGE: config.stage,
+        ALCHEMY_STAGE: config.stage,
         ...(fqdnValue && { FQDN: fqdnValue }),
       }
 
@@ -155,9 +156,7 @@ const main = Command.make(
       }
     }),
 ).pipe(
-  Command.withDescription(
-    "CLI wrapper for SolStatus infrastructure. Uses Effect 4 `effect/unstable/cli` because `@effect/cli` still peers Effect 3.",
-  ),
+  Command.withDescription("CLI wrapper for SolStatus infrastructure. Uses Effect 4 `effect/cli`."),
 )
 
 Command.run(main, {

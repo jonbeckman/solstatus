@@ -17,7 +17,7 @@ export function createSessionsStorageKV(resPrefix: string) {
 export function createDB(resPrefix: string) {
   return Cloudflare.D1.Database("db", {
     name: resPrefix,
-    migrationsDir,
+    migrations: migrationsDir,
   })
 }
 

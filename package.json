@@ -57,11 +57,11 @@
     "types:each": "nub run --filter '@solstatus/common' types && nub run --filter '@solstatus/api' types && nub run --filter '@solstatus/app' types && nub run --filter '@solstatus/infra' types"
   },
   "dependencies": {
-    "@effect/platform-node": "4.0.0-beta.107",
+    "@effect/platform-node": "4.0.1",
     "@solstatus/infra": "workspace:*",
-    "alchemy": "2.0.0-beta.72",
+    "alchemy": "2.0.0-beta.81",
     "dotenv": "16.5.0",
-    "effect": "4.0.0-beta.107"
+    "effect": "4.0.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
@@ -80,15 +80,15 @@
     "wrangler": "^4.22.0"
   },
   "overrides": {
-    "@effect/platform-node": "4.0.0-beta.107",
-    "@effect/platform-node-shared": "4.0.0-beta.107",
+    "@effect/platform-node": "4.0.1",
+    "@effect/platform-node-shared": "4.0.1",
     "@libsql/client": "0.17.4",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
-    "alchemy": "2.0.0-beta.72",
+    "alchemy": "2.0.0-beta.81",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
-    "effect": "4.0.0-beta.107",
+    "effect": "4.0.1",
     "zod": "4.5.4"
   },
   "devEngines": {
