@@ -48,3 +48,6 @@ src/.alchemy
 
 # nub
 .nub/
+
+# e2e
+.e2e/

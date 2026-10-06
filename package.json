@@ -42,19 +42,26 @@
     "dev:app:mock": "nub run --filter '@solstatus/app' dev:mock",
     "dev:api": "nub run --filter '@solstatus/api' dev",
     "db:setup": "nub run --filter '@solstatus/infra' db:setup",
-    "typecheck": "tsc --pretty false --noEmit --incremental false && tsc --pretty false --noEmit --incremental false -p packages/common && tsc --pretty false --noEmit --incremental false -p packages/api && tsc --pretty false --noEmit --incremental false -p packages/app && tsc --pretty false --noEmit --incremental false -p packages/infra",
+    "typecheck": "tsc --pretty false --noEmit --incremental false && tsc --pretty false --noEmit --incremental false -p packages/common && tsc --pretty false --noEmit --incremental false -p packages/api && tsc --pretty false --noEmit --incremental false -p packages/app && tsc --pretty false --noEmit --incremental false -p packages/infra && nub run typecheck:e2e",
     "lint": "NODE_OPTIONS='--import tsx' oxlint",
     "lint:fix": "NODE_OPTIONS='--import tsx' oxlint --fix",
     "format": "oxfmt --check .",
     "format:fix": "oxfmt .",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "nub run test:e2e",
     "tegami": "tsx scripts/tegami.mts",
     "clean": "rm -rf ./node_modules/ ./packages/*/node_modules/ ./dist/ ./packages/*/dist/",
     "clean:builds": "rm -rf ./dist/ ./packages/*/dist/",
     "build": "nub run typecheck",
     "types": "nub run typecheck",
-    "types:each": "nub run --filter '@solstatus/common' types && nub run --filter '@solstatus/api' types && nub run --filter '@solstatus/app' types && nub run --filter '@solstatus/infra' types"
+    "types:each": "nub run --filter '@solstatus/common' types && nub run --filter '@solstatus/api' types && nub run --filter '@solstatus/app' types && nub run --filter '@solstatus/infra' types",
+    "test:e2e": "tsx scripts/e2e/run.ts",
+    "test:e2e:live": "tsx scripts/e2e/run.ts --no-cache",
+    "test:e2e:cache-strict": "tsx scripts/e2e/run.ts --strict-cache",
+    "test:e2e:install": "nub exec e2e-web install chromium --with-deps",
+    "test:e2e:list": "nub exec e2e list",
+    "test:e2e:cleanup": "tsx scripts/e2e/cleanup.ts",
+    "test:e2e:mcp": "tsx scripts/e2e/run.ts --mcp",
+    "typecheck:e2e": "tsc --noEmit -p tests/tsconfig.json"
   },
   "dependencies": {
     "@effect/platform-node": "4.0.0-beta.107",
@@ -65,17 +72,22 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
+    "@e2e-dev/github": "0.3.3",
+    "@e2e-dev/web": "0.12.0",
     "@mpsuesser/oxlint-plugin-effect": "0.2.2",
     "@oxlint/plugins": "1.86.0",
     "@types/node": "^24.12.4",
+    "@types/pngjs": "6.0.5",
     "anti-slop": "github:dmmulroy/anti-slop",
     "concurrently": "^9.2.0",
+    "e2e": "0.17.0",
+    "jpeg-js": "0.4.4",
     "oxfmt": "0.71.0",
     "oxlint": "1.86.0",
+    "pngjs": "7.0.0",
     "tegami": "1.5.0",
     "tsx": "^4.20.3",
     "typescript": "7.0.2",
-    "vitest": "^3.2.7",
     "wait-on": "^8.0.3",
     "wrangler": "^4.22.0"
   },
@@ -109,5 +121,8 @@
   "allowBuilds": {
     "esbuild": true,
     "workerd": true
+  },
+  "patchedDependencies": {
+    "@e2e-dev/web@0.12.0": "patches/@e2e-dev+web@0.12.0.patch"
   }
 }
