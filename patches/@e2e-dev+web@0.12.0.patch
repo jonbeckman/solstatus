@@ -1,0 +1,77 @@
+diff --git a/dist/engine.js b/dist/engine.js
+--- a/dist/engine.js
++++ b/dist/engine.js
+@@ -40,6 +40,9 @@
+     if (options.connect !== undefined && typeof options.browser === 'string' && options.browser !== 'chromium') {
+         throw new ConfigurationError('INVALID_CONFIG', `web({ connect }) requires the chromium browser; CDP attach is chromium-only, got "${options.browser}"`);
+     }
++    if (options.permissions !== undefined && (!Array.isArray(options.permissions) || options.permissions.some((permission) => typeof permission !== 'string' || permission.trim() === ''))) {
++        throw new ConfigurationError('INVALID_CONFIG', 'web({ permissions }) requires an array of non-empty native permission names');
++    }
+     if (options.headers !== undefined)
+         validateHeaders(options.headers);
+     if (options.basicAuth !== undefined)
+@@ -128,6 +131,7 @@
+ const WEB_OPTION_KEYS = Object.keys({
+     browser: true,
+     viewport: true,
++    permissions: true,
+     screencast: true,
+     connect: true,
+     headers: true,
+@@ -139,7 +143,7 @@
+     initScripts: true,
+ });
+ /** The options applied when the engine creates a browser context, which a persistent context never is. */
+-const CREATION_OPTION_KEYS = ['headers', 'basicAuth', 'userAgent', 'locale', 'timezoneId'];
++const CREATION_OPTION_KEYS = ['headers', 'basicAuth', 'userAgent', 'locale', 'timezoneId', 'permissions'];
+ /**
+  * What a persistent context rules out, named with its cause: `what` replaces
+  * the browser context, which `mode` never does. A per-attempt lease starts
+diff --git a/dist/surface.d.ts b/dist/surface.d.ts
+--- a/dist/surface.d.ts
++++ b/dist/surface.d.ts
+@@ -70,6 +70,8 @@
+  * the target's `app`.
+  */
+ export interface WebOptions {
++    /** Native permissions granted on each newly created browser context. Browser support varies. */
++    readonly permissions?: readonly string[];
+     /**
+      * Browser to launch, `chromium` by default. A `BrowserProvider` leases
+      * hosted browsers instead: one per worker slot at `prepare`, or one per
+@@ -171,6 +173,7 @@
+     private session;
+     private readonly usedContexts;
+     private readonly viewport;
++    private readonly permissions;
+     private readonly screencast;
+     /** Injected request headers, names lowercased so they replace the browser's own of the same name. */
+     private readonly headers;
+diff --git a/dist/surface.js b/dist/surface.js
+--- a/dist/surface.js
++++ b/dist/surface.js
+@@ -57,6 +57,7 @@
+     session;
+     usedContexts = new Set();
+     viewport;
++    permissions;
+     screencast;
+     /** Injected request headers, names lowercased so they replace the browser's own of the same name. */
+     headers;
+@@ -85,6 +86,7 @@
+         this.leases = typeof options.browser === 'object' && options.browser !== null ? new LeasedBrowsers(options.browser) : undefined;
+         this.connect = options.connect;
+         this.viewport = options.viewport === undefined ? DEFAULT_VIEWPORT : options.viewport;
++        this.permissions = options.permissions;
+         this.screencast = options.screencast ?? {};
+         this.headers = options.headers === undefined ? undefined : lowercaseNames(options.headers);
+         this.basicAuth = options.basicAuth;
+@@ -250,6 +252,7 @@
+             contextOptions: {
+                 viewport: this.viewport,
+                 acceptDownloads: true,
++                ...(this.permissions === undefined ? {} : { permissions: [...this.permissions] }),
+                 ...(credentials === undefined ? {} : { httpCredentials: credentials }),
+                 ...(this.userAgent === undefined ? {} : { userAgent: this.userAgent }),
+                 ...(this.locale === undefined ? {} : { locale: this.locale }),
