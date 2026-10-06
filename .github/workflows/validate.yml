@@ -8,9 +8,21 @@ on:
     branches:
       - master
   workflow_dispatch:
+    inputs:
+      e2e_lifecycle:
+        description: "Run owned-resource lifecycle regressions after core flows"
+        type: boolean
+        default: false
+      e2e_live:
+        description: "Force live decisions (bypass action replay and Gateway response cache)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  actions: read
+  checks: write
+  pull-requests: write
 
 concurrency:
   group: validate-${{ github.workflow }}-${{ github.ref }}
@@ -24,6 +36,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Set up Nub
         uses: nubjs/setup-nub@v0.6.0
@@ -44,5 +58,147 @@ jobs:
       - name: Check formatting
         run: nub run format
 
-      - name: Test
-        run: nub run test
+      - name: Collect end-to-end tests
+        run: nub run test:e2e:list
+
+  e2e:
+    name: Cloudflare end-to-end flows
+    concurrency:
+      group: solstatus-e2e-cloudflare-${{ github.repository }}
+      cancel-in-progress: false
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+      CF_AI_GATEWAY_E2E_TOKEN: ${{ secrets.CF_AI_GATEWAY_E2E_TOKEN }}
+      CF_AI_GATEWAY_E2E_ID: default
+      E2E_AI_USAGE: "1"
+      E2E_TELEMETRY_DISABLED: "1"
+      CF_AI_GATEWAY_E2E_SKIP_CACHE: ${{ inputs.e2e_live && '1' || '0' }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - name: Set up Nub
+        uses: nubjs/setup-nub@v0.6.0
+        with:
+          nub-version: 0.4.11
+          node-version-file: .nvmrc
+          cache-dependency-path: nub.lock
+
+      - name: Install dependencies
+        id: e2e-dependencies
+        run: nub install --frozen-lockfile
+
+      - name: Generate better-auth secret when omitted
+        shell: bash
+        run: |
+          if [ -z "${BETTER_AUTH_SECRET:-}" ]; then
+            secret=$(openssl rand -hex 16)
+            echo "::add-mask::$secret"
+            echo "BETTER_AUTH_SECRET=$secret" >> "$GITHUB_ENV"
+          fi
+          mkdir -p packages/infra
+          if [ ! -f packages/infra/.dev.vars ]; then
+            {
+              echo "APP_ENV=test"
+              echo "CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}"
+              echo "MONITOR_EXEC_NAME=monitor-exec-e2e"
+              echo "MONITOR_TRIGGER_NAME=monitor-trigger-e2e"
+              echo "BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}"
+            } > packages/infra/.dev.vars
+            chmod 600 packages/infra/.dev.vars
+          fi
+
+      - name: Install browser
+        run: nub run test:e2e:install
+
+      - name: Restore action replay cache
+        id: action-replay-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .e2e/cache
+          key: e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:${{ hashFiles('nub.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:${{ hashFiles('nub.lock') }}-
+            e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:
+
+      - name: Initialize AI usage accounting
+        id: ai-usage-init
+        env:
+          E2E_ACTION_CACHE_RESTORED: ${{ steps.action-replay-cache.outputs.cache-matched-key != '' }}
+        run: |
+          E2E_AI_VALIDATED_SHA="$(git rev-parse HEAD)"
+          export E2E_AI_VALIDATED_SHA
+          echo "E2E_AI_VALIDATED_SHA=$E2E_AI_VALIDATED_SHA" >> "$GITHUB_ENV"
+          node scripts/e2e/ai-report.mjs init
+
+      - name: Run core real-stack flows
+        id: e2e-run
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ inputs.e2e_live }}" = "true" ]; then
+            nub run test:e2e:live
+          else
+            nub run test
+          fi
+
+      - name: Verify cleanup lifecycle after core flows
+        if: github.event_name == 'workflow_dispatch' && inputs.e2e_lifecycle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          echo "No owned lifecycle suite yet; core cleanup remains in test:e2e:cleanup."
+          nub run test:e2e:cleanup
+
+      - name: Destroy owned test infrastructure
+        if: always() && steps.e2e-dependencies.outcome == 'success'
+        run: |
+          cleanup_status=0
+          nub run test:e2e:cleanup || cleanup_status=$?
+          node <<'NODE'
+          const fs = require("node:fs");
+          const path = ".e2e/cleanup-summary.json";
+          if (fs.existsSync(path)) {
+            fs.appendFileSync(
+              process.env.GITHUB_STEP_SUMMARY,
+              "### Owned test cleanup\n\n```json\n" + fs.readFileSync(path, "utf8") + "\n```\n",
+            );
+          }
+          NODE
+          exit "$cleanup_status"
+
+      - name: Summarize measured AI usage
+        if: always() && steps.ai-usage-init.outcome == 'success'
+        id: ai-usage-summary
+        run: node scripts/e2e/ai-report.mjs summarize
+
+      - name: Preserve successful replay recordings
+        if: success() && steps.e2e-run.outcome == 'success'
+        uses: actions/cache/save@v4
+        with:
+          path: .e2e/cache
+          key: e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:${{ hashFiles('nub.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Upload diagnostic reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: solstatus-e2e-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .e2e/report.json
+            .e2e/junit.xml
+            .e2e/cleanup-summary.json
+            .e2e/summary.md
+            .e2e/failures
+            .e2e/screens
+            .e2e/ai-usage/summary.json
+            .e2e/ai-usage/summary.md
+          if-no-files-found: warn
+          retention-days: 7
