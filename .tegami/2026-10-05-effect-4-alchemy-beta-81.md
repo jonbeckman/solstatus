@@ -7,11 +7,11 @@ packages:
   "@solstatus/infra": patch
 ---
 
-## Align Effect 4 stable and Alchemy 2.0.0-beta.81
+## Align Effect 4.0.3 and Alchemy 2.0.0-beta.81
 
-Package consumers now get Effect 4.0.1 with matching `@effect/platform-node`
-and `@effect/platform-node-shared` 4.0.1, plus Alchemy 2.0.0-beta.81.
-Drizzle stays on 1.0.0-rc.5-ab785fc.
+Package consumers now get Effect 4.0.3 with matching `@effect/*` 4.0.3
+(`platform-node`, `platform-node-shared`, `sql-d1`, `sql-sqlite-do`), plus
+Alchemy 2.0.0-beta.81. Drizzle stays on 1.0.0-rc.5-ab785fc.
 
 The CLI uses Effect 4 `effect/cli` (the former `effect/unstable/cli` path).
 D1 resources pass the existing migrations directory through Alchemy's
