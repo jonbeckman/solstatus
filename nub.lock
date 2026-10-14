@@ -196,9 +196,6 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react@19.3.0)(react-dom@19.3.0(react@19.3.0))
-      postcss:
-        specifier: ^8.5.6
-        version: 8.5.28
       react:
         specifier: ^19.1.0
         version: 19.3.0
@@ -208,9 +205,6 @@ importers:
       react-hook-form:
         specifier: ^7.59.0
         version: 7.87.0(react@19.3.0)
-      react-is:
-        specifier: ^19.1.0
-        version: 19.3.0
       recharts:
         specifier: ^2.15.4
         version: 2.15.4(react@19.3.0)(react-dom@19.3.0(react@19.3.0))
@@ -4978,9 +4972,6 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  react-is@19.3.0:
-    resolution: {integrity: sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA==}
-
   react-reconciler@0.33.0:
     resolution: {integrity: sha512-KetWRytFv1epdpJc3J4G75I4WrplZE5jOL7Yq0p34+OVOKF4Se7WrdIdVC45XsSSmUTlht2FM/fM1FZb1mfQeA==}
     engines: {node: '>=0.10.0'}
@@ -9586,8 +9577,6 @@ snapshots:
   react-is@16.13.1: {}
 
   react-is@18.3.1: {}
-
-  react-is@19.3.0: {}
 
   react-reconciler@0.33.0(react@19.3.0):
     dependencies:
