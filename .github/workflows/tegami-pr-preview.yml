@@ -24,7 +24,7 @@ jobs:
       - name: Set up Nub
         uses: nubjs/setup-nub@v0.6.0
         with:
-          nub-version: 0.4.11
+          nub-version: 0.9.6
           node-version-file: .nvmrc
           cache-dependency-path: nub.lock
 
