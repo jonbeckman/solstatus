@@ -104,7 +104,7 @@ export const GET = createRoute.query(extendedQuerySchema).handler(async (_reques
  *
  * Creates a new endpointMonitor entry. Checks for URL conflicts before creating.
  *
- * @body {websitesInsertDTOSchema} - Endpoint Monitor data to insert
+ * @body {endpointMonitorsInsertDTOSchema} - Endpoint Monitor data to insert
  * @returns {Promise<Response>} JSON response with created endpointMonitor or conflict error
  * @throws {Response} 409 Conflict if a similar URL already exists
  */
