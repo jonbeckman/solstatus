@@ -35,7 +35,7 @@ jobs:
         run: nub install --frozen-lockfile
 
       - name: Download release preview
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: tegami-pr-preview
           run-id: ${{ github.event.workflow_run.id }}
