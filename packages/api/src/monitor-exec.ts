@@ -29,11 +29,9 @@ export default class MonitorExec extends WorkerEntrypoint<MonitorExecEnv> {
 
     if (!endpointMonitor) {
       console.error(
-        `EndpointMonitor [${endpointMonitorId}] does not exist. Deleting Durable Object...`,
+        `EndpointMonitor [${endpointMonitorId}] does not exist. Leaving Durable Object in place.`,
       )
-      //TODO: This causes a cyclic dependency, so we cannot delete the DO here.
-      // await this.env.MONITOR_TRIGGER_RPC.deleteDo(endpointMonitorId)
-
+      // Not deleted here: cyclic MonitorExec/MonitorTrigger dependency.
       return
     }
 
