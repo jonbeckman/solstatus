@@ -2,15 +2,7 @@ import { createSchemaFactory } from "drizzle-orm/zod"
 import { z } from "zod"
 import { EndpointMonitorsTable, UptimeChecksTable } from "./schema"
 
-const { createInsertSchema } = createSchemaFactory({
-  // This configuration will only coerce dates. Set `coerce` to `true` to coerce all data types or specify others
-  coerce: {
-    date: true,
-  },
-})
-
-const { createSelectSchema } = createSchemaFactory({
-  // This configuration will only coerce dates. Set `coerce` to `true` to coerce all data types or specify others
+const { createInsertSchema, createSelectSchema } = createSchemaFactory({
   coerce: {
     date: true,
   },
