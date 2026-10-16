@@ -132,6 +132,6 @@ export const DELETE = createRoute
     }
 
     return new Response(null, {
-      status: 204,
+      status: StatusCodes.NO_CONTENT,
     })
   })
