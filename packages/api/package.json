@@ -51,7 +51,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
     "@types/node": "^24.12.4",
-    "alchemy": "2.0.0-beta.72",
+    "alchemy": "2.0.0-beta.81",
     "concurrently": "^9.2.0",
     "typescript": "7.0.2",
     "wait-on": "^8.0.3"

@@ -6,7 +6,7 @@ import { unstable_dev, type Unstable_DevWorker } from "wrangler"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Alchemy 2.0.0-beta.72's `alchemy/Test/Vitest` imports `vitest` from Alchemy's
+// Alchemy 2.0.0-beta.81's `alchemy/Test/Vitest` imports `vitest` from Alchemy's
 // isolated nub store path, which cannot resolve the workspace vitest package.
 // wrangler `unstable_dev` still boots workerd locally without a production deploy.
 
