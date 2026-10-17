@@ -41,7 +41,7 @@
     "alchemy": "2.0.0-beta.72",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "nanoid": "^5.1.5",
-    "zod": "4.5.4"
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
