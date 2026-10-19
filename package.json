@@ -57,21 +57,21 @@
     "types:each": "nub run --filter '@solstatus/common' types && nub run --filter '@solstatus/api' types && nub run --filter '@solstatus/app' types && nub run --filter '@solstatus/infra' types"
   },
   "dependencies": {
-    "@effect/platform-node": "4.0.0-beta.107",
+    "@effect/platform-node": "4.0.5",
     "@solstatus/infra": "workspace:*",
     "alchemy": "2.0.0-beta.72",
     "dotenv": "16.5.0",
-    "effect": "4.0.0-beta.107"
+    "effect": "4.0.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
-    "@mpsuesser/oxlint-plugin-effect": "0.2.2",
-    "@oxlint/plugins": "1.86.0",
+    "@mpsuesser/oxlint-plugin-effect": "0.6.0",
+    "@oxlint/plugins": "1.88.0",
     "@types/node": "^24.12.4",
     "anti-slop": "github:dmmulroy/anti-slop",
     "concurrently": "^9.2.0",
-    "oxfmt": "0.71.0",
-    "oxlint": "1.86.0",
+    "oxfmt": "0.73.0",
+    "oxlint": "1.88.0",
     "tegami": "1.5.0",
     "tsx": "^4.20.3",
     "typescript": "7.0.2",
@@ -80,16 +80,16 @@
     "wrangler": "^4.22.0"
   },
   "overrides": {
-    "@effect/platform-node": "4.0.0-beta.107",
-    "@effect/platform-node-shared": "4.0.0-beta.107",
-    "@libsql/client": "0.17.4",
-    "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.7",
+    "@effect/platform-node": "4.0.5",
+    "@effect/platform-node-shared": "4.0.5",
+    "@libsql/client": "0.18.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "alchemy": "2.0.0-beta.72",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
-    "effect": "4.0.0-beta.107",
-    "zod": "4.5.4"
+    "effect": "4.0.5",
+    "zod": "4.6.7"
   },
   "devEngines": {
     "packageManager": {
