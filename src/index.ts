@@ -127,6 +127,7 @@ const main = Command.make(
         BETTER_AUTH_SECRET: betterAuthSecret,
         APP_NAME: config.appName,
         STAGE: config.stage,
+        ALCHEMY_STAGE: config.stage,
         ...(fqdnValue && { FQDN: fqdnValue }),
       }
 
