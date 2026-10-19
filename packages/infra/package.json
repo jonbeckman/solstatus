@@ -63,6 +63,7 @@
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "drizzle-seed": "1.0.0-rc.5-ab785fc",
+    "react": "^19.1.0",
     "typescript": "7.0.2",
     "wrangler": "^4.22.0",
     "zod": "4.6.7"
