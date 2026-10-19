@@ -164,7 +164,7 @@ export const POST = createRoute
       checkInterval: newWebsite.checkInterval,
     } as InitPayload)
 
-    return Response.json(newWebsite, { status: 201 })
+    return Response.json(newWebsite, { status: StatusCodes.CREATED })
   })
 
 function getOrderDirection(direction: "asc" | "desc") {

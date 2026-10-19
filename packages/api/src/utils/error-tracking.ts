@@ -48,7 +48,7 @@ export async function handleFailureTracking(
   }
 }
 
-export async function sendAlert(
+async function sendAlert(
   status: number,
   errorMessage: string,
   endpointMonitor: z.infer<typeof endpointMonitorsSelectSchema>,

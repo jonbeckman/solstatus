@@ -168,7 +168,6 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
 
 export default class MonitorTriggerRPC extends WorkerEntrypoint<MonitorTriggerEnv> {
   async fetch(_request: Request) {
-    //Use service or RPC binding to work with the Monitor Durable Object
     return new Response(
       `${ReasonPhrases.OK}\nMonitorTriggerRPC: Use service or RPC binding to work with the Monitor Durable Object`,
       { status: StatusCodes.OK },

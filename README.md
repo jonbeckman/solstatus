@@ -20,7 +20,7 @@ nub install
 nub run cli --help
 ```
 
-This repository requires Node.js 24.15.0 and Nub 0.4.11.
+This repository requires Node.js 24.15.0 and Nub 0.9.6.
 
 ### Common Commands
 
