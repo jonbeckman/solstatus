@@ -22,12 +22,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out trusted release tooling
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Nub
         uses: nubjs/setup-nub@v0.6.0
         with:
-          nub-version: 0.4.11
+          nub-version: 0.9.6
           node-version-file: .nvmrc
           cache-dependency-path: nub.lock
 
@@ -35,7 +35,7 @@ jobs:
         run: nub install --frozen-lockfile
 
       - name: Download release preview
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: tegami-pr-preview
           run-id: ${{ github.event.workflow_run.id }}

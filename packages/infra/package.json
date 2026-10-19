@@ -53,18 +53,19 @@
     "@solstatus/api": "workspace:*",
     "@solstatus/app": "workspace:*",
     "@solstatus/common": "workspace:*",
-    "alchemy": "2.0.0-beta.72"
+    "alchemy": "2.0.0-beta.83"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
-    "@libsql/client": "0.17.4",
+    "@libsql/client": "0.18.0",
     "@types/node": "^24.12.4",
     "dotenv": "16.5.0",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "drizzle-seed": "1.0.0-rc.5-ab785fc",
+    "react": "^19.1.0",
     "typescript": "7.0.2",
     "wrangler": "^4.22.0",
-    "zod": "4.5.4"
+    "zod": "4.6.7"
   }
 }
