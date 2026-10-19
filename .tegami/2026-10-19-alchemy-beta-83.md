@@ -7,9 +7,9 @@ packages:
   "@solstatus/infra": patch
 ---
 
-## Bump Alchemy to 2.0.0-beta.81
+## Bump Alchemy to 2.0.0-beta.83
 
-Package consumers now get Alchemy 2.0.0-beta.81. Effect stays on master's
+Package consumers now get Alchemy 2.0.0-beta.83. Effect stays on master's
 4.0.5 with matching `@effect/platform-node` and `@effect/platform-node-shared`.
 Drizzle stays on 1.0.0-rc.5-ab785fc.
 

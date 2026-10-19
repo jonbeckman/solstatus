@@ -38,7 +38,7 @@
     "types": "tsc"
   },
   "dependencies": {
-    "alchemy": "2.0.0-beta.81",
+    "alchemy": "2.0.0-beta.83",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "nanoid": "^5.1.5",
     "zod": "4.6.7"
