@@ -35,7 +35,6 @@ export const GET = createRoute.params(idStringParamsSchema).handler(async (_requ
       .then((rows) => rows[0])
   } catch (error) {
     console.error("Error fetching endpointMonitor: ", error)
-    // TODO: Use HttpStatusCodes.INTERNAL_SERVER_ERROR
     return Response.json(
       { error: "Failed to fetch endpointMonitor" },
       { status: StatusCodes.INTERNAL_SERVER_ERROR },
@@ -55,7 +54,7 @@ export const GET = createRoute.params(idStringParamsSchema).handler(async (_requ
  * Updates a specific endpointMonitor by ID with partial data.
  *
  * @params {string} id - Endpoint Monitor ID
- * @body {websitesPatchSchema} - Partial endpointMonitor data to update
+ * @body {endpointMonitorsPatchSchema} - Partial endpointMonitor data to update
  * @returns {Promise<Response>} JSON response with updated endpointMonitor
  * @throws {Response} 404 Not Found if endpointMonitor doesn't exist
  * @throws {Response} 500 Internal Server Error on database errors
