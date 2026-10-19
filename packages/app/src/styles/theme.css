@@ -20,6 +20,12 @@ body {
     --spacing: 0.16rem;
   }
 
+  [data-slot="card-header"] *,
+  [data-slot="card-content"] *,
+  [data-slot="card-footer"] * {
+    --spacing: 0.222222rem;
+  }
+
   [data-slot="select-trigger"],
   [data-slot="toggle-group-item"] {
     --spacing: 0.222222rem;
