@@ -43,20 +43,16 @@ const alchemyCommandByPhase = {
 const main = Command.make(
   "solstatus",
   {
-    cloudflareAccountId: Flag.String("cloudflare-account-id").pipe(
-      Flag.optional,
+    cloudflareAccountId: Flag.optional(Flag.String("cloudflare-account-id")).pipe(
       Flag.withDescription("Cloudflare Account ID"),
     ),
-    cloudflareApiToken: Flag.String("cloudflare-api-token").pipe(
-      Flag.optional,
+    cloudflareApiToken: Flag.optional(Flag.String("cloudflare-api-token")).pipe(
       Flag.withDescription("Cloudflare API Token"),
     ),
-    secretAlchemyPassphrase: Flag.String("secret-alchemy-passphrase").pipe(
-      Flag.optional,
+    secretAlchemyPassphrase: Flag.optional(Flag.String("secret-alchemy-passphrase")).pipe(
       Flag.withDescription("Alchemy Passphrase for state secrets"),
     ),
-    betterAuthSecret: Flag.String("better-auth-secret").pipe(
-      Flag.optional,
+    betterAuthSecret: Flag.optional(Flag.String("better-auth-secret")).pipe(
       Flag.withDescription("Better Auth Secret for authentication"),
     ),
     stage: Flag.String("stage").pipe(
@@ -75,8 +71,7 @@ const main = Command.make(
       Flag.withDefault("solstatus"),
       Flag.withDescription("Application name (default: solstatus)"),
     ),
-    fqdn: Flag.String("fqdn").pipe(
-      Flag.optional,
+    fqdn: Flag.optional(Flag.String("fqdn")).pipe(
       Flag.withDescription(
         "Fully qualified domain name (optional - if not provided, a worker URL will be generated)",
       ),
@@ -156,7 +151,9 @@ const main = Command.make(
       }
     }),
 ).pipe(
-  Command.withDescription("CLI wrapper for SolStatus infrastructure. Uses Effect 4 `effect/cli`."),
+  Command.withDescription(
+    "CLI wrapper for SolStatus infrastructure. Uses Effect 4 `effect/cli` because `@effect/cli` still peers Effect 3.",
+  ),
 )
 
 Command.run(main, {
