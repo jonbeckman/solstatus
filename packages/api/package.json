@@ -52,7 +52,7 @@
     "@cloudflare/workers-types": "^4.20250702.0",
     "@libsql/client": "0.18.0",
     "@types/node": "^24.12.4",
-    "alchemy": "2.0.0-beta.83",
+    "alchemy": "2.0.0-beta.81",
     "concurrently": "^9.2.0",
     "react": "^19.1.0",
     "typescript": "7.0.2",
