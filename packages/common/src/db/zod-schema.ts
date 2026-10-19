@@ -30,5 +30,3 @@ export const uptimeChecksInsertSchema = createInsertSchema(UptimeChecksTable).om
 })
 
 export const uptimeChecksSelectSchema = createSelectSchema(UptimeChecksTable)
-
-export const uptimeChecksPatchSchema = createInsertSchema(UptimeChecksTable).partial()
