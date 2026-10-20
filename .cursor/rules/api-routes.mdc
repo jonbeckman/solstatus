@@ -5,7 +5,7 @@ alwaysApply: false
 ---
 # API Routes
 
-Handlers live under `packages/app/src/app/api/` as method exports (`GET`, `POST`, `PATCH`, `DELETE`). `dispatchApi` in `packages/app/src/lib/dispatch-api.ts` matches the pathname and method. `/api/auth` goes to Better Auth; `/api/infra-metadata` is handled in `dispatchApi`.
+Handlers live under `packages/app/src/app/api/` as method exports (`GET`, `POST`, `PATCH`, `DELETE`). `dispatchApi` in `packages/app/src/lib/dispatch-api.ts` matches the pathname and method. `/api/auth` and `/api/auth/*` go to Better Auth. Every other `/api` request, including `/api/infra-metadata`, requires a Better Auth session.
 
 Define handlers with `createRoute` from `@/lib/api-utils`. Validate params, query, and body with Zod schemas from `@/lib/route-schemas` or `@solstatus/common/db`.
 

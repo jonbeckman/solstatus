@@ -69,12 +69,24 @@ async function infraMetadataResponse() {
   })
 }
 
+function isBetterAuthPath(pathname: string) {
+  return pathname === "/api/auth" || pathname.startsWith("/api/auth/")
+}
+
 export async function dispatchApi(request: Request): Promise<Response> {
   const url = new URL(request.url)
   const pathname = url.pathname
 
-  if (pathname.startsWith("/api/auth")) {
+  if (isBetterAuthPath(pathname)) {
     return auth.handler(request)
+  }
+
+  const session = await auth.api.getSession({ headers: request.headers })
+  if (!session) {
+    return Response.json(
+      { message: ReasonPhrases.UNAUTHORIZED },
+      { status: StatusCodes.UNAUTHORIZED },
+    )
   }
 
   if (pathname === "/api/infra-metadata") {
