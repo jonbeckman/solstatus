@@ -121,7 +121,7 @@ export const POST = createRoute
     const existingEndpointMonitors: z.infer<typeof endpointMonitorsSelectSchema>[] = await db
       .select()
       .from(EndpointMonitorsTable)
-      .where(sql.raw(`instr(url, '${normalizedUrl}') > 0`))
+      .where(sql`instr(${EndpointMonitorsTable.url}, ${normalizedUrl}) > 0`)
 
     const matchingWebsite = existingEndpointMonitors.find((endpointMonitor) => {
       const websiteUrl = endpointMonitor.url.replace(/(^\w+:|^)\/\//, "")
