@@ -35,7 +35,7 @@
     "./utils/*": "./src/utils/*.ts"
   },
   "scripts": {
-    "types": "tsc"
+    "types": "tsrs"
   },
   "dependencies": {
     "alchemy": "2.0.0-beta.83",
@@ -49,6 +49,7 @@
     "@types/node": "^24.12.4",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "react": "^19.1.0",
+    "tsrs": "0.18.0-ts7.1.0-dev.20260929",
     "typescript": "7.0.2"
   }
 }

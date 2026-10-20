@@ -35,7 +35,7 @@
     "dev:mock": "SOLSTATUS_DEV_MOCK_API=1 vite --host 127.0.0.1 --port 3000",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 3000",
-    "types": "tsc --noEmit --incremental false",
+    "types": "tsrs --noEmit --incremental false",
     "clean": "rm -rf dist .output .vinxi .tanstack"
   },
   "dependencies": {
@@ -89,6 +89,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "^6.0.1",
     "alchemy": "2.0.0-beta.83",
+    "tsrs": "0.18.0-ts7.1.0-dev.20260929",
     "typescript": "7.0.2",
     "wrangler": "^4.22.0"
   }
