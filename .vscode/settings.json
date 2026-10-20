@@ -3,5 +3,5 @@
     "wrangler.json": "jsonc"
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "js/ts.tsdk.path": "node_modules/tsrs/bin/tsrs"
+  "js/ts.tsdk.path": ".vscode/tsrs"
 }
