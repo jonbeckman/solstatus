@@ -3,5 +3,6 @@
     "wrangler.json": "jsonc"
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "js/ts.tsdk.path": ".vscode/tsrs"
+  "js/ts.tsdk.path": ".vscode/tsrs",
+  "js/ts.experimental.useTsgo": true
 }
