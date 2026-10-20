@@ -47,7 +47,7 @@
     "db:setup": "nub run db:create && nub run db:generate && nub run db:migrate && nub run db:seed",
     "db:studio": "drizzle-kit studio",
     "db:studio:prod": "APP_ENV=prod drizzle-kit studio",
-    "types": "tsc"
+    "types": "tsrs"
   },
   "dependencies": {
     "@solstatus/api": "workspace:*",
@@ -64,6 +64,7 @@
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "drizzle-seed": "1.0.0-rc.5-ab785fc",
     "react": "^19.1.0",
+    "tsrs": "0.18.0-ts7.1.0-dev.20260929",
     "typescript": "7.0.2",
     "wrangler": "^4.22.0",
     "zod": "4.6.7"
