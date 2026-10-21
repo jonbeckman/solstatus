@@ -23,7 +23,13 @@ export const endpointMonitorsInsertDTOSchema = endpointMonitorsInsertSchema.omit
 
 export const endpointMonitorsSelectSchema = createSelectSchema(EndpointMonitorsTable)
 
-export const endpointMonitorsPatchSchema = createInsertSchema(EndpointMonitorsTable).partial()
+export const endpointMonitorsPatchSchema = createInsertSchema(EndpointMonitorsTable, {
+  url: (schema) => schema.url(),
+})
+  .omit({
+    id: true,
+  })
+  .partial()
 
 export const uptimeChecksInsertSchema = createInsertSchema(UptimeChecksTable).omit({
   id: true,
