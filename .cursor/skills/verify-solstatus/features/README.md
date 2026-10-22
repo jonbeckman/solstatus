@@ -6,5 +6,6 @@
 | Endpoint monitors | [monitors.md](monitors.md) | `tests/monitors.e2e.ts` |
 | App API | [api.md](api.md) | `tests/api.e2e.ts` |
 | CLI | [cli.md](cli.md) | `tests/cli.e2e.ts` |
+| Library | [library.md](library.md) | `tests/library.e2e.ts` |
 
 See `docs/e2e.md` for runner pins, credentials, and CI shape.

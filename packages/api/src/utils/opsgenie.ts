@@ -48,7 +48,7 @@ interface OpsgenieAlertResponse {
  * @param payload - Alert payload
  * @returns Response from Opsgenie API
  */
-export async function sendOpsgenieAlert(
+async function sendOpsgenieAlert(
   apiKey: string,
   payload: OpsgenieAlertPayload,
 ): Promise<OpsgenieAlertResponse | null> {

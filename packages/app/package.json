@@ -35,7 +35,7 @@
     "dev:mock": "SOLSTATUS_DEV_MOCK_API=1 vite --host 127.0.0.1 --port 3000",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 3000",
-    "types": "tsc --noEmit --incremental false",
+    "types": "tsrs --noEmit --incremental false",
     "clean": "rm -rf dist .output .vinxi .tanstack"
   },
   "dependencies": {
@@ -65,11 +65,9 @@
     "http-status-codes": "^2.3.0",
     "lucide-react": "^0.525.0",
     "next-themes": "^0.4.6",
-    "postcss": "^8.5.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.59.0",
-    "react-is": "^19.1.0",
     "recharts": "^2.15.4",
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.1",
@@ -78,16 +76,18 @@
     "use-debounce": "^10.0.5",
     "vaul": "^1.1.2",
     "vite": "^8.0.13",
-    "zod": "4.5.4",
+    "zod": "4.6.7",
     "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
+    "@libsql/client": "0.18.0",
     "@types/node": "^24.12.4",
-    "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.7",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "^6.0.1",
-    "alchemy": "2.0.0-beta.72",
+    "alchemy": "2.0.0-beta.83",
+    "tsrs": "0.18.0-ts7.1.0-dev.20260929",
     "typescript": "7.0.2",
     "wrangler": "^4.22.0"
   }

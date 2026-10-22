@@ -8,6 +8,6 @@ nub run test:e2e -- tests/api.e2e.ts
 
 Product facts:
 
-- `/api/infra-metadata` returns Cloudflare account and worker names from real bindings.
-- `/api/endpoint-monitors` and `/api/endpoint-monitors/stats` return JSON from D1-backed handlers.
-- `/api/auth/*` is handled by better-auth (email OTP plugin); no Clerk.
+- Anonymous calls to `/api/endpoint-monitors`, `/api/endpoint-monitors/stats`, `/api/infra-metadata`, and other non-auth paths return 401 `{ message: "Unauthorized" }`.
+- A signed-in caller can read `/api/infra-metadata` and create an endpoint monitor whose URL contains a single quote. A second create of that URL returns 409 with `matchingEndpointMonitor.url`.
+- `/api/auth/ok` and `/api/auth/get-session` stay available without a session. `/api/auth/*` is better-auth (email OTP); no Clerk.

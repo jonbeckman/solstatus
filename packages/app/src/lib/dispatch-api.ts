@@ -1,3 +1,4 @@
+import { ReasonPhrases, StatusCodes } from "http-status-codes"
 import { getWorkerEnv } from "@/lib/worker-env"
 import { auth } from "@/lib/auth"
 import * as endpointMonitors from "@/app/api/endpoint-monitors/route"
@@ -68,12 +69,24 @@ async function infraMetadataResponse() {
   })
 }
 
+function isBetterAuthPath(pathname: string) {
+  return pathname === "/api/auth" || pathname.startsWith("/api/auth/")
+}
+
 export async function dispatchApi(request: Request): Promise<Response> {
   const url = new URL(request.url)
   const pathname = url.pathname
 
-  if (pathname.startsWith("/api/auth")) {
+  if (isBetterAuthPath(pathname)) {
     return auth.handler(request)
+  }
+
+  const session = await auth.api.getSession({ headers: request.headers })
+  if (!session) {
+    return Response.json(
+      { message: ReasonPhrases.UNAUTHORIZED },
+      { status: StatusCodes.UNAUTHORIZED },
+    )
   }
 
   if (pathname === "/api/infra-metadata") {
@@ -82,12 +95,12 @@ export async function dispatchApi(request: Request): Promise<Response> {
 
   const matched = matchRoute(pathname)
   if (!matched) {
-    return Response.json({ message: "Not Found" }, { status: 404 })
+    return Response.json({ message: ReasonPhrases.NOT_FOUND }, { status: StatusCodes.NOT_FOUND })
   }
 
   const handler = matched.handlers[request.method]
   if (!handler) {
-    return new Response(null, { status: 405 })
+    return new Response(null, { status: StatusCodes.METHOD_NOT_ALLOWED })
   }
 
   return handler(request, { params: matched.params })

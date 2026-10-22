@@ -104,7 +104,7 @@ export const GET = createRoute.query(extendedQuerySchema).handler(async (_reques
  *
  * Creates a new endpointMonitor entry. Checks for URL conflicts before creating.
  *
- * @body {websitesInsertDTOSchema} - Endpoint Monitor data to insert
+ * @body {endpointMonitorsInsertDTOSchema} - Endpoint Monitor data to insert
  * @returns {Promise<Response>} JSON response with created endpointMonitor or conflict error
  * @throws {Response} 409 Conflict if a similar URL already exists
  */
@@ -121,7 +121,7 @@ export const POST = createRoute
     const existingEndpointMonitors: z.infer<typeof endpointMonitorsSelectSchema>[] = await db
       .select()
       .from(EndpointMonitorsTable)
-      .where(sql.raw(`instr(url, '${normalizedUrl}') > 0`))
+      .where(sql`instr(${EndpointMonitorsTable.url}, ${normalizedUrl}) > 0`)
 
     const matchingWebsite = existingEndpointMonitors.find((endpointMonitor) => {
       const websiteUrl = endpointMonitor.url.replace(/(^\w+:|^)\/\//, "")
@@ -164,7 +164,7 @@ export const POST = createRoute
       checkInterval: newWebsite.checkInterval,
     } as InitPayload)
 
-    return Response.json(newWebsite, { status: 201 })
+    return Response.json(newWebsite, { status: StatusCodes.CREATED })
   })
 
 function getOrderDirection(direction: "asc" | "desc") {

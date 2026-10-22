@@ -11,7 +11,7 @@ Permanent SolStatus DNA exceptions that remain intentional:
 - better-auth (not Clerk)
 - Cloudflare D1 (not PlanetScale)
 - no turbo (direct Nub scripts)
-- CLI may use `effect/unstable/cli` as the repository already does
+- CLI uses Effect 4 `effect/cli` (not the Effect 3 `@effect/cli` peer)
 - deploy-on-release for pre/prod on published non-prerelease GitHub Release SHA
 - Tegami go/no-go unchanged
 

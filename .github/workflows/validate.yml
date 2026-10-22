@@ -35,12 +35,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Set up Nub
-        uses: nubjs/setup-nub@v0.6.0
+        uses: nubjs/setup-nub@v0
         with:
           nub-version: 0.9.6
           node-version-file: .nvmrc
@@ -80,12 +80,12 @@ jobs:
       CF_AI_GATEWAY_E2E_SKIP_CACHE: ${{ inputs.e2e_live && '1' || '0' }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Set up Nub
-        uses: nubjs/setup-nub@v0.6.0
+        uses: nubjs/setup-nub@v0
         with:
           nub-version: 0.9.6
           node-version-file: .nvmrc
@@ -188,7 +188,7 @@ jobs:
 
       - name: Upload diagnostic reports
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: solstatus-e2e-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
