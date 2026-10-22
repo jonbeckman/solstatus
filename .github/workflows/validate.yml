@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up Nub
-        uses: nubjs/setup-nub@v0.6.0
+        uses: nubjs/setup-nub@v0
         with:
           nub-version: 0.9.6
           node-version-file: .nvmrc
