@@ -1,5 +1,3 @@
-// @ts-nocheck -- recharts 2 class components are not valid JSX under React 19 types
-
 import { useEffect, useMemo, useState } from "react"
 import { Line, LineChart } from "recharts"
 import { Badge } from "@/registry/new-york-v4/ui/badge"
@@ -223,6 +221,16 @@ export function LatencyLimitChart({
             </linearGradient>
           </defs>
 
+          <Line
+            type="bump"
+            dataKey="responseTime"
+            stroke="url(#colorResponseTime)"
+            strokeWidth={height < 100 ? 2 : 3}
+            dot={false}
+            animationDuration={0}
+            isAnimationActive={false}
+          />
+
           <ChartTooltip
             cursor={false}
             content={
@@ -251,16 +259,6 @@ export function LatencyLimitChart({
                 }}
               />
             }
-          />
-
-          <Line
-            type="bump"
-            dataKey="responseTime"
-            stroke="url(#colorResponseTime)"
-            strokeWidth={height < 100 ? 2 : 3}
-            dot={false}
-            animationDuration={0}
-            isAnimationActive={false}
           />
         </LineChart>
       </ChartContainer>

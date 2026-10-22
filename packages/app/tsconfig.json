@@ -9,15 +9,7 @@
     "./vite.config.ts",
     "./cloudflare-env.d.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "public",
-    "src/registry/**",
-    "src/components/uptime-chart.tsx",
-    "src/components/latency-range-chart.tsx",
-    "src/components/latency-limit-chart.tsx"
-  ],
+  "exclude": ["node_modules", "dist", "public", "src/registry/**"],
   "compilerOptions": {
     "types": ["@types/node", "@cloudflare/workers-types", "vite/client"],
     "rootDir": "./",
