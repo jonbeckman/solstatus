@@ -55,7 +55,7 @@ export function Toolbar({ table }: ToolbarProps) {
     fetchEndpointMonitors()
   }, 500)
 
-  // Update URL search params without triggering navigation
+  // Write the search term into the URL
   const updateUrlSearchParams = (term: string) => {
     const newParams = new URLSearchParams(searchParams.toString())
 
