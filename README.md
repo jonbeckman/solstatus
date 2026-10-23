@@ -43,15 +43,14 @@ For a holistic dev experience, it is best to run dev from the root of the repo.
 
 First, copy the `./packages/infra/.dev.vars.example` file to `./packages/infra/.dev.vars`.
 
-Then, run the following command to confirm you're using the correct CF account:
-and run to confirm you're using the correct CF account:
+Then confirm the Cloudflare account:
 ```sh
 nub exec wrangler whoami
 ```
 
-Run the migrations and (optionally) seed the database:
+Create the local database, generate migrations, apply them, and seed:
 ```sh
-# this is a convenience script that runs db:touch, db:generate, db:migrate, and db:seed
+# db:setup runs db:create, db:generate, db:migrate, and db:seed
 nub run db:setup
 ```
 
