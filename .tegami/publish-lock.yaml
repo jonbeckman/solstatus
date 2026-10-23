@@ -1,41 +1,43 @@
 core:changelogs:
-  - content: "---\npackages:\n  solstatus:\n    type: major\n  \"@solstatus/common\":\n    type: major\n  \"@solstatus/api\":\n    type: major\n  \"@solstatus/app\":\n    type: major\n  \"@solstatus/infra\":\n    type: major\n---\n\n## Align the published toolchain with Shared Project DNA\n\nPackage consumers now get Nub 0.4.11, TypeScript 7.0.2, Effect 4.0.0-beta.107,\nDrizzle ORM 1.0.0-rc.5, Zod 4.4.3, and Alchemy 2.0.0-beta.72. The dashboard is\nTanStack Start on Cloudflare instead of Next.js + OpenNext. The CLI stays on\nEffect 4 `effect/unstable/cli` because `@effect/cli` still peers Effect 3.\n\nInstall with `nub install`. The previous `pnpm` workspace, Biome lint/format\npath, and Next.js app entrypoints are gone.\n"
-    filename: 2026-08-27-shared-project-dna.md
+  - content: "---\npackages:\n  solstatus:\n    type: patch\n  \"@solstatus/common\":\n    type: patch\n  \"@solstatus/api\":\n    type: patch\n  \"@solstatus/app\":\n    type: patch\n  \"@solstatus/infra\":\n    type: patch\n---\n\n## Bump Alchemy to 2.0.0-beta.83\n\nPackage consumers now get Alchemy 2.0.0-beta.83. That version is the\nintended pin. Effect stays on master's 4.0.5 with matching\n`@effect/platform-node` and `@effect/platform-node-shared`. Drizzle stays\non 1.0.0-rc.5-ab785fc.\n\nAlchemy 2.0.0-beta.82 and later deploy Durable Objects with Cloudflare\ndeclarative exports. This is one-way. The first deploy of a Worker that\nhosts Durable Objects, including `monitor-trigger`, must go out at full\ntraffic. Older Alchemy releases cannot deploy that Worker afterward.\n\nD1 resources pass the existing migrations directory through Alchemy's\n`migrations` input. The wrapper still forwards `--stage` and now also sets\n`ALCHEMY_STAGE` so Alchemy's stage env rename does not change deploy names.\nThe Alchemy CLI entry is `alchemy/bin/cli.js` (`bin/alchemy.ts` is gone).\n"
+    filename: 2026-10-19-alchemy-beta-83.md
     v: 0.0.0
-  - content: "---\npackages:\n  solstatus:\n    type: patch\n  \"@solstatus/api\":\n    type: patch\n  \"@solstatus/infra\":\n    type: patch\n---\n\n## Reconcile Alchemy production deploy with leftover Wrangler\n\nProduction deploy is the Alchemy CLI (`nub run cli -- --stage prod`). Wrangler\nconfigs in `@solstatus/infra` are local D1 and local monitor-worker dev only;\nOpenNext worker keys and the unused `wrangler:gen` script are gone. `db:seed`\nreads the same `packages/infra/.wrangler` persist directory that\n`nub run dev:api` uses.\n"
-    filename: 2026-09-11-reconcile-alchemy-wrangler.md
+  - content: "---\npackages:\n  solstatus:\n    type: patch\n  \"@solstatus/api\":\n    type: patch\n  \"@solstatus/app\":\n    type: patch\n  \"@solstatus/common\":\n    type: patch\n  \"@solstatus/infra\":\n    type: patch\n---\n\n### Update minor and patch dependencies\n\nEffect 4.0.5, Zod 4.6.7, and the matching lockfile refresh.\n"
+    filename: 2026-10-19-deps-patch.md
     v: 0.0.0
-  - content: "---\npackages:\n  \"@solstatus/api\":\n    type: major\n  \"@solstatus/common\":\n    type: major\n---\n\n## Remove unfinished synthetic monitor types\n\n`InitPayload` is endpoint-only. It no longer accepts `monitorType: \"synthetic\"`,\n`timeoutSeconds`, or `runtime`. `PRE_ID.syntheticMonitor` is removed. Endpoint\nmonitor init, alarm, pause, and resume are unchanged. App callers may keep\npassing `monitorType: \"endpoint\"`.\n"
-    filename: 2026-09-06-drop-synthetic-monitor.md
+  - content: "---\npackages:\n  \"@solstatus/app\":\n    type: patch\n  \"@solstatus/common\":\n    type: patch\n---\n\n## Harden API authentication and query parameterization\n\nAPI routes other than `/api/auth` now require a session. Endpoint monitor\nURL checks bind the submitted URL as a query parameter. Patch requests\naccept a valid `url` and do not accept `id`. Better Auth uses the Drizzle\nD1 client for its database adapter.\n"
+    filename: 2026-10-20-harden-api-auth.md
     v: 0.0.0
-  - content: "---\npackages:\n  \"@solstatus/api\":\n    type: patch\n---\n\n## Keep monitor alarms running after a failed first check\n\nDurable Object alarm retries now reschedule the next check instead of\nreturning without an alarm. Unused monitor-exec response bodies are\ncancelled. Opsgenie down-alert details point at jonbeckman/solstatus.\nAlchemy binds OPSGENIE_API_KEY as a Worker secret.\n"
-    filename: 2026-09-06-worker-do-platform-hygiene.md
+  - content: "---\npackages:\n  \"@solstatus/common\":\n    type: major\n---\n\n## Drop unused uptime check ID and patch schema\n\n`uptimeChecksPatchSchema` is removed. Uptime check rows use integer\nauto-increment IDs, so `PRE_ID.uptimeCheck` and the exported `nanoid`\nhelper are gone. Use `uptimeChecksSelectSchema` or\n`uptimeChecksInsertSchema`, and `createId(PRE_ID.endpointMonitor)` for\nendpoint monitor IDs.\n"
+    filename: 2026-10-02-drop-unused-uptime-orphans.md
     v: 0.0.0
 core:packages:
   - changelogIds:
-      - 2026-08-27-shared-project-dna.md
-      - 2026-09-11-reconcile-alchemy-wrangler.md
+      - 2026-10-19-alchemy-beta-83.md
+      - 2026-10-19-deps-patch.md
     id: npm:solstatus
     updated: true
   - changelogIds:
-      - 2026-08-27-shared-project-dna.md
-      - 2026-09-06-drop-synthetic-monitor.md
-      - 2026-09-06-worker-do-platform-hygiene.md
-      - 2026-09-11-reconcile-alchemy-wrangler.md
+      - 2026-10-19-alchemy-beta-83.md
+      - 2026-10-19-deps-patch.md
     id: npm:@solstatus/api
     updated: true
   - changelogIds:
-      - 2026-08-27-shared-project-dna.md
+      - 2026-10-19-alchemy-beta-83.md
+      - 2026-10-19-deps-patch.md
+      - 2026-10-20-harden-api-auth.md
     id: npm:@solstatus/app
     updated: true
   - changelogIds:
-      - 2026-08-27-shared-project-dna.md
-      - 2026-09-06-drop-synthetic-monitor.md
+      - 2026-10-02-drop-unused-uptime-orphans.md
+      - 2026-10-19-alchemy-beta-83.md
+      - 2026-10-19-deps-patch.md
+      - 2026-10-20-harden-api-auth.md
     id: npm:@solstatus/common
     updated: true
   - changelogIds:
-      - 2026-08-27-shared-project-dna.md
-      - 2026-09-11-reconcile-alchemy-wrangler.md
+      - 2026-10-19-alchemy-beta-83.md
+      - 2026-10-19-deps-patch.md
     id: npm:@solstatus/infra
     updated: true
 npm:packages:
