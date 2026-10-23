@@ -16,7 +16,7 @@ const __dirname = dirname(__filename)
 
 const envPath = path.resolve(process.cwd(), ".env")
 if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath })
+  dotenv.config({ path: envPath, quiet: true })
 }
 
 const appendEnvValue = (key: string, value: string) => {
