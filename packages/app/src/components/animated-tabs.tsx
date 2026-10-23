@@ -1,6 +1,6 @@
 // https://github.com/list-jonas/shadcn-ui-animated-tabs/blob/main/registry/animated-tabs/animated-tabs.tsx
 
-import { Content, List, Root, Trigger } from "@radix-ui/react-tabs"
+import { List, Root, Trigger } from "@radix-ui/react-tabs"
 import React, { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
@@ -102,17 +102,4 @@ const TabsTrigger = React.forwardRef<
 ))
 TabsTrigger.displayName = Trigger.displayName
 
-const TabsContent = React.forwardRef<
-  React.ElementRef<typeof Content>,
-  React.ComponentPropsWithoutRef<typeof Content>
->(({ className, ...props }, ref) => (
-  <Content
-    ref={ref}
-    data-slot="tabs-content"
-    className={cn("flex-1 outline-none mt-2", className)}
-    {...props}
-  />
-))
-TabsContent.displayName = Content.displayName
-
-export { Tabs, TabsContent, TabsList, TabsTrigger }
+export { Tabs, TabsList, TabsTrigger }
