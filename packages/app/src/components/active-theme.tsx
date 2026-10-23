@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from "react"
+import { type ReactNode, useEffect } from "react"
 
 import { siteConfig } from "@/lib/site"
 
@@ -19,7 +19,7 @@ export function ActiveThemeProvider({
   children: ReactNode
   initialTheme?: string
 }) {
-  const [activeTheme] = useState<string>(() => initialTheme || siteConfig.defaultTheme)
+  const activeTheme = initialTheme || siteConfig.defaultTheme
 
   useEffect(() => {
     setThemeCookie(activeTheme)
