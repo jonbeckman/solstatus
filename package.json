@@ -61,7 +61,8 @@
     "test:e2e:list": "nub exec e2e list",
     "test:e2e:cleanup": "tsx scripts/e2e/cleanup.ts",
     "test:e2e:mcp": "tsx scripts/e2e/run.ts --mcp",
-    "typecheck:e2e": "tsrs --pretty false --noEmit --incremental false -p tests/tsconfig.json"
+    "typecheck:e2e": "tsrs --pretty false --noEmit --incremental false -p tests/tsconfig.json",
+    "migrations:check": "tsx scripts/check-migration-history.ts"
   },
   "dependencies": {
     "@effect/platform-node": "4.0.5",
@@ -72,15 +73,17 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
-    "@e2e-dev/github": "0.3.3",
-    "@e2e-dev/web": "0.12.0",
+    "@e2e-dev/decision": "0.3.0",
+    "@e2e-dev/github": "0.4.3",
+    "@e2e-dev/web": "0.15.3",
     "@mpsuesser/oxlint-plugin-effect": "0.6.0",
     "@oxlint/plugins": "1.89.0",
     "@types/node": "^24.12.4",
     "@types/pngjs": "6.0.5",
+    "ai": "7.0.134",
     "anti-slop": "github:dmmulroy/anti-slop",
     "concurrently": "^9.2.0",
-    "e2e": "0.17.0",
+    "e2e": "0.21.3",
     "jpeg-js": "0.4.4",
     "oxfmt": "0.74.0",
     "oxlint": "1.89.0",
@@ -122,8 +125,5 @@
   "allowScripts": {
     "esbuild": true,
     "workerd": true
-  },
-  "patchedDependencies": {
-    "@e2e-dev/web@0.12.0": "patches/@e2e-dev+web@0.12.0.patch"
   }
 }

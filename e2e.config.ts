@@ -1,7 +1,9 @@
 import { existsSync } from "node:fs"
+import { decisionFilter } from "@e2e-dev/decision"
 import { web } from "@e2e-dev/web"
 import { github } from "@e2e-dev/github"
 import type { E2EConfig } from "e2e"
+import { createClefDecisionModel } from "./scripts/e2e/cf-clef-decision-model"
 import { createClefExecutor } from "./scripts/e2e/cf-clef-executor"
 
 // Node's dotenv loader preserves environment overrides supplied by CI.
@@ -35,7 +37,6 @@ export default {
       name: "chromium",
       engine: web({
         browser: "chromium",
-        permissions: ["clipboard-read", "clipboard-write"],
         viewport: { width: 1440, height: 900 },
       }),
       app: {
@@ -53,6 +54,7 @@ export default {
     },
     { name: "cli", platform: "cli", trace: "off" },
   ],
+  filters: [decisionFilter({ model: createClefDecisionModel() })],
   workers: 1,
   retries: 0,
   timeout: 120_000,

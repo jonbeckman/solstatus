@@ -17,15 +17,12 @@ After `nub run test:e2e:cleanup`, the Evidence output stays in `.e2e/summary.md`
 ```sh
 nub install --frozen-lockfile
 nub run test:e2e:install
-nub run test
-nub exec e2e run tests/dashboard.e2e.ts
-nub run test:e2e:list
+nub run migrations:check
+nub exec e2e list --changed-since origin/master
+nub exec e2e run --changed-since origin/master
 ```
 
-`e2e@0.17.0` and `@e2e-dev/web@0.12.0` do not provide the Test Filters API (`filters`, `decisionFilter`, `--changed-since`). Select the feature file by name. That API arrives in `e2e@0.21.3`. Leave the 0.17.0 pin in place until a change is dedicated to the upgrade.
-
-Supply Cloudflare account/API credentials, `BETTER_AUTH_SECRET`, and `CF_AI_GATEWAY_E2E_TOKEN`.
-Never print secret values. After each `agent.act`, assert exactly with `expect`.
+`e2e.config.ts` registers `decisionFilter` from `@e2e-dev/decision` with the Cloudflare Clef decision model (`@cf/cloudflare/clef`) through Cloudflare AI Gateway. On a pull request, pass `--changed-since origin/master` so that filter selects the tests the change can affect. Without the flag, every test runs. A change to `e2e.config.ts` or another run-all file leaves nothing out. Supply Cloudflare account/API credentials, `BETTER_AUTH_SECRET`, and `CF_AI_GATEWAY_E2E_TOKEN`. Never print secret values. After each `agent.act`, assert exactly with `expect`.
 
 ## Permanent exceptions
 

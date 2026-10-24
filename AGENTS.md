@@ -14,7 +14,7 @@ Use Plain Language in introductory, expository, friendly, and other sensible com
 
 ## End-to-end testing
 
-- Pins: `e2e@0.17.0`, `@e2e-dev/web@0.12.0`, `@e2e-dev/github@0.3.3`.
+- Pins: `e2e@0.21.3`, `@e2e-dev/web@0.15.3`, `@e2e-dev/github@0.4.3`, `@e2e-dev/decision@0.3.0`. Drizzle stays `drizzle-orm` / `drizzle-kit` `1.0.0-rc.5-ab785fc`.
 - Layout: root `e2e.config.ts`, tests in `tests/**/*.e2e.ts`, helpers in `tests/support/`, lifecycle under `tests/lifecycle/` when needed, runner/cleanup/accounting under `scripts/e2e/` (copied `cf-clef-executor`, `ai-report`, `ai-usage`).
 - Unmodified upstream skill: `.agents/skills/e2e/` (symlink `.claude/skills/e2e`). Coverage map: `.cursor/skills/verify-solstatus/features/`.
 - After each `agent.act`, assert exactly with `expect`. No mocks, request interception, or test-only endpoints.
@@ -29,7 +29,7 @@ Every user-visible or behavioral pull request carries proof as cloud-agent artif
 
 Skip this proof only for pin-only, config-only, or markdown-only work.
 
-Boot the SolStatus app (the TanStack Start app and the API workers) from the repository root with `nub run dev`. Run the affected end-to-end tests through `.cursor/skills/verify-solstatus`. Select those tests with the e2e Test Filters API and the Cloudflare Clef decision model through Cloudflare AI Gateway when the installed runner provides that API. Never print gateway tokens or other secrets.
+Boot the SolStatus app (the TanStack Start app and the API workers) from the repository root with `nub run dev`. Run the affected end-to-end tests through `.cursor/skills/verify-solstatus`. Select those tests with the e2e Test Filters API and the Cloudflare Clef decision model through Cloudflare AI Gateway. Never print gateway tokens or other secrets.
 
 ## Release Management
 

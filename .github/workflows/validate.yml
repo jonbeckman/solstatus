@@ -38,6 +38,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          fetch-depth: 0
 
       - name: Set up Nub
         uses: nubjs/setup-nub@v0
@@ -57,6 +58,9 @@ jobs:
 
       - name: Check formatting
         run: nub run format
+
+      - name: Check migration history
+        run: nub run migrations:check
 
       - name: Collect end-to-end tests
         run: nub run test:e2e:list
@@ -83,6 +87,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          fetch-depth: 0
 
       - name: Set up Nub
         uses: nubjs/setup-nub@v0
@@ -142,9 +147,21 @@ jobs:
         id: e2e-run
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          E2E_EVENT_NAME: ${{ github.event_name }}
+          E2E_BASE_REF: ${{ github.base_ref }}
         run: |
+          changed_since=""
+          if [ "$E2E_EVENT_NAME" = "pull_request" ]; then
+            changed_since="origin/${E2E_BASE_REF}"
+          fi
           if [ "${{ inputs.e2e_live }}" = "true" ]; then
-            nub run test:e2e:live
+            if [ -n "$changed_since" ]; then
+              nub run test:e2e:live -- --changed-since "$changed_since"
+            else
+              nub run test:e2e:live
+            fi
+          elif [ -n "$changed_since" ]; then
+            nub run test -- --changed-since "$changed_since"
           else
             nub run test
           fi

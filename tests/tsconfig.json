@@ -7,5 +7,10 @@
     "noEmit": true,
     "rootDir": ".."
   },
-  "include": ["./**/*.ts", "../e2e.config.ts", "../scripts/e2e/**/*.ts"]
+  "include": [
+    "./**/*.ts",
+    "../e2e.config.ts",
+    "../scripts/e2e/**/*.ts",
+    "../scripts/check-migration-history.ts"
+  ]
 }

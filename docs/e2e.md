@@ -1,7 +1,8 @@
 # End-to-end validation
 
-SolStatus uses [tester-army/e2e](https://github.com/tester-army/e2e) `0.17.0` with
-`@e2e-dev/web@0.12.0` and `@e2e-dev/github@0.3.3` as its only automated test runner.
+SolStatus uses [tester-army/e2e](https://github.com/tester-army/e2e) `0.21.3` with
+`@e2e-dev/web@0.15.3`, `@e2e-dev/github@0.4.3`, and `@e2e-dev/decision@0.3.0` as its only
+automated test runner.
 `nub run test` executes `tests/**/*.e2e.ts` against the real Alchemy development stack
 (TanStack Start app on port 3000, monitor workers, local D1, better-auth). Vitest unit
 suites have been removed. Do not restore mocks, request interception, or a second runner.
@@ -27,6 +28,8 @@ Each file links to the canonical `tests/*.e2e.ts` suite for that product area.
 nub install --frozen-lockfile
 nub run test:e2e:install
 nub run test:e2e:list
+nub exec e2e list --changed-since origin/master
+nub exec e2e run --changed-since origin/master
 nub run test
 nub run test:e2e -- tests/dashboard.e2e.ts
 nub run test:e2e:live
@@ -54,12 +57,21 @@ header. It supports `agent.act` and visual `assert`; exact text, URL, status, an
 use deterministic `expect`. After each `agent.act`, assert exactly. No Jev fallback exists.
 Gateway tokens never belong in source, commands, logs, artifacts, or browser processes.
 
+`e2e.config.ts` sets `filters` to `decisionFilter({ model: createClefDecisionModel() })`.
+That model is `scripts/e2e/cf-clef-decision-model.ts`. It asks Clef boolean questions through
+the same Cloudflare AI Gateway. Pass `--changed-since origin/master` on a pull request so the
+filter selects affected tests. Fetch the base ref first. Without the flag, every test runs.
+A change to `e2e.config.ts` leaves nothing out. The pull-request job in `Validate` passes the
+flag. Push, merge-queue, and scheduled runs do not.
+
 ## CI
 
 `Validate` keeps a `validate` job for typecheck/lint/format and `nub run test:e2e:list`.
-A separate `e2e` job (fork-PR guarded) restores replay cache, initializes AI accounting,
-runs `nub run test`, cleans up on `always()`, summarizes usage, saves cache on success, and
-uploads reports. Manual inputs: `e2e_lifecycle`, optional `e2e_live`.
+A separate `e2e` job (fork-PR guarded) checks out full history, restores replay cache,
+initializes AI accounting, and on a pull request runs `nub run test -- --changed-since origin/<base>`.
+Other events run every test. The job cleans up on `always()`, summarizes usage, saves cache on
+success, and uploads reports. Manual inputs: `e2e_lifecycle`, optional `e2e_live`. The validate
+job also runs `nub run migrations:check`.
 
 Required CI secrets/env: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`,
 `CF_AI_GATEWAY_E2E_TOKEN`, `BETTER_AUTH_SECRET` (or generate per job). Baseline flags:
