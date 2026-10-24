@@ -21,6 +21,16 @@ Use Plain Language in introductory, expository, friendly, and other sensible com
 - Declare credentials/secrets in `e2e.config.ts`, never in test code. Default agent uses Clef through Cloudflare AI Gateway (`maxSteps`/`maxModelCalls` 20). Never deploy, pay, or send from tests.
 - Permanent exceptions to keep: better-auth (not Clerk), Cloudflare D1 (not PlanetScale), no turbo, existing Effect CLI stack, deploy-on-release, Tegami go/no-go.
 
+## Cloud-agent PR artifacts
+
+Source: Jonathan, 2026-10-24, skill `cloud-agent-pr-artifacts`.
+
+Every user-visible or behavioral pull request carries proof as cloud-agent artifacts. Attach screenshots. Attach a short video when a flow matters. Attach test or build logs. Drive the app first, then attach the proof. Do not commit screenshot binaries.
+
+Skip this proof only for pin-only, config-only, or markdown-only work.
+
+Boot the SolStatus app (the TanStack Start app and the API workers) from the repository root with `nub run dev`. Run the affected end-to-end tests through `.cursor/skills/verify-solstatus`. Select those tests with the e2e Test Filters API and the Cloudflare Clef decision model through Cloudflare AI Gateway when the installed runner provides that API. Never print gateway tokens or other secrets.
+
 ## Release Management
 
 - Add a Tegami release entry under `.tegami/` when a change has an observable effect on a published package.
