@@ -8,8 +8,28 @@ Use Plain Language in introductory, expository, friendly, and other sensible com
 ## Validation
 
 - Before handing work back, run `nub run typecheck`, `nub run lint`, `nub run format`, and `nub run test` from the repo root.
+- `nub run test` is tester-army/e2e exclusively (`docs/e2e.md`). Do not add Vitest or another runner.
 - Treat the task as incomplete until those checks pass, unless you explicitly report why a command could not be run or why a failure is unrelated to your changes.
 - During iteration, scoped or package-local checks are fine for speed, but the final handoff should still include the repo-root validation commands above.
+
+## End-to-end testing
+
+- Pins: `e2e@0.21.3`, `@e2e-dev/web@0.15.3`, `@e2e-dev/github@0.4.3`, `@e2e-dev/decision@0.3.0`. Drizzle stays `drizzle-orm` / `drizzle-kit` `1.0.0-rc.5-ab785fc`.
+- Layout: root `e2e.config.ts`, tests in `tests/**/*.e2e.ts`, helpers in `tests/support/`, lifecycle under `tests/lifecycle/` when needed, runner/cleanup/accounting under `scripts/e2e/` (copied `cf-clef-executor`, `ai-report`, `ai-usage`).
+- Unmodified upstream skill: `.agents/skills/e2e/` (symlink `.claude/skills/e2e`). Coverage map: `.cursor/skills/verify-solstatus/features/`.
+- After each `agent.act`, assert exactly with `expect`. No mocks, request interception, or test-only endpoints.
+- Declare credentials/secrets in `e2e.config.ts`, never in test code. Default agent uses Clef through Cloudflare AI Gateway (`maxSteps`/`maxModelCalls` 20). Never deploy, pay, or send from tests.
+- Permanent exceptions to keep: better-auth (not Clerk), Cloudflare D1 (not PlanetScale), no turbo, existing Effect CLI stack, deploy-on-release, Tegami go/no-go.
+
+## Cloud-agent PR artifacts
+
+Source: Jonathan, 2026-10-24, skill `cloud-agent-pr-artifacts`.
+
+Every user-visible or behavioral pull request carries proof as cloud-agent artifacts. Attach screenshots. Attach a short video when a flow matters. Attach test or build logs. Drive the app first, then attach the proof. Do not commit screenshot binaries.
+
+Skip this proof only for pin-only, config-only, or markdown-only work.
+
+Boot the SolStatus app (the TanStack Start app and the API workers) from the repository root with `nub run dev`. Run the affected end-to-end tests through `.cursor/skills/verify-solstatus`. Select those tests with the e2e Test Filters API and the Cloudflare Clef decision model through Cloudflare AI Gateway. Never print gateway tokens or other secrets.
 
 ## Release Management
 
