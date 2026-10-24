@@ -4,7 +4,9 @@ import { mkdirSync, writeFileSync } from "node:fs"
 import { processMembers } from "./process-group"
 
 const mcp = process.argv[2] === "--mcp"
-const forwarded = process.argv.slice(mcp ? 3 : 2)
+// A package manager forwards `nub run <script> -- --changed-since <ref>` with the
+// separator intact. e2e then treats the flag as a test file. Drop the separator.
+const forwarded = process.argv.slice(mcp ? 3 : 2).filter((arg) => arg !== "--")
 if (mcp) process.env.E2E_MCP_PROTOCOL = "1"
 
 mkdirSync(".e2e", { recursive: true })

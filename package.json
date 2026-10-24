@@ -61,8 +61,7 @@
     "test:e2e:list": "nub exec e2e list",
     "test:e2e:cleanup": "tsx scripts/e2e/cleanup.ts",
     "test:e2e:mcp": "tsx scripts/e2e/run.ts --mcp",
-    "typecheck:e2e": "tsrs --pretty false --noEmit --incremental false -p tests/tsconfig.json",
-    "migrations:check": "tsx scripts/check-migration-history.ts"
+    "typecheck:e2e": "tsrs --pretty false --noEmit --incremental false -p tests/tsconfig.json"
   },
   "dependencies": {
     "@effect/platform-node": "4.0.5",

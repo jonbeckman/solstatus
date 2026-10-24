@@ -59,19 +59,22 @@ Gateway tokens never belong in source, commands, logs, artifacts, or browser pro
 
 `e2e.config.ts` sets `filters` to `decisionFilter({ model: createClefDecisionModel() })`.
 That model is `scripts/e2e/cf-clef-decision-model.ts`. It asks Clef boolean questions through
-the same Cloudflare AI Gateway. Pass `--changed-since origin/master` on a pull request so the
-filter selects affected tests. Fetch the base ref first. Without the flag, every test runs.
-A change to `e2e.config.ts` leaves nothing out. The pull-request job in `Validate` passes the
-flag. Push, merge-queue, and scheduled runs do not.
+the same Cloudflare AI Gateway. Pass `--changed-since origin/master` to `nub exec e2e list`
+or `nub exec e2e run` on a pull request so the filter selects affected tests. Do not write
+`nub run test -- --changed-since`. e2e treats a flag after `--` as a test file. Fetch the
+base ref first. Without the flag, every test runs. A change to `e2e.config.ts` leaves nothing
+out. The pull-request job in `Validate` passes the flag. Push, merge-queue, and scheduled
+runs do not.
 
 ## CI
 
 `Validate` keeps a `validate` job for typecheck/lint/format and `nub run test:e2e:list`.
 A separate `e2e` job (fork-PR guarded) checks out full history, restores replay cache,
-initializes AI accounting, and on a pull request runs `nub run test -- --changed-since origin/<base>`.
-Other events run every test. The job cleans up on `always()`, summarizes usage, saves cache on
-success, and uploads reports. Manual inputs: `e2e_lifecycle`, optional `e2e_live`. The validate
-job also runs `nub run migrations:check`.
+initializes AI accounting, and on a pull request runs
+`nub exec e2e run --changed-since origin/<base>`. A live run uses
+`nub exec e2e run --no-cache --changed-since origin/<base>`. Other events run every test.
+The job cleans up on `always()`, summarizes usage, saves cache on success, and uploads
+reports. Manual inputs: `e2e_lifecycle`, optional `e2e_live`.
 
 Required CI secrets/env: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`,
 `CF_AI_GATEWAY_E2E_TOKEN`, `BETTER_AUTH_SECRET` (or generate per job). Baseline flags:

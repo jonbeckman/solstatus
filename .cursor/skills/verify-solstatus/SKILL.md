@@ -17,12 +17,11 @@ After `nub run test:e2e:cleanup`, the Evidence output stays in `.e2e/summary.md`
 ```sh
 nub install --frozen-lockfile
 nub run test:e2e:install
-nub run migrations:check
 nub exec e2e list --changed-since origin/master
 nub exec e2e run --changed-since origin/master
 ```
 
-`e2e.config.ts` registers `decisionFilter` from `@e2e-dev/decision` with the Cloudflare Clef decision model (`@cf/cloudflare/clef`) through Cloudflare AI Gateway. On a pull request, pass `--changed-since origin/master` so that filter selects the tests the change can affect. Without the flag, every test runs. A change to `e2e.config.ts` or another run-all file leaves nothing out. Supply Cloudflare account/API credentials, `BETTER_AUTH_SECRET`, and `CF_AI_GATEWAY_E2E_TOKEN`. Never print secret values. After each `agent.act`, assert exactly with `expect`.
+`e2e.config.ts` registers `decisionFilter` from `@e2e-dev/decision` with the Cloudflare Clef decision model (`@cf/cloudflare/clef`) through Cloudflare AI Gateway. On a pull request, pass `--changed-since origin/master` to `nub exec e2e list` and `nub exec e2e run` so that filter selects the tests the change can affect. Do not put `--` before the flag (`nub run test -- --changed-since` makes e2e treat the flag as a test file). Without the flag, every test runs. A change to `e2e.config.ts` or another run-all file leaves nothing out. Supply Cloudflare account/API credentials, `BETTER_AUTH_SECRET`, and `CF_AI_GATEWAY_E2E_TOKEN`. Never print secret values. After each `agent.act`, assert exactly with `expect`.
 
 ## Permanent exceptions
 

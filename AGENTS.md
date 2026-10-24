@@ -12,12 +12,17 @@ Use Plain Language in introductory, expository, friendly, and other sensible com
 - Treat the task as incomplete until those checks pass, unless you explicitly report why a command could not be run or why a failure is unrelated to your changes.
 - During iteration, scoped or package-local checks are fine for speed, but the final handoff should still include the repo-root validation commands above.
 
+## No guard scripts
+
+Do not add scripts, tests, or CI steps that only police the repo's own files, history, or config (for example migration-history hashes, file-list or lockfile-shape checks). Fix the real cause, or rely on the tool that already enforces it (wrangler and Alchemy track applied migrations). Add a guard only when Jonathan asks for it in the PR or the card.
+
 ## End-to-end testing
 
 - Pins: `e2e@0.21.3`, `@e2e-dev/web@0.15.3`, `@e2e-dev/github@0.4.3`, `@e2e-dev/decision@0.3.0`. Drizzle stays `drizzle-orm` / `drizzle-kit` `1.0.0-rc.5-ab785fc`.
 - Layout: root `e2e.config.ts`, tests in `tests/**/*.e2e.ts`, helpers in `tests/support/`, lifecycle under `tests/lifecycle/` when needed, runner/cleanup/accounting under `scripts/e2e/` (copied `cf-clef-executor`, `ai-report`, `ai-usage`).
 - Unmodified upstream skill: `.agents/skills/e2e/` (symlink `.claude/skills/e2e`). Coverage map: `.cursor/skills/verify-solstatus/features/`.
 - After each `agent.act`, assert exactly with `expect`. No mocks, request interception, or test-only endpoints.
+- Pass `--changed-since <ref>` to `nub exec e2e list` and `nub exec e2e run` directly. Do not write `nub run test -- --changed-since`. e2e treats a flag after `--` as a test file.
 - Declare credentials/secrets in `e2e.config.ts`, never in test code. Default agent uses Clef through Cloudflare AI Gateway (`maxSteps`/`maxModelCalls` 20). Never deploy, pay, or send from tests.
 - Permanent exceptions to keep: better-auth (not Clerk), Cloudflare D1 (not PlanetScale), no turbo, existing Effect CLI stack, deploy-on-release, Tegami go/no-go.
 

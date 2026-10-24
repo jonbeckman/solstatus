@@ -59,9 +59,6 @@ jobs:
       - name: Check formatting
         run: nub run format
 
-      - name: Check migration history
-        run: nub run migrations:check
-
       - name: Collect end-to-end tests
         run: nub run test:e2e:list
 
@@ -156,12 +153,12 @@ jobs:
           fi
           if [ "${{ inputs.e2e_live }}" = "true" ]; then
             if [ -n "$changed_since" ]; then
-              nub run test:e2e:live -- --changed-since "$changed_since"
+              nub exec e2e run --no-cache --changed-since "$changed_since"
             else
               nub run test:e2e:live
             fi
           elif [ -n "$changed_since" ]; then
-            nub run test -- --changed-since "$changed_since"
+            nub exec e2e run --changed-since "$changed_since"
           else
             nub run test
           fi
