@@ -37,19 +37,30 @@ nub run test:e2e:cache-strict
 nub run test:e2e:cleanup
 ```
 
-Copy `packages/infra/.dev.vars.example` to `packages/infra/.dev.vars` and supply
-`CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, and `BETTER_AUTH_SECRET`. Provide
-`CF_AI_GATEWAY_E2E_TOKEN` (and optional `CF_AI_GATEWAY_E2E_ID`, default `default`) for
-Clef semantic steps. Existing shell or CI values override dotenv files. Ports 3000,
-8787, and 8788 must be free. The config starts `scripts/e2e/stack.ts`, which launches
-`packages/infra` Alchemy `infra:dev` for the isolated `test` stage.
+`scripts/e2e/stack.ts` starts `alchemy dev packages/infra/src/alchemy.run.ts --stage dev`
+(Alchemy `2.0.0-beta.83`) with its working directory at `.e2e/runs/<uuid>`. Local D1,
+KV, and Alchemy state stay in that directory's `.alchemy` tree. Cleanup deletes that
+directory only. It does not call `alchemy deploy` or `alchemy destroy`.
+
+`BETTER_AUTH_SECRET` comes from the environment or `packages/infra/.dev.vars`. When
+both are empty, the launcher generates one for that process. Local emulation does
+not read `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`. Provide
+`CF_AI_GATEWAY_E2E_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (optional `CF_AI_GATEWAY_E2E_ID`,
+default `default`) for Clef. The account id is the Workers AI route
+`accounts/{account}/ai/run`. Existing shell or CI values override dotenv files.
+Ports 3000, 8787, and 8788 must be free.
 
 Declare credentials and secrets in `e2e.config.ts`. Never hard-code them in test files.
 Use registered secret handles for any browser credential input.
 
-Replay here means tester-army/e2e recorded browser actions. It is separate from Cloudflare
-AI Gateway response caching. `test:e2e:live` bypasses action replay. `test:e2e:cache-strict`
-rejects stale recordings. Inspect `.e2e/report.json` for model-call and cache evidence.
+Replay here means tester-army/e2e recorded browser actions, stored under `.e2e/cache`.
+It is separate from Cloudflare AI Gateway response caching. The decision model and the
+Clef executor send `cf-aig-cache-ttl`, `cf-aig-cache-key`, and `cf-aig-skip-cache`.
+Pull requests set `CF_AI_GATEWAY_E2E_SKIP_CACHE=0`, so an identical Clef request can
+log `Clef decision gateway cache: hit`. `test:e2e:live` bypasses action replay. A
+workflow dispatch with `e2e_live` also sets `CF_AI_GATEWAY_E2E_SKIP_CACHE=1`.
+`test:e2e:cache-strict` rejects stale recordings. Inspect `.e2e/report.json` and
+`.e2e/ai-usage/summary.md` for model-call and cache evidence.
 
 Cloudflare Clef (`@cf/cloudflare/clef`) is a System One decision API. `scripts/e2e/cf-clef-executor.ts`
 sends redacted accessible trees and images through Workers AI with the `cf-aig-gateway-id`
@@ -69,17 +80,20 @@ runs do not.
 ## CI
 
 `Validate` keeps a `validate` job for typecheck/lint/format and `nub run test:e2e:list`.
-A separate `e2e` job (fork-PR guarded) checks out full history, restores replay cache,
-initializes AI accounting, and on a pull request runs
-`nub exec e2e run --changed-since origin/<base>`. A live run uses
+A separate required `e2e` job (fork-PR guarded) checks out full history, restores the
+action replay cache from `.e2e/cache`, initializes AI accounting, and on a pull request
+runs `nub exec e2e run --changed-since origin/<base>`. A live run uses
 `nub exec e2e run --no-cache --changed-since origin/<base>`. Other events run every test.
-The job cleans up on `always()`, summarizes usage, saves cache on success, and uploads
-reports. Manual inputs: `e2e_lifecycle`, optional `e2e_live`.
+The job removes the UUID local state directory on `always()`, summarizes usage, saves
+the replay cache on success, and uploads reports. Manual inputs: `e2e_lifecycle`,
+optional `e2e_live`.
 
-Required CI secrets/env: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`,
-`CF_AI_GATEWAY_E2E_TOKEN`, `BETTER_AUTH_SECRET` (or generate per job). Baseline flags:
-`E2E_TELEMETRY_DISABLED=1`, `E2E_AI_USAGE=1`, `CF_AI_GATEWAY_E2E_ID=default`.
-`GITHUB_TOKEN` is scoped to test steps only.
+The e2e job does not read `CLOUDFLARE_API_TOKEN`. It reads `CF_AI_GATEWAY_E2E_TOKEN`
+and `CLOUDFLARE_ACCOUNT_ID` for Clef. `BETTER_AUTH_SECRET` may be generated per job.
+Baseline flags: `E2E_TELEMETRY_DISABLED=1`, `E2E_AI_USAGE=1`, `CF_AI_GATEWAY_E2E_ID=default`,
+and `CF_AI_GATEWAY_E2E_SKIP_CACHE=0` unless `e2e_live` is set. `GITHUB_TOKEN` is scoped
+to test steps only. `nub run test:e2e:cache-strict` is the local command that fails a
+stale action replay.
 
 ## Author and diagnose
 

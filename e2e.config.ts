@@ -21,7 +21,7 @@ const inherited = Object.fromEntries(
   Object.entries(process.env).flatMap(([name, value]) =>
     value !== undefined &&
     !runnerMetadata.has(name) &&
-    /^(PATH|HOME|USER|TMPDIR|CLOUDFLARE_|BETTER_AUTH_SECRET$|SECRET_ALCHEMY_PASSPHRASE$|APP_NAME$|STAGE$|FQDN$|WRANGLER_|NODE_|CI$|ALCHEMY_)/.test(
+    /^(PATH|HOME|USER|TMPDIR|BETTER_AUTH_SECRET$|SECRET_ALCHEMY_PASSPHRASE$|APP_NAME$|STAGE$|FQDN$|WRANGLER_|NODE_|CI$|ALCHEMY_)/.test(
       name,
     )
       ? [[name, value]]
@@ -71,7 +71,6 @@ export default {
   },
   secrets: {
     "cloudflare-ai-gateway": () => process.env.CF_AI_GATEWAY_E2E_TOKEN ?? "",
-    "cloudflare-api-token": () => process.env.CLOUDFLARE_API_TOKEN ?? "",
     "better-auth-secret": () => process.env.BETTER_AUTH_SECRET ?? "",
   },
   agents: {

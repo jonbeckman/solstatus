@@ -1,4 +1,7 @@
+/* oxlint-disable no-console -- One cache-status line, with no request or credential text. */
+import { createHmac } from "node:crypto"
 import type { Experimental_DecisionModel } from "ai"
+import { gatewayCache, measuredTokens, recordAiUsage, type AiUsage } from "./ai-usage"
 
 type ClefDecisionModel = Exclude<Experimental_DecisionModel, string>
 type DecideOptions = Parameters<Extract<ClefDecisionModel, { doDecide: unknown }>["doDecide"]>[0]
@@ -119,32 +122,79 @@ async function postClef(
   body: string,
   abortSignal: AbortSignal | undefined,
 ): Promise<Response> {
+  const bypass = process.env.CF_AI_GATEWAY_E2E_SKIP_CACHE === "1"
+  const cacheKey = `e2e-clef-${createHmac("sha256", token)
+    .update(JSON.stringify([account, gateway, modelId, body]))
+    .digest("hex")}`
   let lastStatus = 0
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    const response = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/${modelId}`,
-      {
-        method: "POST",
-        signal: abortSignal,
-        headers: {
-          authorization: `Bearer ${token}`,
-          "content-type": "application/json",
-          "cf-aig-gateway-id": gateway,
-          "cf-aig-authorization": `Bearer ${token}`,
+    const startedAt = new Date().toISOString()
+    let cache: AiUsage["cache"] = bypass ? "bypass" : "unknown"
+    let status: AiUsage["status"] = "error"
+    let httpStatus: number | null = null
+    let usage: ClefResult["usage"] | undefined
+    try {
+      const response = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/${modelId}`,
+        {
+          method: "POST",
+          signal: abortSignal,
+          headers: {
+            authorization: `Bearer ${token}`,
+            "content-type": "application/json",
+            "cf-aig-gateway-id": gateway,
+            "cf-aig-authorization": `Bearer ${token}`,
+            "cf-aig-cache-ttl": "3600",
+            "cf-aig-cache-key": cacheKey,
+            "cf-aig-skip-cache": bypass ? "true" : "false",
+          },
+          body,
         },
-        body,
-      },
-    )
-    if (response.ok) return response
-    lastStatus = response.status
-    await response.body?.cancel()
-    if (attempt < 2 && (response.status === 429 || response.status >= 500)) {
-      await delay(500 * 2 ** attempt, abortSignal)
-      continue
+      )
+      httpStatus = response.status
+      cache = gatewayCache(response.headers, bypass)
+      if (response.ok) {
+        status = "success"
+        usage = await readUsage(response)
+        console.error(`Clef decision gateway cache: ${cache}`)
+        return response
+      }
+      lastStatus = response.status
+      await response.body?.cancel()
+      if (attempt < 2 && (response.status === 429 || response.status >= 500)) {
+        await delay(500 * 2 ** attempt, abortSignal)
+        continue
+      }
+      break
+    } finally {
+      recordAiUsage({
+        schemaVersion: 1,
+        source: "decision",
+        model: modelId,
+        cache,
+        cacheLayer: "gateway",
+        requests: 1,
+        operations: 0,
+        inputTokens: measuredTokens(usage?.input_tokens),
+        outputTokens: measuredTokens(usage?.output_tokens),
+        cachedInputTokens: null,
+        status,
+        httpStatus,
+        startedAt,
+      })
     }
-    break
   }
   throw new Error(`Cloudflare Clef request failed (HTTP ${lastStatus}).`)
+}
+
+async function readUsage(response: Response): Promise<ClefResult["usage"] | undefined> {
+  const body: unknown = await response
+    .clone()
+    .json()
+    .catch(() => undefined)
+  // SAFETY: Usage is optional accounting data. Callers ignore a missing result.
+  const payload = body as { result?: ClefResult } | undefined
+  return payload?.result?.usage
 }
 
 function clefState(state: DecideOptions["state"]): unknown {

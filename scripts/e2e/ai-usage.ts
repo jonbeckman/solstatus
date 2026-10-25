@@ -2,7 +2,7 @@ import { appendFileSync, mkdirSync } from "node:fs"
 
 export type AiUsage = {
   schemaVersion: 1
-  source: "executor"
+  source: "executor" | "decision"
   model: "@cf/cloudflare/clef"
   cache: "hit" | "miss" | "bypass" | "unknown"
   cacheLayer: "gateway"

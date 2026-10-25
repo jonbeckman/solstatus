@@ -5,7 +5,7 @@ import { createHash } from "node:crypto"
 
 // Never propagate report labels, prompts, response bodies or arbitrary log fields.
 const directory = ".e2e/ai-usage"
-const sources = new Set(["executor", "application", "stagehand"])
+const sources = new Set(["executor", "decision", "application", "stagehand"])
 const models = new Map([
   ["@cf/cloudflare/clef", { input: 0.24, output: 0 }],
   ["@cf/openai/gpt-oss-120b", { input: 0.35, output: 0.75 }],

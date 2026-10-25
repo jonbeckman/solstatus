@@ -1,23 +1,21 @@
 /* oxlint-disable no-console -- Redacted stack startup diagnostics only. */
 import { spawn } from "node:child_process"
+import { randomBytes, randomUUID } from "node:crypto"
+import { existsSync, mkdirSync, realpathSync, writeFileSync } from "node:fs"
 import { createConnection } from "node:net"
-import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
-import { randomBytes } from "node:crypto"
 
 for (const file of [".env", "packages/infra/.dev.vars"]) {
   if (existsSync(file)) process.loadEnvFile(file)
 }
 
-for (const name of ["CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN", "BETTER_AUTH_SECRET"]) {
-  if (!process.env[name]) {
-    throw new Error(
-      `Missing ${name}. Configure packages/infra/.dev.vars or the CI environment before starting the SolStatus e2e stack.`,
-    )
-  }
+if (!process.env.BETTER_AUTH_SECRET) {
+  process.env.BETTER_AUTH_SECRET = randomBytes(16).toString("hex")
 }
 
-for (const port of [3000, 8787, 8788]) {
+const ownedPorts = [3000, 8787, 8788]
+
+for (const port of ownedPorts) {
   const occupied = await new Promise<boolean>((done) => {
     const socket = createConnection({ host: "127.0.0.1", port })
     socket.once("connect", () => {
@@ -34,34 +32,46 @@ for (const port of [3000, 8787, 8788]) {
   }
 }
 
-mkdirSync(".e2e/logs", { recursive: true, mode: 0o700 })
-mkdirSync(".e2e/runs", { recursive: true, mode: 0o700 })
-
-const runId = crypto.randomUUID()
+const runId = randomUUID()
+const runDir = resolve(".e2e/runs", runId)
 const ownershipPath = resolve(".e2e/cleanup", `${runId}.json`)
+mkdirSync(runDir, { recursive: true, mode: 0o700 })
+mkdirSync(resolve(".e2e/logs"), { recursive: true, mode: 0o700 })
 mkdirSync(resolve(".e2e/cleanup"), { recursive: true, mode: 0o700 })
-writeFileSync(
-  ownershipPath,
-  JSON.stringify({
-    id: runId,
-    pid: process.pid,
-    stage: "test",
-    startedAt: new Date().toISOString(),
-  }),
-  { mode: 0o600 },
-)
+
+const publishOwnership = (childPid?: number) => {
+  writeFileSync(
+    ownershipPath,
+    JSON.stringify({
+      id: runId,
+      pid: process.pid,
+      childPid,
+      stateDir: runDir,
+      ports: ownedPorts,
+      stage: "dev",
+      startedAt: new Date().toISOString(),
+    }),
+    { mode: 0o600 },
+  )
+}
+
+publishOwnership()
 
 const env: NodeJS.ProcessEnv = {
   ...process.env,
   CI: "1",
-  STAGE: "test",
+  ALCHEMY_STAGE: "dev",
   APP_NAME: process.env.APP_NAME || "solstatus-e2e",
   E2E_RUN_ID: runId,
   SECRET_ALCHEMY_PASSPHRASE:
     process.env.SECRET_ALCHEMY_PASSPHRASE || randomBytes(16).toString("hex"),
 }
-// Never pass runner-only secrets into the application child.
+// Local emulation must not see a deploy token or a real account id.
+delete env.CLOUDFLARE_API_TOKEN
+delete env.CLOUDFLARE_ACCOUNT_ID
 delete env.CF_AI_GATEWAY_E2E_TOKEN
+delete env.CF_AI_GATEWAY_E2E_ID
+delete env.CF_AI_GATEWAY_E2E_SKIP_CACHE
 delete env.GH_TOKEN
 delete env.GITHUB_TOKEN
 delete env.NODE_CHANNEL_FD
@@ -79,11 +89,19 @@ const sensitiveValues = Object.entries(process.env)
 const redact = (chunk: Buffer) =>
   sensitiveValues.reduce((text, value) => text.replaceAll(value, "[redacted]"), chunk.toString())
 
-const child = spawn("nub", ["run", "--cwd", "packages/infra", "infra:dev"], {
-  env: { ...env, STAGE: "test" },
+const alchemyBin = realpathSync(resolve("node_modules/alchemy/bin/cli.js"))
+const entry = resolve("packages/infra/src/alchemy.run.ts")
+console.log(
+  `Alchemy dev local emulation on ports ${ownedPorts.join(", ")} with state .e2e/runs/${runId}`,
+)
+
+const child = spawn(process.execPath, [alchemyBin, "dev", entry, "--stage", "dev"], {
+  cwd: runDir,
+  env,
   detached: true,
   stdio: ["ignore", "pipe", "pipe"],
 })
+publishOwnership(child.pid)
 
 let stopping = false
 const stop = (signal: NodeJS.Signals = "SIGTERM") => {
@@ -116,7 +134,6 @@ child.on("error", (error) => {
   process.exitCode = 1
 })
 
-// Keep the launcher alive while the Alchemy child runs.
 await new Promise<void>((resolvePromise) => {
   child.on("exit", () => resolvePromise())
   child.on("error", () => resolvePromise())

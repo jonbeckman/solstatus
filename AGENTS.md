@@ -23,7 +23,9 @@ Do not add scripts, tests, or CI steps that only police the repo's own files, hi
 - Unmodified upstream skill: `.agents/skills/e2e/` (symlink `.claude/skills/e2e`). Coverage map: `.cursor/skills/verify-solstatus/features/`.
 - After each `agent.act`, assert exactly with `expect`. No mocks, request interception, or test-only endpoints.
 - Pass `--changed-since <ref>` to `nub exec e2e list` and `nub exec e2e run` directly. Do not write `nub run test -- --changed-since`. e2e treats a flag after `--` as a test file.
-- Declare credentials/secrets in `e2e.config.ts`, never in test code. Default agent uses Clef through Cloudflare AI Gateway (`maxSteps`/`maxModelCalls` 20). Never deploy, pay, or send from tests.
+- `nub run test` boots SolStatus with `alchemy dev` (Alchemy `2.0.0-beta.83`) on ports 3000, 8787, and 8788. State for that run lives only in `.e2e/runs/<uuid>/.alchemy`. Cleanup deletes that directory and does not deploy or destroy remote Cloudflare resources. The suite does not use `CLOUDFLARE_API_TOKEN`.
+- Declare credentials/secrets in `e2e.config.ts`, never in test code. Default agent uses Clef through Cloudflare AI Gateway (`maxSteps`/`maxModelCalls` 20). Clef reads `CF_AI_GATEWAY_E2E_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` for the Workers AI route. The `alchemy dev` process receives neither value. Never deploy, pay, or send from tests.
+- On pull requests, restore and save the action replay cache at `.e2e/cache`, and send AI Gateway cache headers with `CF_AI_GATEWAY_E2E_SKIP_CACHE=0`. Use `nub run test:e2e:cache-strict` when a stale recording must fail. `nub run test:e2e:live` bypasses action replay. A live workflow dispatch sets `CF_AI_GATEWAY_E2E_SKIP_CACHE=1`.
 - Permanent exceptions to keep: better-auth (not Clerk), Cloudflare D1 (not PlanetScale), no turbo, existing Effect CLI stack, deploy-on-release, Tegami go/no-go.
 
 ## Cloud-agent PR artifacts

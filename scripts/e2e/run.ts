@@ -59,10 +59,6 @@ process.exitCode = interrupted ? 130 : (code ?? 1)
 try {
   const { recoverOwnedRuns } = await import("./cleanup")
   await recoverOwnedRuns()
-  writeFileSync(
-    ".e2e/cleanup-summary.json",
-    JSON.stringify({ verified: true, failed: false, containersRemoved: 0 }),
-  )
 } catch (error) {
   writeFileSync(".e2e/cleanup-summary.json", JSON.stringify({ verified: false, failed: true }))
   console.error(
