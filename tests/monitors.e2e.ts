@@ -6,7 +6,6 @@ describe("endpoint monitors", { requires: ["browser"] }, () => {
   test("create an endpoint monitor through the dashboard form", async ({
     app,
     screen,
-    agent,
     browser,
   }) => {
     const name = `e2e-monitor-${crypto.randomUUID().slice(0, 8)}`
@@ -17,10 +16,13 @@ describe("endpoint monitors", { requires: ["browser"] }, () => {
 
     await app.open("/")
     await expect(screen.getByRole("button", "Create Endpoint Monitor")).toBeVisible()
-    await agent.act(
-      "create an endpoint monitor named {name} that checks {url} every 60 seconds expecting status 200",
-      { params: { name, url } },
-    )
+    await screen.getByRole("button", "Create Endpoint Monitor").tap()
+    await expect(screen.getByRole("heading", "Add Endpoint Monitor")).toBeVisible()
+    await screen.getByLabel("Endpoint Monitor Name").fill(name)
+    await screen.getByLabel("URL").fill(url)
+    await expect(screen.getByRole("combobox", "Check Interval")).toHaveText("60 seconds")
+    await expect(screen.getByLabel("Expected Status Code")).toHaveValue("200")
+    await screen.getByRole("button", "Add Endpoint Monitor").tap()
     await expect(screen.getByText(name)).toBeVisible()
     await browser.reload()
     await expect(screen.getByText(name)).toBeVisible()
