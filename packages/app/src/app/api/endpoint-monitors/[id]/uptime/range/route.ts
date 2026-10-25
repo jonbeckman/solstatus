@@ -5,13 +5,9 @@ import { UptimeChecksTable } from "@solstatus/common/db/schema"
 import { subDays, subHours, subMinutes, subWeeks } from "date-fns"
 import { and, eq, gt } from "drizzle-orm"
 import { StatusCodes } from "http-status-codes"
-import { z } from "zod"
+import type { z } from "zod"
 import { createRoute } from "@/lib/api-utils"
-import { idStringParamsSchema } from "@/lib/route-schemas"
-
-const querySchema = z.object({
-  range: z.enum(["30m", "1h", "3h", "6h", "1d", "2d", "7d"]).default("1h"),
-})
+import { idStringParamsSchema, uptimeRangeQuerySchema } from "@/lib/route-schemas"
 
 /**
  * GET /api/endpoint-monitors/[id]/uptime/range
@@ -25,7 +21,7 @@ const querySchema = z.object({
  */
 export const GET = createRoute
   .params(idStringParamsSchema)
-  .query(querySchema)
+  .query(uptimeRangeQuerySchema)
   .handler(async (_request, context) => {
     const { env } = getWorkerEnv()
     const db = useDrizzle(env.DB)

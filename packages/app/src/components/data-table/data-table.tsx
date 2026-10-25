@@ -108,8 +108,7 @@ export function DataTable() {
         // If the intended sort is NOT the default, set the params
         if (params.orderBy) {
           newParams.set("orderBy", params.orderBy)
-          // Set order; if order is missing, it defaults to 'asc' implicitly by API,
-          // but we can be explicit or remove it. Removing is cleaner.
+          // A missing order defaults to desc in the list API. Omit the param.
           if (params.order) {
             newParams.set("order", params.order)
           } else {
@@ -189,9 +188,6 @@ export function DataTable() {
     } else {
       newPagination = updater
     }
-
-    // Remove manual scroll - let router.push handle it
-    // scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'auto' });
 
     // Always set the new pagination in the store
     store.setPagination(newPagination)

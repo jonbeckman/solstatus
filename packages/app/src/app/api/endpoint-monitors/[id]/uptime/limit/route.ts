@@ -4,13 +4,9 @@ import { useDrizzle } from "@solstatus/common/db"
 import { UptimeChecksTable } from "@solstatus/common/db/schema"
 import { and, desc, eq, isNotNull } from "drizzle-orm"
 import { StatusCodes } from "http-status-codes"
-import { z } from "zod"
+import type { z } from "zod"
 import { createRoute } from "@/lib/api-utils"
-import { idStringParamsSchema } from "@/lib/route-schemas"
-
-const querySchema = z.object({
-  limit: z.coerce.number().optional().default(30),
-})
+import { idStringParamsSchema, uptimeLimitQuerySchema } from "@/lib/route-schemas"
 
 /**
  * GET /api/endpoint-monitors/[id]/uptime/limit
@@ -24,7 +20,7 @@ const querySchema = z.object({
  */
 export const GET = createRoute
   .params(idStringParamsSchema)
-  .query(querySchema)
+  .query(uptimeLimitQuerySchema)
   .handler(async (_request, context) => {
     const { env } = getWorkerEnv()
     const db = useDrizzle(env.DB)
