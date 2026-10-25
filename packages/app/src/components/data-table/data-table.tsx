@@ -202,13 +202,18 @@ export function DataTable() {
     store.fetchEndpointMonitors()
   }
 
-  // Initialize from URL params on first load
+  // Initialize from URL params on first load.
+  // Depend on the URL string. `searchParams` is a new object every render, and an empty
+  // result (such as 401) would otherwise refetch on each of those renders.
   React.useEffect(() => {
-    const pageParam = searchParams.get("page")
-    const pageSizeParam = searchParams.get("pageSize")
-    const searchParam = searchParams.get("search")
-    const orderByParam = searchParams.get("orderBy")
-    const orderParam = searchParams.get("order")
+    const urlParams = new URLSearchParams(
+      searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
+    )
+    const pageParam = urlParams.get("page")
+    const pageSizeParam = urlParams.get("pageSize")
+    const searchParam = urlParams.get("search")
+    const orderByParam = urlParams.get("orderBy")
+    const orderParam = urlParams.get("order")
 
     const store = useDataTableStore.getState()
     let needsUpdate = false
@@ -263,7 +268,7 @@ export function DataTable() {
       // Fetch if state changed or data is empty
       store.fetchEndpointMonitors()
     }
-  }, [searchParams]) // Only depend on searchParams
+  }, [searchStr])
 
   const table = useReactTable({
     data,

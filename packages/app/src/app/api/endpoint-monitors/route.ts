@@ -66,43 +66,57 @@ export const GET = createRoute
     const orderByCol = getColumn(orderBy)
     const orderDir = getOrderDirection(order as "asc" | "desc")
 
-    // Create the where conditions first so we can reuse them for both queries
-    const whereConditions = and(
-      search
-        ? sql`(${like(EndpointMonitorsTable.name, `%${search}%`)} OR ${like(EndpointMonitorsTable.url, `%${search}%`)})`
-        : sql`1=1`,
-      isRunning !== undefined
-        ? eq(EndpointMonitorsTable.isRunning, isRunning === "true")
-        : sql`1=1`,
-      checkIntervalMin !== undefined
-        ? sql`${EndpointMonitorsTable.checkInterval} >= ${checkIntervalMin}`
-        : sql`1=1`,
-      checkIntervalMax !== undefined
-        ? sql`${EndpointMonitorsTable.checkInterval} <= ${checkIntervalMax}`
-        : sql`1=1`,
-    )
+    // Build the predicate per query. A shared SQL fragment is not safe to run twice.
+    const whereConditions = () =>
+      and(
+        search
+          ? sql`(${like(EndpointMonitorsTable.name, `%${search}%`)} OR ${like(EndpointMonitorsTable.url, `%${search}%`)})`
+          : undefined,
+        isRunning !== undefined
+          ? eq(EndpointMonitorsTable.isRunning, isRunning === "true")
+          : undefined,
+        checkIntervalMin !== undefined
+          ? sql`${EndpointMonitorsTable.checkInterval} >= ${checkIntervalMin}`
+          : undefined,
+        checkIntervalMax !== undefined
+          ? sql`${EndpointMonitorsTable.checkInterval} <= ${checkIntervalMax}`
+          : undefined,
+      )
 
-    // Get paginated endpointMonitors
-    const endpointMonitors = await db
-      .select()
-      .from(EndpointMonitorsTable)
-      .where(whereConditions)
-      .orderBy(orderDir(orderByCol), asc(EndpointMonitorsTable.id))
-      .limit(pageSize)
-      .offset(page * pageSize)
+    const readPage = async () => {
+      const endpointMonitors = await db
+        .select()
+        .from(EndpointMonitorsTable)
+        .where(whereConditions())
+        .orderBy(orderDir(orderByCol), asc(EndpointMonitorsTable.id))
+        .limit(pageSize)
+        .offset(page * pageSize)
 
-    // Get total count with the same filters
-    const { count: totalCount } = await db
-      .select({ count: count() })
-      .from(EndpointMonitorsTable)
-      .where(whereConditions)
-      .then(takeUniqueOrThrow)
+      const { count: totalCount } = await db
+        .select({ count: count() })
+        .from(EndpointMonitorsTable)
+        .where(whereConditions())
+        .then(takeUniqueOrThrow)
 
-    // Return endpointMonitors and total count
-    return Response.json({
-      data: endpointMonitors,
-      totalCount,
-    })
+      return { endpointMonitors, totalCount: Number(totalCount) }
+    }
+
+    // The create path starts a check write immediately. A local D1 read can lose that race once.
+    const delays = [0, 100, 200, 400, 800]
+    let lastError: unknown
+    for (const delay of delays) {
+      if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay))
+      try {
+        const pageResult = await readPage()
+        return Response.json({
+          data: pageResult.endpointMonitors,
+          totalCount: pageResult.totalCount,
+        })
+      } catch (error) {
+        lastError = error
+      }
+    }
+    throw lastError
   })
 
 /**
