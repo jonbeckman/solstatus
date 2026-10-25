@@ -98,11 +98,23 @@ export const useDataTableStore = create<DataTableState>((set, get) => ({
         queryParams.set("search", searchValue)
       }
 
-      // Fetch endpointMonitors with query parameters
-      const response = await fetch(`/api/endpoint-monitors?${queryParams.toString()}`)
+      // Fetch endpointMonitors with query parameters.
+      // Retry a 5xx: local D1 can be busy while the new monitor's first check writes.
+      const listUrl = `/api/endpoint-monitors?${queryParams.toString()}`
+      const delays = [0, 150, 300, 600]
+      let response: Response | null = null
+      let failureDetail = ""
+      for (const delay of delays) {
+        if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay))
+        response = await fetch(listUrl)
+        if (response.ok || response.status < 500) break
+        failureDetail = (await response.text()).slice(0, 300)
+      }
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch endpointMonitors")
+      if (!response?.ok) {
+        throw new Error(
+          `Failed to fetch endpointMonitors (${response?.status ?? "no response"}): ${failureDetail}`,
+        )
       }
 
       const responseData = (await response.json()) as {
