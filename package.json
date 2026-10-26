@@ -65,11 +65,11 @@
     "typecheck:e2e": "tsrs --pretty false --noEmit --incremental false -p tests/tsconfig.json"
   },
   "dependencies": {
-    "@effect/platform-node": "4.0.5",
+    "@effect/platform-node": "4.0.6",
     "@solstatus/infra": "workspace:*",
     "alchemy": "2.0.0-beta.83",
     "dotenv": "16.5.0",
-    "effect": "4.0.5"
+    "effect": "4.0.6"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
@@ -81,7 +81,7 @@
     "@types/node": "^24.12.4",
     "@types/pngjs": "6.0.5",
     "@yielded/effect-tsrs": "0.2.2",
-    "ai": "7.0.134",
+    "ai": "7.0.150",
     "anti-slop": "github:dmmulroy/anti-slop",
     "concurrently": "^9.2.0",
     "e2e": "0.21.3",
@@ -97,7 +97,7 @@
     "wrangler": "^4.22.0"
   },
   "overrides": {
-    "@effect/platform-node": "4.0.5",
+    "@effect/platform-node": "4.0.6",
     "@effect/platform-node-shared": "4.0.5",
     "@libsql/client": "0.18.0",
     "@types/react": "19.3.0",
@@ -105,7 +105,7 @@
     "alchemy": "2.0.0-beta.83",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
-    "effect": "4.0.5",
+    "effect": "4.0.6",
     "zod": "4.6.7"
   },
   "devEngines": {
