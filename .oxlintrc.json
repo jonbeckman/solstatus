@@ -16,6 +16,7 @@
     }
   ],
   "ignorePatterns": [
+    "**/.agents/skills/**",
     "**/dist/**",
     "**/node_modules/**",
     "**/.wrangler/**",
