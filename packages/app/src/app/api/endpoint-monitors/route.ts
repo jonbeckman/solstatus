@@ -11,9 +11,9 @@ import { createId, PRE_ID } from "@solstatus/common/utils"
 import { and, asc, count, desc, eq, like, sql } from "drizzle-orm"
 import type { SQLiteColumn } from "drizzle-orm/sqlite-core"
 import { StatusCodes } from "http-status-codes"
-import { z } from "zod"
+import type { z } from "zod"
 import { createRoute } from "@/lib/api-utils"
-import { paginationQuerySchema } from "@/lib/route-schemas"
+import { endpointMonitorsListQuerySchema } from "@/lib/route-schemas"
 import type { ConflictEndpointMonitorResponse } from "@/types/endpointMonitor"
 
 /**
@@ -31,73 +31,93 @@ import type { ConflictEndpointMonitorResponse } from "@/types/endpointMonitor"
  * @query {number} checkIntervalMax - Maximum check interval
  * @returns {Promise<Response>} JSON response with paginated endpointMonitors
  */
-const extendedQuerySchema = paginationQuerySchema().extend({
-  search: z.string().optional(),
-  isRunning: z.string().optional(),
-  checkIntervalMin: z.number().optional(),
-  checkIntervalMax: z.number().optional(),
-})
+export const GET = createRoute
+  .query(endpointMonitorsListQuerySchema)
+  .handler(async (_request, context) => {
+    const { env } = getWorkerEnv()
+    const db = useDrizzle(env.DB)
 
-export const GET = createRoute.query(extendedQuerySchema).handler(async (_request, context) => {
-  const { env } = getWorkerEnv()
-  const db = useDrizzle(env.DB)
+    const {
+      pageSize,
+      page,
+      orderBy: orderByParam,
+      order: orderParam,
+      search,
+      isRunning,
+      checkIntervalMin,
+      checkIntervalMax,
+    } = context.query
 
-  const {
-    pageSize,
-    page,
-    orderBy: orderByParam,
-    order: orderParam,
-    search,
-    isRunning,
-    checkIntervalMin,
-    checkIntervalMax,
-  } = context.query
+    // Set default sorting if not provided
+    const orderBy = orderByParam ?? "consecutiveFailures"
+    const order = orderParam ?? "desc"
 
-  // Set default sorting if not provided
-  const orderBy = orderByParam ?? "consecutiveFailures"
-  const order = orderParam ?? "desc"
+    console.log(
+      pageSize,
+      page,
+      orderBy,
+      order,
+      search,
+      isRunning,
+      checkIntervalMin,
+      checkIntervalMax,
+    )
 
-  console.log(pageSize, page, orderBy, order, search, isRunning, checkIntervalMin, checkIntervalMax)
+    const orderByCol = getColumn(orderBy)
+    const orderDir = getOrderDirection(order as "asc" | "desc")
 
-  const orderByCol = getColumn(orderBy)
-  const orderDir = getOrderDirection(order as "asc" | "desc")
+    // Build the predicate per query. A shared SQL fragment is not safe to run twice.
+    const whereConditions = () =>
+      and(
+        search
+          ? sql`(${like(EndpointMonitorsTable.name, `%${search}%`)} OR ${like(EndpointMonitorsTable.url, `%${search}%`)})`
+          : undefined,
+        isRunning !== undefined
+          ? eq(EndpointMonitorsTable.isRunning, isRunning === "true")
+          : undefined,
+        checkIntervalMin !== undefined
+          ? sql`${EndpointMonitorsTable.checkInterval} >= ${checkIntervalMin}`
+          : undefined,
+        checkIntervalMax !== undefined
+          ? sql`${EndpointMonitorsTable.checkInterval} <= ${checkIntervalMax}`
+          : undefined,
+      )
 
-  // Create the where conditions first so we can reuse them for both queries
-  const whereConditions = and(
-    search
-      ? sql`(${like(EndpointMonitorsTable.name, `%${search}%`)} OR ${like(EndpointMonitorsTable.url, `%${search}%`)})`
-      : sql`1=1`,
-    isRunning !== undefined ? eq(EndpointMonitorsTable.isRunning, isRunning === "true") : sql`1=1`,
-    checkIntervalMin !== undefined
-      ? sql`${EndpointMonitorsTable.checkInterval} >= ${checkIntervalMin}`
-      : sql`1=1`,
-    checkIntervalMax !== undefined
-      ? sql`${EndpointMonitorsTable.checkInterval} <= ${checkIntervalMax}`
-      : sql`1=1`,
-  )
+    const readPage = async () => {
+      const endpointMonitors = await db
+        .select()
+        .from(EndpointMonitorsTable)
+        .where(whereConditions())
+        .orderBy(orderDir(orderByCol), asc(EndpointMonitorsTable.id))
+        .limit(pageSize)
+        .offset(page * pageSize)
 
-  // Get paginated endpointMonitors
-  const endpointMonitors = await db
-    .select()
-    .from(EndpointMonitorsTable)
-    .where(whereConditions)
-    .orderBy(orderDir(orderByCol), asc(EndpointMonitorsTable.id))
-    .limit(pageSize)
-    .offset(page * pageSize)
+      const { count: totalCount } = await db
+        .select({ count: count() })
+        .from(EndpointMonitorsTable)
+        .where(whereConditions())
+        .then(takeUniqueOrThrow)
 
-  // Get total count with the same filters
-  const { count: totalCount } = await db
-    .select({ count: count() })
-    .from(EndpointMonitorsTable)
-    .where(whereConditions)
-    .then(takeUniqueOrThrow)
+      return { endpointMonitors, totalCount: Number(totalCount) }
+    }
 
-  // Return endpointMonitors and total count
-  return Response.json({
-    data: endpointMonitors,
-    totalCount,
+    // The create path starts a check write immediately. A local D1 read can lose that race once.
+    const delays = [0, 100, 200, 400, 800]
+    let lastError: unknown
+    for (const delay of delays) {
+      if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay))
+      try {
+        const pageResult = await readPage()
+        return Response.json({
+          data: pageResult.endpointMonitors,
+          totalCount: pageResult.totalCount,
+        })
+      } catch (error) {
+        lastError = error
+      }
+    }
+    throw lastError
   })
-})
 
 /**
  * POST /api/endpoint-monitors
