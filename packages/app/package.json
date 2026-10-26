@@ -87,7 +87,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "^6.0.1",
     "alchemy": "2.0.0-beta.83",
-    "tsrs": "0.18.0-ts7.1.0-dev.20260929",
+    "tsrs": "0.20.0-ts7.1.0-beta",
     "typescript": "7.0.2",
     "wrangler": "^4.22.0"
   }
