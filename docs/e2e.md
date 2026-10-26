@@ -81,8 +81,12 @@ runs do not.
 
 `Validate` keeps a `validate` job for typecheck/lint/format and `nub run test:e2e:list`.
 A separate required `e2e` job (fork-PR guarded) checks out full history, restores the
-action replay cache from `.e2e/cache`, initializes AI accounting, and on a pull request
-runs `nub exec e2e run --changed-since origin/<base>`. A live run uses
+action replay cache from `.e2e/cache`, initializes AI accounting, and on a ready pull request
+runs `nub exec e2e run --changed-since origin/<base>`. Draft pull requests skip the
+`validate` and `e2e` jobs, so those checks stay skipped. Marking the pull request ready
+runs those jobs under the same check names, and later pushes run them again while it
+stays ready.
+A live run uses
 `nub exec e2e run --no-cache --changed-since origin/<base>`. Other events run every test.
 The job removes the UUID local state directory on `always()`, summarizes usage, saves
 the replay cache on success, and uploads reports. Manual inputs: `e2e_lifecycle`,

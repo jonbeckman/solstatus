@@ -7,6 +7,7 @@ Use Plain Language in introductory, expository, friendly, and other sensible com
 
 ## Validation
 
+- Open pull requests as drafts. Before each push, run `nub run lint`, `nub run typecheck`, `nub run test`, and `nub run format` from the repo root. Mark the pull request ready when the work is done. Full CI runs only on ready pull requests, and on each later push while the pull request stays ready. Source: Jonathan, 2026-10-26.
 - Before handing work back, run `nub run typecheck`, `nub run lint`, `nub run format`, and `nub run test` from the repo root.
 - `nub run test` is tester-army/e2e exclusively (`docs/e2e.md`). Do not add Vitest or another runner.
 - Treat the task as incomplete until those checks pass, unless you explicitly report why a command could not be run or why a failure is unrelated to your changes.
