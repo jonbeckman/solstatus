@@ -7,17 +7,29 @@
       "skillPath": "skills/use-ai-sdk/SKILL.md",
       "computedHash": "d6910e7d8bb527d2823ba58b6225b304ae649c135fc7e43ec2d2152251c218db"
     },
+    "alchemy": {
+      "source": "darkmatter/skills",
+      "sourceType": "github",
+      "skillPath": "skills/alchemy/SKILL.md",
+      "computedHash": "5e528227b0d0e8b7dc3108880b9ee84ada855db802ec3a7ca6d930020bed1a6a"
+    },
     "apple-web-app": {
       "source": "joe-bell/skills",
       "sourceType": "github",
       "skillPath": "skills/apple-web-app/SKILL.md",
-      "computedHash": "980c071727e88a72089690c1f2ebad6c662922b240372c0bec362e02e1bdd568"
+      "computedHash": "667f28e3823d74dda44f45e648f5940c4e277302b132963a6604480baace2ad0"
     },
     "cloudflare": {
       "source": "cloudflare/skills",
       "sourceType": "github",
       "skillPath": "skills/cloudflare/SKILL.md",
       "computedHash": "f08c8c1be96dfad7f9d5418b1345477dd2e55af58c8da01326c9a2616c7ed721"
+    },
+    "drizzle-orm-patterns": {
+      "source": "giuseppe-trisciuoglio/developer-kit",
+      "sourceType": "github",
+      "skillPath": "plugins/developer-kit-typescript/skills/drizzle-orm-patterns/SKILL.md",
+      "computedHash": "d63e6d73a9f579b505a5694af2f3b3200c2b5eeea147e88b9b6d1e5fce23bcbb"
     },
     "durable-objects": {
       "source": "cloudflare/skills",
@@ -60,6 +72,12 @@
       "sourceType": "github",
       "skillPath": "skills/workers-best-practices/SKILL.md",
       "computedHash": "e12970301753ed7eaa5ca375d4b98e0e36c9554e8f2809cb4b543c2ea7d9b4b8"
+    },
+    "zod": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "skillPath": "skills/.curated/zod/SKILL.md",
+      "computedHash": "c69b5133b65643317236707f2cd3e521b4fc6e5ee5fd6c6c00cf62a37dfd0144"
     }
   }
 }
