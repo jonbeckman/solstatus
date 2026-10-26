@@ -8,8 +8,35 @@ Use Plain Language in introductory, expository, friendly, and other sensible com
 ## Validation
 
 - Before handing work back, run `nub run typecheck`, `nub run lint`, `nub run format`, and `nub run test` from the repo root.
+- `nub run test` is tester-army/e2e exclusively (`docs/e2e.md`). Do not add Vitest or another runner.
 - Treat the task as incomplete until those checks pass, unless you explicitly report why a command could not be run or why a failure is unrelated to your changes.
 - During iteration, scoped or package-local checks are fine for speed, but the final handoff should still include the repo-root validation commands above.
+
+## No guard scripts
+
+Do not add scripts, tests, or CI steps that only police the repo's own files, history, or config (for example migration-history hashes, file-list or lockfile-shape checks). Fix the real cause, or rely on the tool that already enforces it (wrangler and Alchemy track applied migrations). Add a guard only when Jonathan asks for it in the PR or the card.
+
+## End-to-end testing
+
+- Pins: `e2e@0.21.3`, `@e2e-dev/web@0.15.3`, `@e2e-dev/github@0.4.3`, `@e2e-dev/decision@0.3.0`. Drizzle stays `drizzle-orm` / `drizzle-kit` `1.0.0-rc.5-ab785fc`.
+- Layout: root `e2e.config.ts`, tests in `tests/**/*.e2e.ts`, helpers in `tests/support/`, lifecycle under `tests/lifecycle/` when needed, runner/cleanup/accounting under `scripts/e2e/` (copied `cf-clef-executor`, `ai-report`, `ai-usage`).
+- Unmodified upstream skill: `.agents/skills/e2e/` (symlink `.claude/skills/e2e`). Coverage map: `.cursor/skills/verify-solstatus/features/`.
+- After each `agent.act`, assert exactly with `expect`. No mocks, request interception, or test-only endpoints.
+- Pass `--changed-since <ref>` to `nub exec e2e list` and `nub exec e2e run` directly. Do not write `nub run test -- --changed-since`. e2e treats a flag after `--` as a test file.
+- `nub run test` boots SolStatus with `alchemy dev` (Alchemy `2.0.0-beta.83`) on ports 3000, 8787, and 8788. State for that run lives only in `.e2e/runs/<uuid>/.alchemy`. Cleanup deletes that directory and does not deploy or destroy remote Cloudflare resources. The suite does not use `CLOUDFLARE_API_TOKEN`.
+- Declare credentials/secrets in `e2e.config.ts`, never in test code. Default agent uses Clef through Cloudflare AI Gateway (`maxSteps`/`maxModelCalls` 20). Clef reads `CF_AI_GATEWAY_E2E_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` for the Workers AI route. The `alchemy dev` process receives neither value. Never deploy, pay, or send from tests.
+- On pull requests, restore and save the action replay cache at `.e2e/cache`, and send AI Gateway cache headers with `CF_AI_GATEWAY_E2E_SKIP_CACHE=0`. Use `nub run test:e2e:cache-strict` when a stale recording must fail. `nub run test:e2e:live` bypasses action replay. A live workflow dispatch sets `CF_AI_GATEWAY_E2E_SKIP_CACHE=1`.
+- Permanent exceptions to keep: better-auth (not Clerk), Cloudflare D1 (not PlanetScale), no turbo, existing Effect CLI stack, deploy-on-release, Tegami go/no-go.
+
+## Cloud-agent PR artifacts
+
+Source: Jonathan, 2026-10-24, skill `cloud-agent-pr-artifacts`.
+
+Every user-visible or behavioral pull request carries proof as cloud-agent artifacts. Attach screenshots. Attach a short video when a flow matters. Attach test or build logs. Drive the app first, then attach the proof. Do not commit screenshot binaries.
+
+Skip this proof only for pin-only, config-only, or markdown-only work.
+
+Boot the SolStatus app (the TanStack Start app and the API workers) from the repository root with `nub run dev`. Run the affected end-to-end tests through `.cursor/skills/verify-solstatus`. Select those tests with the e2e Test Filters API and the Cloudflare Clef decision model through Cloudflare AI Gateway. Never print gateway tokens or other secrets.
 
 ## Release Management
 

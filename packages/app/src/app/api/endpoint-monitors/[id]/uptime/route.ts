@@ -11,12 +11,11 @@ import { idStringParamsSchema } from "@/lib/route-schemas"
 /**
  * GET /api/endpoint-monitors/[id]/uptime
  *
- * Get the latest uptime check for a endpointMonitor
+ * Get the latest uptime check for an endpoint monitor.
  *
- * @params {string} id - EndpointMonitor ID
- * @returns {Promise<Response>} JSON response with uptime percentage and period
- * @throws {Response} 404 Not Found if no uptime checks found for the endpointMonitor
- * @throws {Response} 500 Internal Server Error on database errors
+ * @params {string} id - Endpoint Monitor ID
+ * @returns {Promise<Response>} JSON response with the latest uptime check
+ * @throws {Response} 500 Internal Server Error when the latest check cannot be loaded
  */
 export const GET = createRoute.params(idStringParamsSchema).handler(async (_request, context) => {
   const { env } = getWorkerEnv()

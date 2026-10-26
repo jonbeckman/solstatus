@@ -108,8 +108,7 @@ export function DataTable() {
         // If the intended sort is NOT the default, set the params
         if (params.orderBy) {
           newParams.set("orderBy", params.orderBy)
-          // Set order; if order is missing, it defaults to 'asc' implicitly by API,
-          // but we can be explicit or remove it. Removing is cleaner.
+          // A missing order defaults to desc in the list API. Omit the param.
           if (params.order) {
             newParams.set("order", params.order)
           } else {
@@ -190,9 +189,6 @@ export function DataTable() {
       newPagination = updater
     }
 
-    // Remove manual scroll - let router.push handle it
-    // scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'auto' });
-
     // Always set the new pagination in the store
     store.setPagination(newPagination)
 
@@ -206,13 +202,18 @@ export function DataTable() {
     store.fetchEndpointMonitors()
   }
 
-  // Initialize from URL params on first load
+  // Initialize from URL params on first load.
+  // Depend on the URL string. `searchParams` is a new object every render, and an empty
+  // result (such as 401) would otherwise refetch on each of those renders.
   React.useEffect(() => {
-    const pageParam = searchParams.get("page")
-    const pageSizeParam = searchParams.get("pageSize")
-    const searchParam = searchParams.get("search")
-    const orderByParam = searchParams.get("orderBy")
-    const orderParam = searchParams.get("order")
+    const urlParams = new URLSearchParams(
+      searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
+    )
+    const pageParam = urlParams.get("page")
+    const pageSizeParam = urlParams.get("pageSize")
+    const searchParam = urlParams.get("search")
+    const orderByParam = urlParams.get("orderBy")
+    const orderParam = urlParams.get("order")
 
     const store = useDataTableStore.getState()
     let needsUpdate = false
@@ -267,7 +268,7 @@ export function DataTable() {
       // Fetch if state changed or data is empty
       store.fetchEndpointMonitors()
     }
-  }, [searchParams]) // Only depend on searchParams
+  }, [searchStr])
 
   const table = useReactTable({
     data,

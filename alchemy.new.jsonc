@@ -1,0 +1,60 @@
+// Contract for a one-click deploy on alchemy.new.
+// The registry stores this file beside the archive. It is not a member of the archive.
+{
+  "$schema": "https://alchemy.new/schema/project.json",
+  "schemaVersion": 1,
+  "id": "solstatus",
+  "name": "SolStatus",
+  "description": "Self host a low-cost, globally-distributed uptime monitoring service on Cloudflare.",
+  "publisher": {
+    "name": "SolStatus",
+    "github": "jonbeckman",
+  },
+  "source": {
+    "kind": "registry",
+    "org": "jonbeckman",
+    "project": "solstatus",
+  },
+  "deployment": {
+    "entrypoint": "packages/infra/src/alchemy.run.ts",
+    "providers": ["cloudflare"],
+    "defaultProvider": "cloudflare",
+    "defaultStage": "prod",
+  },
+  "parameters": [
+    {
+      "name": "APP_NAME",
+      "label": "Application name",
+      "description": "Prefix for deployed Cloudflare resource names.",
+      "required": true,
+      "secret": false,
+      "type": "string",
+      "default": "solstatus",
+    },
+    {
+      "name": "FQDN",
+      "label": "Custom domain",
+      "description": "Optional hostname for the dashboard. When this is empty, the dashboard uses the workers.dev hostname.",
+      "required": false,
+      "secret": false,
+      "type": "string",
+    },
+    {
+      "name": "BETTER_AUTH_SECRET",
+      "label": "Session signing secret",
+      "description": "Signs dashboard sessions. SolStatus reads BETTER_AUTH_SECRET when it deploys. Leave this empty to deploy; the worker then receives an empty secret.",
+      "required": false,
+      "secret": true,
+      "type": "string",
+    },
+    {
+      "name": "OPSGENIE_API_KEY",
+      "label": "OpsGenie API key",
+      "description": "Optional. SolStatus sends an OpsGenie alert after two consecutive check failures. Alerts are skipped when this is empty.",
+      "required": false,
+      "secret": true,
+      "type": "string",
+    },
+  ],
+  "tags": ["cloudflare", "monitoring", "uptime"],
+}

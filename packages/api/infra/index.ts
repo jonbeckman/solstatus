@@ -50,6 +50,10 @@ export function createMonitorExecWorker(
     observability: {
       enabled: true,
     },
+    dev: {
+      port: 8787,
+      strictPort: true,
+    },
     env: {
       DB: db,
       OPSGENIE_API_KEY: Redacted.make(process.env.OPSGENIE_API_KEY || ""),
@@ -78,6 +82,10 @@ export function createMonitorTriggerWorker(
     },
     observability: {
       enabled: true,
+    },
+    dev: {
+      port: 8788,
+      strictPort: true,
     },
     env: {
       DB: db,

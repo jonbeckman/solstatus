@@ -55,50 +55,34 @@ function makeHandler(options: {
   }
 }
 
-function finish(partial: {
+type RouteSchemas = {
   params?: z.ZodType<any>
   query?: z.ZodType<any>
   body?: z.ZodType<any>
-}) {
+}
+
+type RouteBuilder = {
+  params: (schema: z.ZodType<any>) => RouteBuilder
+  query: (schema: z.ZodType<any>) => RouteBuilder
+  body: (schema: z.ZodType<any>) => RouteBuilder
+  handler: (handler: RouteHandler) => ReturnType<typeof makeHandler>
+}
+
+function routeBuilder(schemas: RouteSchemas): RouteBuilder {
   return {
-    body(schema: z.ZodType<any>) {
-      return {
-        handler(handler: RouteHandler) {
-          return makeHandler({ ...partial, body: schema, handler })
-        },
-      }
+    params(schema) {
+      return routeBuilder({ ...schemas, params: schema })
     },
-    query(schema: z.ZodType<any>) {
-      return {
-        handler(handler: RouteHandler) {
-          return makeHandler({ ...partial, query: schema, handler })
-        },
-        body(bodySchema: z.ZodType<any>) {
-          return {
-            handler(handler: RouteHandler) {
-              return makeHandler({ ...partial, query: schema, body: bodySchema, handler })
-            },
-          }
-        },
-      }
+    query(schema) {
+      return routeBuilder({ ...schemas, query: schema })
     },
-    handler(handler: RouteHandler) {
-      return makeHandler({ ...partial, handler })
+    body(schema) {
+      return routeBuilder({ ...schemas, body: schema })
+    },
+    handler(handler) {
+      return makeHandler({ ...schemas, handler })
     },
   }
 }
 
-export const createRoute = {
-  params(schema: z.ZodType<any>) {
-    return finish({ params: schema })
-  },
-  query(schema: z.ZodType<any>) {
-    return finish({ query: schema })
-  },
-  body(schema: z.ZodType<any>) {
-    return finish({ body: schema })
-  },
-  handler(handler: RouteHandler) {
-    return makeHandler({ handler })
-  },
-}
+export const createRoute = routeBuilder({})

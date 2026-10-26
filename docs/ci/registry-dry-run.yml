@@ -1,0 +1,73 @@
+name: Registry dry run
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  registry-dry-run:
+    name: Dry-run alchemy.new registry package
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v7
+
+      - name: Set up Nub
+        uses: nubjs/setup-nub@v0
+        with:
+          nub-version: 0.9.6
+          node-version-file: .nvmrc
+          cache-dependency-path: nub.lock
+
+      - name: Install, build, and prune production dependencies
+        env:
+          # Nub's global virtual store symlinks node_modules/.store at a cache
+          # directory outside the repository. The publish action rejects those
+          # links. This install materializes the store inside the workspace.
+          NPM_CONFIG_ENABLE_GLOBAL_VIRTUAL_STORE: "false"
+        run: |
+          nub install --frozen-lockfile
+          nub run build
+          nub prune --prod
+
+      - name: Dry-run publish to alchemy.new
+        uses: SolZeroAI/alchemy-new-publish-action@v1
+        with:
+          version: 0.0.0-dry-run
+          dry-run: true
+          exclude: |
+            **/*.md
+            **/*.map
+            node_modules/**/*.ts
+            node_modules/**/*.tsx
+            node_modules/**/*.mts
+            node_modules/**/*.cts
+            # Alchemy's Node export for this subpath is the TypeScript source.
+            !node_modules/**/alchemy/src/Runtime/Bootstrap/**
+            !node_modules/**/alchemy/src/Runtime/Bootstrap/**/*.ts
+            node_modules/.store/drizzle-kit@*
+            node_modules/.store/@electric-sql+*
+            node_modules/.store/workerd@*/node_modules/workerd/bin/workerd
+            # The 1.20261002.1 binary ships as @cloudflare/workerd-linux-64.
+            node_modules/.store/@cloudflare+workerd-linux-64@*/node_modules/@cloudflare/workerd-linux-64/bin/workerd
+            # esbuild's JavaScript API loads @esbuild/linux-x64. This path is a second copy.
+            node_modules/.store/esbuild@*/node_modules/esbuild/bin/esbuild
+            # TypeScript's native binary. Alchemy transpiles the stack with Oxc.
+            node_modules/.store/@typescript+typescript-linux-x64@*
+            # musl build of libsql. The deploy runner is glibc. D1 does not load libsql.
+            node_modules/.store/@libsql+linux-x64-musl@*
+            # Alchemy loads Cloudflare, not the GCP client.
+            node_modules/.store/@distilled.cloud+gcp@*
+            docs/dashboard-demo.gif
