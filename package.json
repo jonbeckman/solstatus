@@ -78,7 +78,7 @@
     "@e2e-dev/web": "0.15.3",
     "@mpsuesser/oxlint-plugin-effect": "0.6.0",
     "@oxlint/plugins": "1.89.0",
-    "@types/node": "^24.12.4",
+    "@types/node": "^26.6.5",
     "@types/pngjs": "6.0.5",
     "@yielded/effect-tsrs": "0.2.2",
     "ai": "7.0.134",
