@@ -81,7 +81,7 @@
     "@types/node": "^24.12.4",
     "@types/pngjs": "6.0.5",
     "@yielded/effect-tsrs": "0.2.2",
-    "ai": "7.0.134",
+    "ai": "7.0.154",
     "anti-slop": "github:dmmulroy/anti-slop",
     "concurrently": "^9.2.0",
     "e2e": "0.21.3",
