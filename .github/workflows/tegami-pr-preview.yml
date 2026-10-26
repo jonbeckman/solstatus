@@ -4,8 +4,9 @@ on:
   pull_request:
     types:
       - opened
-      - reopened
       - synchronize
+      - reopened
+      - ready_for_review
 
 permissions:
   contents: read
@@ -13,6 +14,7 @@ permissions:
 jobs:
   preview:
     name: Build release preview
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
