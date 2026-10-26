@@ -42,6 +42,7 @@ import { useDialogStore } from "@/store/dialog-store"
 import type { ConflictEndpointMonitorResponse } from "@/types/endpointMonitor"
 
 type WebsiteFormData = z.infer<typeof endpointMonitorsInsertDTOSchema>
+
 type WebsiteData = z.infer<typeof endpointMonitorsSelectSchema>
 
 interface AddWebsiteDialogProps {
@@ -138,9 +139,11 @@ export function AddEndpointMonitorDialog({
 
   const onSubmit = async (data: WebsiteFormData) => {
     setIsSubmitting(true)
+
     const url = isEditing
       ? `/api/endpoint-monitors/${endpointMonitor.id}`
       : "/api/endpoint-monitors"
+
     const method = isEditing ? "PATCH" : "POST"
 
     try {
@@ -154,6 +157,7 @@ export function AddEndpointMonitorDialog({
 
       const successStatus = isEditing ? StatusCodes.OK : StatusCodes.CREATED
       const successMessage = isEditing ? "Endpoint Monitor Updated" : "Endpoint Monitor Added"
+
       const successDescription = isEditing
         ? `${data.url} has been updated successfully.`
         : `${data.url} has been added successfully.`
@@ -173,6 +177,7 @@ export function AddEndpointMonitorDialog({
           ...DEFAULT_TOAST_OPTIONS,
           duration: 10000,
         })
+
         return
       } else {
         const errorText = await response.text()
@@ -181,6 +186,7 @@ export function AddEndpointMonitorDialog({
           ...DEFAULT_TOAST_OPTIONS,
           duration: 10000,
         })
+
         return
       }
 

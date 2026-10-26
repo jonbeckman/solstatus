@@ -9,6 +9,7 @@ interface UseAutoRefreshOptions {
 export function useAutoRefresh({ onRefresh, enabled = true }: UseAutoRefreshOptions) {
   const { refreshInterval, isRefreshEnabled, setRefreshProgress, setIsAutoRefreshAvailable } =
     useHeaderContext()
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const startTimeRef = useRef<number>(0)
@@ -16,6 +17,7 @@ export function useAutoRefresh({ onRefresh, enabled = true }: UseAutoRefreshOpti
 
   useLayoutEffect(() => {
     setIsAutoRefreshAvailable(true)
+
     return () => {
       setIsAutoRefreshAvailable(false)
     }
@@ -26,10 +28,12 @@ export function useAutoRefresh({ onRefresh, enabled = true }: UseAutoRefreshOpti
       clearInterval(intervalRef.current)
       intervalRef.current = null
     }
+
     if (progressIntervalRef.current) {
       clearInterval(progressIntervalRef.current)
       progressIntervalRef.current = null
     }
+
     if (rafIdRef.current) {
       cancelAnimationFrame(rafIdRef.current)
       rafIdRef.current = null
@@ -40,6 +44,7 @@ export function useAutoRefresh({ onRefresh, enabled = true }: UseAutoRefreshOpti
     if (!isRefreshEnabled || !enabled || refreshInterval === "off") {
       clearIntervals()
       setRefreshProgress(0)
+
       return
     }
 
@@ -72,6 +77,7 @@ export function useAutoRefresh({ onRefresh, enabled = true }: UseAutoRefreshOpti
 
   useEffect(() => {
     startRefresh()
+
     return clearIntervals
   }, [startRefresh, clearIntervals])
 

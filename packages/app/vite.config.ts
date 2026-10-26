@@ -1,7 +1,16 @@
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { defineConfig, type Plugin } from "vite"
+import { z } from "zod"
 import { SAMPLE_MONITORS } from "./src/dev/sample-monitors"
+
+const mockMonitorBodySchema = z.object({
+  url: z.string().optional(),
+  name: z.string().optional(),
+  checkInterval: z.number().optional(),
+  expectedStatusCode: z.number().optional(),
+  alertThreshold: z.number().optional(),
+})
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -9,6 +18,7 @@ type SampleMonitor = (typeof SAMPLE_MONITORS)[number]
 
 function sampleCheck(endpointMonitorId: string, minutesAgo: number) {
   const timestamp = new Date(Date.now() - minutesAgo * 60_000)
+
   return {
     id: minutesAgo,
     endpointMonitorId,
@@ -26,6 +36,7 @@ function cloudflareWorkersStubPlugin(): Plugin {
       if (id === "cloudflare:workers" && process.env.SOLSTATUS_DEV_MOCK_API === "1") {
         return resolve(__dirname, "src/dev/cloudflare-workers-stub.ts")
       }
+
       return undefined
     },
   }
@@ -40,6 +51,7 @@ function mockApiPlugin(): Plugin {
       server.middlewares.use("/api", (req, res, next) => {
         if (process.env.SOLSTATUS_DEV_MOCK_API !== "1") {
           next()
+
           return
         }
 
@@ -47,7 +59,7 @@ function mockApiPlugin(): Plugin {
         const pathname = url.pathname
         res.setHeader("content-type", "application/json")
 
-        const send = (body: unknown, status = 200) => {
+        const send = <Body>(body: Body, status = 200) => {
           res.statusCode = status
           res.end(JSON.stringify(body))
         }
@@ -58,6 +70,7 @@ function mockApiPlugin(): Plugin {
             monitorExecName: "solstatus-dev-monitor-exec",
             monitorTriggerName: "solstatus-dev-monitor-trigger",
           })
+
           return
         }
 
@@ -66,6 +79,7 @@ function mockApiPlugin(): Plugin {
             data: monitors,
             totalCount: monitors.length,
           })
+
           return
         }
 
@@ -77,6 +91,7 @@ function mockApiPlugin(): Plugin {
             highestResponseTimeWebsiteId: monitors[0]?.id ?? null,
             uptimePercentage: 100,
           })
+
           return
         }
 
@@ -86,7 +101,9 @@ function mockApiPlugin(): Plugin {
             raw += chunk
           })
           req.on("end", () => {
-            const body = JSON.parse(raw || "{}") as Partial<SampleMonitor>
+            const parsed = mockMonitorBodySchema.safeParse(JSON.parse(raw || "{}"))
+            const body = parsed.success ? parsed.data : {}
+
             const created: SampleMonitor = {
               id: `endp_${Date.now().toString(36)}`,
               url: body.url ?? "https://example.com",
@@ -100,36 +117,48 @@ function mockApiPlugin(): Plugin {
               createdAt: new Date(),
               updatedAt: new Date(),
             }
+
             monitors.unshift(created)
             send(created, 201)
           })
+
           return
         }
 
         const idMatch = pathname.match(/^\/endpoint-monitors\/([^/]+)(?:\/(.*))?$/)
+
         if (idMatch) {
           const id = decodeURIComponent(idMatch[1])
           const rest = idMatch[2] ?? ""
           const monitor = monitors.find((item) => item.id === id)
+
           if (!monitor) {
             send({ message: "Not Found" }, 404)
+
             return
           }
 
           if (req.method === "GET" && rest === "") {
             send(monitor)
+
             return
           }
+
           if (req.method === "GET" && rest === "uptime") {
             send(sampleCheck(id, 1))
+
             return
           }
+
           if (req.method === "GET" && rest === "uptime/range") {
             send([sampleCheck(id, 20), sampleCheck(id, 10), sampleCheck(id, 1)])
+
             return
           }
+
           if (req.method === "GET" && rest === "execute-check") {
             send({ message: "ok" })
+
             return
           }
         }

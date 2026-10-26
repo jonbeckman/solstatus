@@ -19,6 +19,7 @@ const intervalLabels: Record<RefreshInterval, string> = {
 export const RefreshProgressBar = memo(function RefreshProgressBar() {
   const { refreshInterval, setRefreshInterval, refreshProgress, isRefreshEnabled } =
     useHeaderContext()
+
   const [isHovered, setIsHovered] = useState(false)
   const [isDropdownOpen, setDropdownOpen] = useState(false)
   const [transitionDurationClass, setTransitionDurationClass] = useState("duration-200")

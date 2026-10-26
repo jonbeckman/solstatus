@@ -15,15 +15,18 @@ export const secondaryStorage: SecondaryStorage = {
   },
   async getAndDelete(key) {
     const value = await env.SESSIONS_KV.get(key)
+
     if (value !== null) {
       await env.SESSIONS_KV.delete(key)
     }
+
     return value
   },
   async increment(key, ttl) {
     const current = await env.SESSIONS_KV.get(key)
     const next = (current ? Number.parseInt(current, 10) : 0) + 1
     await putWithTtl(key, String(next), ttl)
+
     return next
   },
   async set(key, value, ttl) {

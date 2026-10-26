@@ -8,6 +8,7 @@ import { createClefExecutor } from "./scripts/e2e/cf-clef-executor"
 
 // Node's dotenv loader preserves environment overrides supplied by CI.
 if (existsSync("packages/infra/.dev.vars")) process.loadEnvFile("packages/infra/.dev.vars")
+
 if (existsSync(".env")) process.loadEnvFile(".env")
 
 const runnerMetadata = new Set([

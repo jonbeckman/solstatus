@@ -55,6 +55,7 @@ function formatUrl(url: string, maxLength: number): string {
 
           if (tentativePath.length <= remainingSpace) {
             pathToShow = tentativePath
+
             // Check if we've included all parts
             if (i === 0) {
               isPartialPath = false
@@ -67,6 +68,7 @@ function formatUrl(url: string, maxLength: number): string {
               const truncatedPart = part.substring(0, Math.max(0, remainingSpace - 4)) // -4 for "/..."
               pathToShow = `/${truncatedPart}...`
             }
+
             isPartialPath = true
             break
           }
@@ -114,9 +116,11 @@ export function EndpointMonitorDetailHeader({
 
     try {
       const response = await fetch(`/api/endpoint-monitors/${endpointMonitor.id}/execute-check`)
+
       if (!response.ok) {
         throw new Error("Failed to execute check")
       }
+
       toast.success("Check executed", {
         description: "The endpoint monitor check has been manually executed.",
         ...DEFAULT_TOAST_OPTIONS,
@@ -135,13 +139,16 @@ export function EndpointMonitorDetailHeader({
 
   const pauseMonitoring = async () => {
     setIsLoading(true)
+
     try {
       const response = await fetch(`/api/endpoint-monitors/${endpointMonitor.id}/pause`, {
         method: "POST",
       })
+
       if (!response.ok) {
         throw new Error("Failed to pause monitoring")
       }
+
       toast.success("Monitoring paused", {
         description: "Endpoint monitoring has been paused.",
         ...DEFAULT_TOAST_OPTIONS,
@@ -160,14 +167,18 @@ export function EndpointMonitorDetailHeader({
 
   const resumeMonitoring = async () => {
     setIsLoading(true)
+
     try {
       const response = await fetch(`/api/endpoint-monitors/${endpointMonitor.id}/resume`, {
         method: "POST",
       })
+
       console.log("response", response)
+
       if (!response.ok) {
         throw new Error("Failed to resume monitoring")
       }
+
       toast.success("Monitoring resumed", {
         description: "Endpoint monitoring has been resumed.",
         ...DEFAULT_TOAST_OPTIONS,

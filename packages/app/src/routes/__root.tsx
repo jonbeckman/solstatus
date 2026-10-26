@@ -1,5 +1,5 @@
 import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router"
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 import { ActiveThemeProvider } from "@/components/active-theme"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
@@ -29,20 +29,17 @@ export const Route = createRootRoute({
   component: RootComponent,
 })
 
+const sidebarStyle: CSSProperties & { "--sidebar-width": string } = {
+  "--sidebar-width": "calc(var(--spacing) * 72)",
+}
+
 function RootComponent() {
   return (
     <RootDocument>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <ActiveThemeProvider initialTheme={siteConfig.defaultTheme}>
           <HeaderProvider>
-            <SidebarProvider
-              defaultOpen
-              style={
-                {
-                  "--sidebar-width": "calc(var(--spacing) * 72)",
-                } as React.CSSProperties
-              }
-            >
+            <SidebarProvider defaultOpen style={sidebarStyle}>
               <AppSidebar variant="inset" />
               <SidebarInset>
                 <SiteHeader />

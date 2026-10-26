@@ -24,11 +24,14 @@ export function ownedRunDirectory(id: string) {
   if (!runIdPattern.test(id)) {
     throw new Error("Refusing cleanup outside the recorded suite namespace")
   }
+
   const directory = resolve(runsRoot, id)
   const rootPrefix = runsRoot.endsWith(sep) ? runsRoot : `${runsRoot}${sep}`
+
   if (!directory.startsWith(rootPrefix)) {
     throw new Error("Refusing cleanup outside the recorded suite namespace")
   }
+
   return directory
 }
 
@@ -42,6 +45,7 @@ export function recordCleanupFailure() {
 function alive(pid: number) {
   try {
     process.kill(pid, 0)
+
     return true
   } catch {
     return false
@@ -54,6 +58,7 @@ function sleep(ms: number) {
 
 function signalProcess(pid: number, signal: NodeJS.Signals) {
   if (pid <= 0 || pid === process.pid) return
+
   try {
     process.kill(-pid, signal)
   } catch {
@@ -71,57 +76,78 @@ export async function recoverOwnedRuns() {
   const current = processMembers()
   let recovered = 0
   let localStorageDirectoriesRemoved = 0
+
   const files = existsSync(cleanupRoot)
     ? readdirSync(cleanupRoot).filter((name) => name.endsWith(".json"))
     : []
+
   for (const file of files) {
     const path = resolve(cleanupRoot, file)
     let owner: Ownership
+
     try {
       // SAFETY: Ownership files are written by this suite as JSON objects with an id.
       owner = JSON.parse(readFileSync(path, "utf8")) as Ownership
     } catch {
       continue
     }
+
     const id = file.replace(/\.json$/, "")
+
     if (owner.id !== id) throw new Error("Invalid cleanup ownership record")
     const directory = ownedRunDirectory(owner.id)
+
     if (owner.stateDir && resolve(owner.stateDir) !== directory) {
       throw new Error("Refusing cleanup outside the recorded suite namespace")
     }
+
     for (let attempt = 0; attempt < 100; attempt += 1) {
       if (!alive(owner.pid) || owner.pid === process.pid) break
       await sleep(100)
     }
+
     if (alive(owner.pid) && owner.pid !== process.pid) {
       throw new Error(`Suite ${owner.id} is active; retain cleanup record`)
     }
+
     const members = owner.members?.length
       ? ownedMembers(owner.members, current)
       : current.filter((member) => member.ppid === owner.pid)
+
     for (const member of members) signalProcess(member.pid, "SIGTERM")
+
     if (owner.childPid) signalProcess(owner.childPid, "SIGTERM")
+
     for (let attempt = 0; attempt < 50; attempt += 1) {
       const childAlive = owner.childPid ? alive(owner.childPid) || alive(-owner.childPid) : false
       const membersAlive = members.some((member) => alive(member.pid))
+
       if (!childAlive && !membersAlive) break
+
       if (attempt === 30) {
         for (const member of members) signalProcess(member.pid, "SIGKILL")
+
         if (owner.childPid) signalProcess(owner.childPid, "SIGKILL")
       }
+
       await sleep(100)
     }
+
     if (owner.childPid && (alive(owner.childPid) || alive(-owner.childPid))) {
       throw new Error(`Owned processes remain for ${owner.id}; retain cleanup record`)
     }
+
     const storageExisted = existsSync(directory)
     rmSync(directory, { recursive: true, force: true })
+
     if (existsSync(directory)) throw new Error(`Owned storage remains for ${owner.id}`)
     rmSync(path, { force: true })
+
     if (storageExisted) localStorageDirectoriesRemoved += 1
     recovered += 1
     console.log(`Cleaned suite ${owner.id}: private local state absent`)
   }
+
   writeFileSync(
     resolve(".e2e/cleanup-summary.json"),
     JSON.stringify({

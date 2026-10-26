@@ -1,10 +1,10 @@
-import type { endpointMonitorsSelectSchema, uptimeChecksSelectSchema } from "@solstatus/common/db"
+import { endpointMonitorsSelectSchema, uptimeChecksSelectSchema } from "@solstatus/common/db"
 import { msToHumanReadable, secsToHumanReadable } from "@solstatus/common/utils"
 import { IconPointFilled } from "@tabler/icons-react"
 import { createFileRoute, Link, useLocation, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
 import { startTransition, useCallback, useDeferredValue, useEffect, useRef, useState } from "react"
-import type { z } from "zod"
+import { z } from "zod"
 import { PolkaDots } from "@/components/bg-patterns/polka-dots"
 import { EndpointMonitorDetailHeader } from "@/components/endpoint-monitor-detail-header"
 import { EndpointMonitorSectionCards } from "@/components/endpoint-monitor-section-cards"
@@ -24,7 +24,7 @@ import {
   TooltipTrigger,
 } from "@/registry/new-york-v4/ui/tooltip"
 import { useDialogStore } from "@/store/dialog-store"
-import type { TimeRange } from "@/types/endpointMonitor"
+import { isTimeRange, type TimeRange } from "@/types/endpointMonitor"
 
 // Define the type for a single uptime check
 type LatestUptimeCheck = z.infer<typeof uptimeChecksSelectSchema>
@@ -40,18 +40,23 @@ function calculateDefaultTimeRange(createdAt: Date): TimeRange {
   if (ageInMinutes < 30) {
     return "30m"
   }
+
   if (ageInHours < 1) {
     return "1h"
   }
+
   if (ageInHours < 3) {
     return "3h"
   }
+
   if (ageInHours < 6) {
     return "6h"
   }
+
   if (ageInDays < 1) {
     return "1d"
   }
+
   // Max out at 2d for monitors older than 2 days
   return "2d"
 }
@@ -65,21 +70,24 @@ function EndpointMonitorDetailPage() {
   const navigate = useNavigate()
   const { setHeaderLeftContent, setHeaderRightContent } = useHeaderContentOnly()
   const searchStr = useLocation({ select: (location) => location.searchStr })
+
   const searchParams = new URLSearchParams(
     searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
   )
+
   const { isEditEndpointMonitorDialogOpen } = useDialogStore()
 
   const [endpointMonitor, setEndpointMonitor] = useState<z.infer<
     typeof endpointMonitorsSelectSchema
   > | null>(null)
+
   const [isLoading, setIsLoading] = useState(true)
 
   // Initialize timeRange with a temporary default
   const [timeRange, setTimeRange] = useState<TimeRange>(() => {
     const rangeParam = searchParams.get("range")
-    const validRanges = ["30m", "1h", "3h", "6h", "1d", "2d", "7d"] as const
-    return validRanges.includes(rangeParam as TimeRange) ? (rangeParam as TimeRange) : "1d" // Temporary default until we load the monitor
+
+    return isTimeRange(rangeParam) ? rangeParam : "1d"
   })
 
   // Track if we've set the default based on monitor age
@@ -104,15 +112,18 @@ function EndpointMonitorDetailPage() {
   const fetchWebsite = useCallback(async () => {
     try {
       const response = await fetch(`/api/endpoint-monitors/${endpointMonitorId}`)
+
       if (!response.ok) {
         if (response.status === 404) {
           void navigate({ href: "/" })
+
           return
         }
+
         throw new Error(`Failed to fetch endpointMonitor: ${response.statusText}`)
       }
-      const data = await response.json()
-      const monitor = data as z.infer<typeof endpointMonitorsSelectSchema>
+
+      const monitor = endpointMonitorsSelectSchema.parse(await response.json())
       setEndpointMonitor(monitor)
 
       // Set default time range based on monitor age if URL doesn't have a range
@@ -143,31 +154,37 @@ function EndpointMonitorDetailPage() {
       const response = await fetch(
         `/api/endpoint-monitors/${endpointMonitorId}/uptime/range?range=${timeRange}`,
       )
+
       if (!response.ok) {
         console.error(
           `Failed to fetch combined data for endpointMonitor ${endpointMonitorId} with error: ${response.statusText}`,
         )
+
         // Don't clear existing data on error during refresh
         if (!hasExistingData) {
           setUptimeData([])
           setUptimePercentage(null)
           setAvgLatency(null)
         }
+
         setUptimeDataError(`Failed to load data: ${response.statusText}`)
+
         return
       }
 
-      const responseData = (await response.json()) as z.infer<typeof uptimeChecksSelectSchema>[]
+      const responseData = z.array(uptimeChecksSelectSchema).parse(await response.json())
 
       setUptimeData(responseData)
       setUptimeDataError(null)
       hasLoadedDataOnce.current = true
     } catch (error) {
       console.error("Error fetching combined uptime/latency data:", error)
+
       // Don't clear existing data on error during refresh
       if (!hasExistingData) {
         setUptimeData([])
       }
+
       setUptimeDataError("An error occurred while loading endpointMonitor data.")
     } finally {
       setIsUptimeDataLoading(false)
@@ -181,15 +198,18 @@ function EndpointMonitorDetailPage() {
 
     try {
       const response = await fetch(`/api/endpoint-monitors/${endpointMonitorId}/uptime`)
+
       if (!response.ok) {
         if (response.status !== 404) {
           console.error(`Failed to fetch latest uptime check: ${response.statusText}`)
         }
+
         setLatestUptimeCheck(null)
+
         return
       }
-      const data = await response.json()
-      setLatestUptimeCheck(data as LatestUptimeCheck)
+
+      setLatestUptimeCheck(uptimeChecksSelectSchema.parse(await response.json()))
     } catch (error) {
       console.error("Error fetching latest uptime check:", error)
       setLatestUptimeCheck(null)
@@ -219,8 +239,10 @@ function EndpointMonitorDetailPage() {
   useEffect(() => {
     if (isInitialRender.current) {
       isInitialRender.current = false
+
       return
     }
+
     fetchUptimeData()
   }, [fetchUptimeData])
 
@@ -293,6 +315,7 @@ function EndpointMonitorDetailPage() {
     if (uptimeData.length > 0) {
       const uptimePercentage =
         (uptimeData.filter((check) => check.isExpectedStatus).length / uptimeData.length) * 100
+
       setUptimePercentage(uptimePercentage)
     } else {
       setUptimePercentage(null)
@@ -303,6 +326,7 @@ function EndpointMonitorDetailPage() {
     if (uptimeData.length > 0) {
       const avgLatency =
         uptimeData.reduce((sum, check) => sum + (check.responseTime ?? 0), 0) / uptimeData.length
+
       setAvgLatency(avgLatency)
     } else {
       setAvgLatency(null)
@@ -364,6 +388,7 @@ function EndpointMonitorDetailPage() {
                     newTimeRange === "1d"
                       ? `/endpoint-monitors/${endpointMonitorId}`
                       : `/endpoint-monitors/${endpointMonitorId}?range=${newTimeRange}`
+
                   void navigate({ href: newPath })
 
                   // Clear transitioning state after a delay

@@ -56,6 +56,7 @@ async function sendAlert(
 ) {
   if (!env.OPSGENIE_API_KEY) {
     console.error("OPSGENIE_API_KEY is not set, cannot send alert")
+
     return
   }
 

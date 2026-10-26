@@ -10,6 +10,7 @@ interface DataRowProps {
 
 export function DataRow({ row }: DataRowProps) {
   "use no memo"
+
   return (
     <TableRow data-state={row.getIsSelected() && "selected"} className="relative">
       {row.getVisibleCells().map((cell) => (

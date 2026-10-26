@@ -1,3 +1,9 @@
+export interface MonitorTriggerInit {
+  monitorId: string
+  monitorType: "endpoint"
+  checkInterval: number
+}
+
 export interface AppEnv {
   DB: D1Database
   SESSIONS_KV: KVNamespace
@@ -6,7 +12,7 @@ export interface AppEnv {
     executeCheck(endpointMonitorId: string): Promise<void> | void
   }
   MONITOR_TRIGGER_RPC: {
-    init(payload: unknown): Promise<void> | void
+    init(payload: MonitorTriggerInit): Promise<void> | void
     updateCheckInterval(monitorId: string, checkInterval: number): Promise<void> | void
     deleteDo(monitorId: string): Promise<void> | void
     pauseDo(monitorId: string): Promise<void> | void

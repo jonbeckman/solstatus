@@ -65,12 +65,14 @@ async function sendOpsgenieAlert(
     if (!response.ok) {
       const errorText = await response.text()
       console.error(`Opsgenie API error (${response.status}): ${errorText}`)
+
       return null
     }
 
     return await response.json()
   } catch (error) {
     console.error("Error sending alert to Opsgenie:", error)
+
     return null
   }
 }

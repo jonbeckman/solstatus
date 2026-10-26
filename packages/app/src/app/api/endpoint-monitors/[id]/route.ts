@@ -27,6 +27,7 @@ export const GET = createRoute.params(idStringParamsSchema).handler(async (_requ
   const db = useDrizzle(env.DB)
 
   let endpointMonitor: z.infer<typeof endpointMonitorsSelectSchema> | undefined
+
   try {
     endpointMonitor = await db
       .select()
@@ -35,6 +36,7 @@ export const GET = createRoute.params(idStringParamsSchema).handler(async (_requ
       .then((rows) => rows[0])
   } catch (error) {
     console.error("Error fetching endpointMonitor: ", error)
+
     return Response.json(
       { error: "Failed to fetch endpointMonitor" },
       { status: StatusCodes.INTERNAL_SERVER_ERROR },
@@ -68,6 +70,7 @@ export const PATCH = createRoute
 
     const endpointMonitor: z.infer<typeof endpointMonitorsPatchSchema> = context.body
     let updatedWebsite: z.infer<typeof endpointMonitorsSelectSchema> | undefined | null
+
     try {
       updatedWebsite = await db
         .update(EndpointMonitorsTable)
@@ -77,6 +80,7 @@ export const PATCH = createRoute
         .then(takeUniqueOrThrow)
     } catch (error) {
       console.error("Error updating endpointMonitor: ", error)
+
       return Response.json(
         { error: "Failed to update endpointMonitor" },
         { status: StatusCodes.INTERNAL_SERVER_ERROR },
@@ -124,6 +128,7 @@ export const DELETE = createRoute
       await env.MONITOR_TRIGGER_RPC.deleteDo(context.params.id)
     } catch (error) {
       console.error("Error deleting endpointMonitor: ", error)
+
       return Response.json(
         { error: "Failed to delete endpointMonitor" },
         { status: StatusCodes.INTERNAL_SERVER_ERROR },

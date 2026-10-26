@@ -18,7 +18,8 @@ export function createApp(
   cloudflareAccountId: string,
 ) {
   const appName = `${resPrefix}-app`
-  return Cloudflare.Website.Vite("app", {
+
+  const website = {
     name: appName,
     rootDir: appRoot,
     compatibility: {
@@ -32,14 +33,6 @@ export function createApp(
       port: 3000,
       strictPort: true,
     },
-    ...(fqdn
-      ? {
-          domain: {
-            name: fqdn,
-          },
-          workersDev: false,
-        }
-      : {}),
     env: {
       DB: db,
       SESSIONS_KV: sessionsStorageKV,
@@ -51,6 +44,18 @@ export function createApp(
       CLOUDFLARE_ACCOUNT_ID: cloudflareAccountId,
       VITE_APP_VERSION: process.env.VITE_APP_VERSION || "2.1.0-dev",
     },
+  }
+
+  if (fqdn === undefined) {
+    return Cloudflare.Website.Vite("app", website)
+  }
+
+  return Cloudflare.Website.Vite("app", {
+    ...website,
+    domain: {
+      name: fqdn,
+    },
+    workersDev: false,
   })
 }
 

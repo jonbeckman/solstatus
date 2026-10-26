@@ -80,6 +80,7 @@ export const GET = createRoute.handler(async (_request, _context) => {
     )
   } catch (error) {
     console.error("Error fetching dashboard statistics: ", error)
+
     return Response.json(
       { error: "Failed to fetch dashboard statistics" },
       { status: StatusCodes.INTERNAL_SERVER_ERROR },
