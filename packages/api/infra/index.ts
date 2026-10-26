@@ -2,7 +2,7 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import type { DBResource } from "@solstatus/common/infra"
 import type { InfraMetadata } from "@solstatus/common/utils/types"
-import * as Cloudflare from "alchemy/Cloudflare"
+import * as Cloudflare from "@alchemy.run/cloudflare"
 import * as Effect from "effect/Effect"
 import * as Redacted from "effect/Redacted"
 

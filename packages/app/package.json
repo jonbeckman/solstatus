@@ -80,13 +80,14 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@alchemy.run/cloudflare": "2.0.0-beta.84",
     "@cloudflare/workers-types": "^4.20250702.0",
     "@libsql/client": "0.18.0",
     "@types/node": "^24.12.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "^6.0.1",
-    "alchemy": "2.0.0-beta.83",
+    "alchemy": "2.0.0-beta.84",
     "tsrs": "0.20.0-ts7.1.0-beta",
     "typescript": "7.0.2",
     "wrangler": "^4.22.0"
