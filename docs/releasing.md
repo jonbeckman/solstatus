@@ -56,8 +56,9 @@ after the pull request explains why it needs no entry.
 
 1. Merge a feature pull request with its pending `.tegami/` entries.
 2. Wait for `Validate` to pass on `master`. The `Release` workflow then runs
-   `nub run tegami ci` only for same-repository `push` events and opens or
-   updates `tegami/version-packages`.
+   `nub run tegami ci` only for same-repository `push` events. It opens or
+   updates `tegami/version-packages` with the solzero-release GitHub App
+   token, so that pull request runs normal CI.
 3. Review the version pull request. It updates `package.json` and `VERSION`,
    prepends `CHANGELOG.md`, consumes the pending entries, and writes
    `.tegami/publish-lock.yaml`.
@@ -75,8 +76,11 @@ production Cloudflare infrastructure.
 
 Enable **Allow GitHub Actions to create and approve pull requests** in the
 repository Actions settings. Keep workflow permissions restricted to the values
-in each workflow. The version and publish job needs `contents: write`,
-`pull-requests: write`, and `id-token: write` for npm trusted publishing.
+in each workflow. The release workflow grants `contents: read` by default.
+The version and publish job adds `id-token: write` for npm trusted publishing.
+Contents and pull request writes use the solzero-release app token
+(`RELEASE_APP_ID` and `RELEASE_APP_PRIVATE_KEY`). The job `GITHUB_TOKEN` stays
+read-only.
 
 Create the `release:none` label for pull requests that have no user-visible
 release note.
