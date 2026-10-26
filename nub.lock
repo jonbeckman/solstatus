@@ -42,13 +42,13 @@ importers:
         version: 4.20260702.1
       '@e2e-dev/decision':
         specifier: 0.3.0
-        version: 0.3.0(ai@7.0.134(zod@4.6.7))(e2e@0.21.3(ai@7.0.134(zod@4.6.7)))
+        version: 0.3.0(ai@7.0.154(zod@4.6.7))(e2e@0.21.3(ai@7.0.154(zod@4.6.7)))
       '@e2e-dev/github':
         specifier: 0.4.3
-        version: 0.4.3(e2e@0.21.3(ai@7.0.134(zod@4.6.7)))
+        version: 0.4.3(e2e@0.21.3(ai@7.0.154(zod@4.6.7)))
       '@e2e-dev/web':
         specifier: 0.15.3
-        version: 0.15.3(e2e@0.21.3(ai@7.0.134(zod@4.6.7)))
+        version: 0.15.3(e2e@0.21.3(ai@7.0.154(zod@4.6.7)))
       '@mpsuesser/oxlint-plugin-effect':
         specifier: 0.6.0
         version: 0.6.0
@@ -65,8 +65,8 @@ importers:
         specifier: 0.2.2
         version: 0.2.2
       ai:
-        specifier: 7.0.134
-        version: 7.0.134(zod@4.6.7)
+        specifier: 7.0.154
+        version: 7.0.154(zod@4.6.7)
       anti-slop:
         specifier: github:dmmulroy/anti-slop
         version: https://codeload.github.com/dmmulroy/anti-slop/tar.gz/13909c9e07590f5a85d93c62712259fe14a883f7
@@ -75,7 +75,7 @@ importers:
         version: 9.2.5
       e2e:
         specifier: 0.21.3
-        version: 0.21.3(ai@7.0.134(zod@4.6.7))
+        version: 0.21.3(ai@7.0.154(zod@4.6.7))
       jpeg-js:
         specifier: 0.4.4
         version: 0.4.4
@@ -410,24 +410,24 @@ importers:
 
 packages:
 
-  '@ai-sdk/gateway@4.0.108':
-    resolution: {integrity: sha512-UgtnyyuIpMSzhha89MAK6c2pTeQW8s9jLSmDeYI92NzqDsoyEYFZ/lYAXTXLUQxA25j5iTWPEnzGVl5adIy+8w==}
+  '@ai-sdk/gateway@4.0.127':
+    resolution: {integrity: sha512-ENcIQNrZxgFnNSx29X2o/mLKZRzMN91c53Qlp/UrF4RQGVSfaROjFQAq4eeJliRPWwjHvEhJYG42IrOwtWUGOQ==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@5.0.57':
-    resolution: {integrity: sha512-giQ9mNwVzYUbahU2DG1FWEjXkDU8D8Hitz7Rk4AlRGtqh8Ss48msQ9+wEAXquWs/GYOETzxMMFsgcHK0i7TbUQ==}
+  '@ai-sdk/provider-utils@5.0.69':
+    resolution: {integrity: sha512-oGCXIoBKLpNrrAzJvltFHdBl20FJMyT+7edD9D4nwxoI8Scbj3y1EgKzjoF2XFhNYkMTcv1oTFDgUzLxdjqSKg==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
-
-  '@ai-sdk/provider@4.0.25':
-    resolution: {integrity: sha512-vG0l7MUavfhn6c5+Z0y1/E6lKUrzecsLtFkuIknnHjAGAIiuwFDucafzebJuFVTZcLyhf8qhYYU2zeKP55Mymw==}
-    engines: {node: '>=22'}
 
   '@ai-sdk/provider@4.0.28':
     resolution: {integrity: sha512-6ThcmkJQXSMlBrf6mirIjUUS04Q5/kApbYTOzd5lZfYXLa1XPpnDLxP/G96/DKc00fDIUOW9S2ls0mSzb0+l9w==}
+    engines: {node: '>=22'}
+
+  '@ai-sdk/provider@4.0.34':
+    resolution: {integrity: sha512-Ip7ZQBq/FiGpM1mmOVseTtX9PBjnzo0bLC41WTgBSBBRUBz6LhNFGbYaNUzI6hPm6ll1oNSPOAZc/q/z+3QZEQ==}
     engines: {node: '>=22'}
 
   '@alchemy.run/acme@2.0.0-beta.84':
@@ -3256,8 +3256,8 @@ packages:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
 
-  ai@7.0.134:
-    resolution: {integrity: sha512-2m/hyNGsNB2Fe/BCZ/XwpjnfxEVCqS0TtAwjR/HpIIyMAtiLJJ8bQb6+uMih4MXwukDJr9AR4hxbFLUE9H3SjQ==}
+  ai@7.0.154:
+    resolution: {integrity: sha512-vpvOZoV2Xcu6vWYM/X2XAFJG93T/ELF+qbslXxRnpqqhKZ6dtxfZf1KHFqYBz784uV/XVjXkNjgs9Zc239NY3Q==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -5019,27 +5019,27 @@ packages:
 
 snapshots:
 
-  '@ai-sdk/gateway@4.0.108(zod@4.6.7)':
+  '@ai-sdk/gateway@4.0.127(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider': 4.0.25
-      '@ai-sdk/provider-utils': 5.0.57(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.34
+      '@ai-sdk/provider-utils': 5.0.69(zod@4.6.7)
       '@vercel/oidc': 3.2.0
       zod: 4.6.7
 
-  '@ai-sdk/provider-utils@5.0.57(zod@4.6.7)':
+  '@ai-sdk/provider-utils@5.0.69(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider': 4.0.25
+      '@ai-sdk/provider': 4.0.34
       '@standard-schema/spec': 1.1.0
       '@workflow/serde': 4.1.0
       eventsource-parser: 3.1.1
       undici: 7.30.1
       zod: 4.6.7
 
-  '@ai-sdk/provider@4.0.25':
+  '@ai-sdk/provider@4.0.28':
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/provider@4.0.28':
+  '@ai-sdk/provider@4.0.34':
     dependencies:
       json-schema: 0.4.0
 
@@ -5420,20 +5420,20 @@ snapshots:
 
   '@drizzle-team/brocli@0.12.1': {}
 
-  '@e2e-dev/decision@0.3.0(ai@7.0.134(zod@4.6.7))(e2e@0.21.3(ai@7.0.134(zod@4.6.7)))':
+  '@e2e-dev/decision@0.3.0(ai@7.0.154(zod@4.6.7))(e2e@0.21.3(ai@7.0.154(zod@4.6.7)))':
     dependencies:
-      ai: 7.0.134(zod@4.6.7)
-      e2e: 0.21.3(ai@7.0.134(zod@4.6.7))
+      ai: 7.0.154(zod@4.6.7)
+      e2e: 0.21.3(ai@7.0.154(zod@4.6.7))
       pngjs: 7.0.0
       zod: 4.6.7
 
-  '@e2e-dev/github@0.4.3(e2e@0.21.3(ai@7.0.134(zod@4.6.7)))':
+  '@e2e-dev/github@0.4.3(e2e@0.21.3(ai@7.0.154(zod@4.6.7)))':
     dependencies:
-      e2e: 0.21.3(ai@7.0.134(zod@4.6.7))
+      e2e: 0.21.3(ai@7.0.154(zod@4.6.7))
 
-  '@e2e-dev/web@0.15.3(e2e@0.21.3(ai@7.0.134(zod@4.6.7)))':
+  '@e2e-dev/web@0.15.3(e2e@0.21.3(ai@7.0.154(zod@4.6.7)))':
     dependencies:
-      e2e: 0.21.3(ai@7.0.134(zod@4.6.7))
+      e2e: 0.21.3(ai@7.0.154(zod@4.6.7))
       playwright-core: 1.64.1(zod@4.6.7)
     transitivePeerDependencies:
       - bufferutil
@@ -7145,11 +7145,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  ai@7.0.134(zod@4.6.7):
+  ai@7.0.154(zod@4.6.7):
     dependencies:
-      '@ai-sdk/gateway': 4.0.108(zod@4.6.7)
-      '@ai-sdk/provider': 4.0.25
-      '@ai-sdk/provider-utils': 5.0.57(zod@4.6.7)
+      '@ai-sdk/gateway': 4.0.127(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.34
+      '@ai-sdk/provider-utils': 5.0.69(zod@4.6.7)
       zod: 4.6.7
 
   alchemy@2.0.0-beta.84(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.3.0))(@types/react@19.3.0)(effect@4.0.6)(vite@8.3.5(@types/node@24.19.2)(tsx@4.23.15)):
@@ -7449,7 +7449,7 @@ snapshots:
       es-errors: 1.3.0
       gopd: 1.2.0
 
-  e2e@0.21.3(ai@7.0.134(zod@4.6.7)):
+  e2e@0.21.3(ai@7.0.154(zod@4.6.7)):
     dependencies:
       '@ai-sdk/provider': 4.0.28
       '@clack/prompts': 1.8.1
@@ -7457,7 +7457,7 @@ snapshots:
       '@modelcontextprotocol/server': 2.3.1
       '@oxc-project/runtime': 0.154.0
       '@vitest/expect': 5.0.5
-      ai: 7.0.134(zod@4.6.7)
+      ai: 7.0.154(zod@4.6.7)
       commander: 15.0.0
       fast-png: 8.0.0
       get-tsconfig: 4.14.3
