@@ -43,7 +43,7 @@
     "dev:api": "nub run --filter '@solstatus/api' dev",
     "db:setup": "nub run --filter '@solstatus/infra' db:setup",
     "typecheck": "tsrs --pretty false --noEmit --incremental false && tsrs --pretty false --noEmit --incremental false -p packages/common && tsrs --pretty false --noEmit --incremental false -p packages/api && tsrs --pretty false --noEmit --incremental false -p packages/app && tsrs --pretty false --noEmit --incremental false -p packages/infra && nub run typecheck:e2e",
-    "effect:diagnostics": "effect-tsrs diagnostics --project tsconfig.json --lspconfig '{}'",
+    "effect:diagnostics": "effect-tsrs diagnostics --project tsconfig.diagnostics.json --lspconfig '{}'",
     "lint": "NODE_OPTIONS='--import tsx' oxlint",
     "lint:fix": "NODE_OPTIONS='--import tsx' oxlint --fix",
     "format": "oxfmt --check .",
