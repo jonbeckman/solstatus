@@ -38,7 +38,7 @@ nub run test:e2e:cleanup
 ```
 
 `scripts/e2e/stack.ts` starts `alchemy dev packages/infra/src/alchemy.run.ts --stage dev`
-(Alchemy `2.0.0-beta.83`) with its working directory at `.e2e/runs/<uuid>`. Local D1,
+(Alchemy `2.0.0-beta.84`) with its working directory at `.e2e/runs/<uuid>`. Local D1,
 KV, and Alchemy state stay in that directory's `.alchemy` tree. Cleanup deletes that
 directory only. It does not call `alchemy deploy` or `alchemy destroy`.
 
