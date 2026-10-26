@@ -1,5 +1,4 @@
 import { getWorkerEnv } from "@/lib/worker-env"
-import type { InitPayload } from "@solstatus/api/monitor-trigger"
 import {
   endpointMonitorsInsertDTOSchema,
   type endpointMonitorsSelectSchema,
@@ -64,7 +63,7 @@ export const GET = createRoute
     )
 
     const orderByCol = getColumn(orderBy)
-    const orderDir = getOrderDirection(order as "asc" | "desc")
+    const orderDir = getOrderDirection(order)
 
     // Build the predicate per query. A shared SQL fragment is not safe to run twice.
     const whereConditions = () =>
@@ -104,10 +103,13 @@ export const GET = createRoute
     // The create path starts a check write immediately. A local D1 read can lose that race once.
     const delays = [0, 100, 200, 400, 800]
     let lastError: unknown
+
     for (const delay of delays) {
       if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay))
+
       try {
         const pageResult = await readPage()
+
         return Response.json({
           data: pageResult.endpointMonitors,
           totalCount: pageResult.totalCount,
@@ -116,6 +118,7 @@ export const GET = createRoute
         lastError = error
       }
     }
+
     throw lastError
   })
 
@@ -138,6 +141,7 @@ export const POST = createRoute
 
     // Normalize the URL to remove the protocol
     const normalizedUrl = endpointMonitor.url.replace(/(^\w+:|^)\/\//, "")
+
     const existingEndpointMonitors: z.infer<typeof endpointMonitorsSelectSchema>[] = await db
       .select()
       .from(EndpointMonitorsTable)
@@ -145,6 +149,7 @@ export const POST = createRoute
 
     const matchingWebsite = existingEndpointMonitors.find((endpointMonitor) => {
       const websiteUrl = endpointMonitor.url.replace(/(^\w+:|^)\/\//, "")
+
       return websiteUrl.endsWith(normalizedUrl) || normalizedUrl.endsWith(websiteUrl)
     })
 
@@ -152,6 +157,7 @@ export const POST = createRoute
       console.log(
         `A URL like [${normalizedUrl}] already exists. Original: [${endpointMonitor.url}], Found: [${matchingWebsite.url}]`,
       )
+
       return Response.json(
         {
           message: `A monitor with a similar URL already exists. ${JSON.stringify({
@@ -182,7 +188,7 @@ export const POST = createRoute
       monitorId: newWebsite.id,
       monitorType: "endpoint",
       checkInterval: newWebsite.checkInterval,
-    } as InitPayload)
+    })
 
     return Response.json(newWebsite, { status: StatusCodes.CREATED })
   })
@@ -191,6 +197,30 @@ function getOrderDirection(direction: "asc" | "desc") {
   return direction === "desc" ? desc : asc
 }
 
+const endpointMonitorOrderColumns = {
+  id: EndpointMonitorsTable.id,
+  url: EndpointMonitorsTable.url,
+  name: EndpointMonitorsTable.name,
+  checkInterval: EndpointMonitorsTable.checkInterval,
+  isRunning: EndpointMonitorsTable.isRunning,
+  expectedStatusCode: EndpointMonitorsTable.expectedStatusCode,
+  consecutiveFailures: EndpointMonitorsTable.consecutiveFailures,
+  alertThreshold: EndpointMonitorsTable.alertThreshold,
+  activeAlert: EndpointMonitorsTable.activeAlert,
+  createdAt: EndpointMonitorsTable.createdAt,
+  updatedAt: EndpointMonitorsTable.updatedAt,
+}
+
+function isEndpointMonitorOrderColumn(
+  columnName: string,
+): columnName is keyof typeof endpointMonitorOrderColumns {
+  return Object.hasOwn(endpointMonitorOrderColumns, columnName)
+}
+
 function getColumn(columnName: string): SQLiteColumn {
-  return EndpointMonitorsTable[columnName as keyof typeof EndpointMonitorsTable] as SQLiteColumn
+  if (!isEndpointMonitorOrderColumn(columnName)) {
+    throw new Error(`Unsupported endpoint monitor order column: ${columnName}`)
+  }
+
+  return endpointMonitorOrderColumns[columnName]
 }

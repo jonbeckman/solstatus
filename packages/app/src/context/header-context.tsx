@@ -28,8 +28,10 @@ export const defaultHeaderContent: React.ReactNode = <div />
 
 export function HeaderProvider({ children }: { children: ReactNode }) {
   const [headerLeftContent, setHeaderLeftContent] = useState<React.ReactNode>(defaultHeaderContent)
+
   const [headerRightContent, setHeaderRightContent] =
     useState<React.ReactNode>(defaultHeaderContent)
+
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(60)
   const [refreshProgress, setRefreshProgress] = useState(0)
   const [isAutoRefreshAvailable, setIsAutoRefreshAvailable] = useState(false)
@@ -92,8 +94,10 @@ export function useHeaderContext() {
 // Specialized hook for components that don't need refresh progress
 export function useHeaderContentOnly() {
   const context = useContext(HeaderContentContext)
+
   if (context === undefined) {
     throw new Error("useHeaderContentOnly must be used within a HeaderProvider")
   }
+
   return context
 }

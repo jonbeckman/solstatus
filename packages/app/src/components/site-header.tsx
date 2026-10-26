@@ -5,6 +5,7 @@ import { SidebarTrigger } from "@/registry/new-york-v4/ui/sidebar"
 
 export function SiteHeader() {
   const { headerLeftContent, headerRightContent, isAutoRefreshAvailable } = useHeaderContentOnly()
+
   return (
     <header className="relative">
       <div className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">

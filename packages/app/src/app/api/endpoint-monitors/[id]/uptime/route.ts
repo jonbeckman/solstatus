@@ -36,6 +36,7 @@ export const GET = createRoute.params(idStringParamsSchema).handler(async (_requ
     console.error(
       `Error getting latest uptime check for endpointMonitor [${endpointMonitorId}]: ${error}`,
     )
+
     return Response.json(
       { error: "Failed to get latest uptime check" },
       { status: StatusCodes.INTERNAL_SERVER_ERROR },

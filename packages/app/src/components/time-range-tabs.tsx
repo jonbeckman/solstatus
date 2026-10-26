@@ -1,5 +1,5 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/animated-tabs"
-import type { TimeRange } from "@/types/endpointMonitor"
+import { isTimeRange, type TimeRange } from "@/types/endpointMonitor"
 
 interface TimeRangeTabsProps {
   value: TimeRange
@@ -10,7 +10,13 @@ const timeRanges: TimeRange[] = ["30m", "1h", "3h", "6h", "1d", "2d", "7d"]
 
 export function TimeRangeTabs({ value, onValueChange }: TimeRangeTabsProps) {
   return (
-    <Tabs value={value} onValueChange={(val) => onValueChange(val as TimeRange)} className="w-full">
+    <Tabs
+      value={value}
+      onValueChange={(val) => {
+        if (isTimeRange(val)) onValueChange(val)
+      }}
+      className="w-full"
+    >
       <div className="flex justify-end items-center mb-3">
         <TabsList className="h-auto p-1">
           {timeRanges.map((range) => (

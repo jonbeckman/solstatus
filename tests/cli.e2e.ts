@@ -10,6 +10,7 @@ test(
       env: process.env,
       timeout: 30_000,
     })
+
     const output = `${result.stdout ?? ""}${result.stderr ?? ""}`
     expect(result.status).toBe(0)
     expect(output).toMatch(/solstatus/)

@@ -21,6 +21,7 @@ export default class MonitorExec extends WorkerEntrypoint<MonitorExecEnv> {
 
   private async _executeCheck(endpointMonitorId: string) {
     const db = useDrizzle(this.env.DB)
+
     const endpointMonitor = await db
       .select()
       .from(EndpointMonitorsTable)
@@ -31,6 +32,7 @@ export default class MonitorExec extends WorkerEntrypoint<MonitorExecEnv> {
       console.error(
         `EndpointMonitor [${endpointMonitorId}] does not exist. Leaving Durable Object in place.`,
       )
+
       // Not deleted here: cyclic MonitorExec/MonitorTrigger dependency.
       return
     }

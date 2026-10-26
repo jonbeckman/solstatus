@@ -42,6 +42,7 @@ export async function handleToggleStatus(endpointMonitorId: string, newStatus: b
       description: `${error}`,
       ...DEFAULT_TOAST_OPTIONS,
     })
+
     return false
   }
 }
@@ -71,6 +72,7 @@ export async function handleDeleteWebsite(endpointMonitorId: string) {
       description: `${error}`,
       ...DEFAULT_TOAST_OPTIONS,
     })
+
     return false
   }
 }

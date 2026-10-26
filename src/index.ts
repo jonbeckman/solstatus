@@ -15,18 +15,22 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const envPath = path.resolve(process.cwd(), ".env")
+
 if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath })
 }
 
 const appendEnvValue = (key: string, value: string) => {
   let envContent = ""
+
   if (fs.existsSync(envPath)) {
     envContent = fs.readFileSync(envPath, "utf-8")
   }
+
   if (envContent && !envContent.endsWith("\n")) {
     envContent += "\n"
   }
+
   envContent += `${key}="${value}"\n`
   fs.writeFileSync(envPath, envContent)
 }
@@ -81,6 +85,7 @@ const main = Command.make(
     Effect.gen(function* () {
       const accountId =
         Option.getOrUndefined(config.cloudflareAccountId) ?? process.env.CLOUDFLARE_ACCOUNT_ID ?? ""
+
       const apiToken =
         Option.getOrUndefined(config.cloudflareApiToken) ?? process.env.CLOUDFLARE_API_TOKEN ?? ""
 
@@ -88,6 +93,7 @@ const main = Command.make(
         yield* Console.error(
           "Error: CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN must be provided via CLI flags, .env file, or environment variables",
         )
+
         return yield* Effect.fail(1)
       }
 
@@ -118,6 +124,7 @@ const main = Command.make(
       }
 
       const fqdnValue = Option.getOrUndefined(config.fqdn) ?? ""
+
       const env = {
         ...process.env,
         CLOUDFLARE_ACCOUNT_ID: accountId,
@@ -134,6 +141,7 @@ const main = Command.make(
       const alchemyRunPath = path.join(__dirname, "../packages/infra/src/alchemy.run.ts")
       const alchemyCommand = alchemyCommandByPhase[config.phase]
       const args = [alchemyCommand, alchemyRunPath, "--stage", config.stage]
+
       if (config.quiet) {
         args.push("--quiet")
       }
@@ -147,6 +155,7 @@ const main = Command.make(
         yield* Console.log("\n✅ Command executed successfully")
       } catch (error) {
         yield* Console.error(`\n❌ Command failed: ${error}`)
+
         return yield* Effect.fail(1)
       }
     }),

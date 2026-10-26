@@ -5,7 +5,7 @@ import { endpointSignature, MonitorTriggerNotInitializedError } from "@solstatus
 import { state } from "diffable-objects"
 import { eq } from "drizzle-orm"
 import { ReasonPhrases, StatusCodes } from "http-status-codes"
-import type { MonitorTriggerEnv } from "../infra/types/env"
+import type { MonitorTriggerEnv, MonitorTriggerHandle } from "../infra/types/env"
 
 type MonitorType = "endpoint"
 
@@ -40,34 +40,36 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
     this.#state.monitorType = payload.monitorType
     this.#state.checkInterval = payload.checkInterval
 
-    await this.triggerCheck(
-      this.#state.monitorId as string,
-      this.#state.monitorType as MonitorType,
-      this.#state.checkInterval as number,
-    )
+    await this.triggerCheck(payload.monitorId, payload.monitorType, payload.checkInterval)
   }
 
   private getMonitorId(): string {
     const monitorId = this.#state.monitorId
+
     if (!monitorId) {
       throw new MonitorTriggerNotInitializedError("Monitor ID not set.")
     }
+
     return monitorId
   }
 
   private getMonitorType(): MonitorType {
     const monitorType = this.#state.monitorType
+
     if (!monitorType) {
       throw new MonitorTriggerNotInitializedError("Monitor type not set.")
     }
+
     return monitorType
   }
 
   private getCheckInterval(): number {
     const checkInterval = this.#state.checkInterval
+
     if (!checkInterval) {
       throw new MonitorTriggerNotInitializedError("Check interval not set.")
     }
+
     return checkInterval
   }
 
@@ -81,6 +83,7 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
         `Received an alarm retry #${alarmInfo.retryCount} for [${monitorId}]. Not retrying.`,
       )
       await this.ctx.storage.setAlarm(Date.now() + checkInterval * 1000)
+
       return
     }
 
@@ -120,6 +123,7 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
     await this.ctx.storage.deleteAlarm()
 
     const db = useDrizzle(this.env.DB)
+
     try {
       const endpointMonitor = await db
         .update(EndpointMonitorsTable)
@@ -127,6 +131,7 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
         .where(eq(EndpointMonitorsTable.id, monitorId))
         .returning()
         .then(takeUniqueOrThrow)
+
       console.log(`Paused Endpoint Monitor ${endpointSignature(endpointMonitor)} in DB`)
     } catch (error) {
       console.error(`Error updating monitor status to paused in DB for [${monitorId}]:`, error)
@@ -144,6 +149,7 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
     await this.ctx.storage.setAlarm(Date.now() + checkInterval * 1000)
 
     const db = useDrizzle(this.env.DB)
+
     try {
       const endpointMonitor = await db
         .update(EndpointMonitorsTable)
@@ -151,6 +157,7 @@ export class MonitorTrigger extends DurableObject<MonitorTriggerEnv> {
         .where(eq(EndpointMonitorsTable.id, monitorId))
         .returning()
         .then(takeUniqueOrThrow)
+
       console.log(`Resumed Endpoint Monitor ${endpointSignature(endpointMonitor)} in DB`)
     } catch (error) {
       console.error(`Error updating monitor status to resumed in DB for [${monitorId}]:`, error)
@@ -178,9 +185,10 @@ export default class MonitorTriggerRPC extends WorkerEntrypoint<MonitorTriggerEn
   // Monitor DO RPC methods
   //////////////////////////////////////////////////////////////////////
 
-  private getTriggerStub(monitorId: string): DurableObjectStub<MonitorTrigger> {
+  private getTriggerStub(monitorId: string): DurableObjectStub<MonitorTriggerHandle> {
     const id = this.env.MONITOR_TRIGGER.idFromName(monitorId)
-    return this.env.MONITOR_TRIGGER.get(id) as DurableObjectStub<MonitorTrigger>
+
+    return this.env.MONITOR_TRIGGER.get(id)
   }
 
   async init(payload: InitPayload) {

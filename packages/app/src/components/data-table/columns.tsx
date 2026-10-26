@@ -15,6 +15,7 @@ import { EndpointMonitorDetailDrawer } from "./endpoint-monitor-detail-drawer"
 const formatDate = (value: string | number | Date | null | undefined): string => {
   if (value) {
     const date = new Date(value)
+
     // Check if the date is valid after parsing
     if (!Number.isNaN(date.getTime())) {
       return date.toLocaleDateString()
@@ -26,6 +27,7 @@ const formatDate = (value: string | number | Date | null | undefined): string =>
 
 const displayName = (name: string | null | undefined, url: string) => {
   const textToDisplay = name || url
+
   return textToDisplay.length > 32 ? `${textToDisplay.substring(0, 32)}...` : textToDisplay
 }
 
@@ -82,6 +84,7 @@ export const columns: AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>
     maxSize: 300,
     cell: ({ row }) => {
       const lastRefreshed = useDataTableStore((state) => state.lastRefreshed)
+
       return (
         <div className="w-[300px]">
           <LatencyLimitChart
@@ -99,8 +102,7 @@ export const columns: AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>
     header: ({ column }) => <DataTableColumnHeader column={column} title="Check Interval" />,
     headerLabel: "Check Interval",
     cell: ({ row }) => {
-      const seconds = row.getValue("checkInterval") as number
-      return <span>{secsToHumanReadable(seconds)}</span>
+      return <span>{secsToHumanReadable(row.original.checkInterval)}</span>
     },
     enableHiding: true,
   },
@@ -109,7 +111,7 @@ export const columns: AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>
     header: ({ column }) => <DataTableColumnHeader column={column} title="Consecutive Failures" />,
     headerLabel: "Consecutive Failures",
     cell: ({ row }) => {
-      const failures = row.getValue("consecutiveFailures") as number | null
+      const failures = row.original.consecutiveFailures
 
       // Center the content
       return (
@@ -134,7 +136,7 @@ export const columns: AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>
     header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
     headerLabel: "Status",
     cell: ({ row }) => {
-      const isRunning = row.getValue("isRunning") as boolean
+      const isRunning = row.original.isRunning
 
       if (isRunning) {
         return (
@@ -152,7 +154,8 @@ export const columns: AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>
     headerLabel: "Alert Status",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Alert Status" />,
     cell: ({ row }) => {
-      const hasAlert = row.getValue("activeAlert") as boolean
+      const hasAlert = row.original.activeAlert
+
       return (
         <div className="flex items-center justify-center">
           {hasAlert ? (
@@ -171,8 +174,7 @@ export const columns: AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>
     header: ({ column }) => <DataTableColumnHeader column={column} title="Created At" />,
     headerLabel: "Created At",
     cell: ({ row }) => {
-      const value = row.getValue("createdAt")
-      return formatDate(value as string | number | Date | null | undefined)
+      return formatDate(row.original.createdAt)
     },
     enableHiding: true,
   },
@@ -181,8 +183,7 @@ export const columns: AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>
     header: ({ column }) => <DataTableColumnHeader column={column} title="Updated At" />,
     headerLabel: "Updated At",
     cell: ({ row }) => {
-      const value = row.getValue("updatedAt")
-      return formatDate(value as string | number | Date | null | undefined)
+      return formatDate(row.original.updatedAt)
     },
     enableHiding: true,
   },

@@ -1,6 +1,7 @@
 // @ts-nocheck -- recharts 2 class components are not valid JSX under React 19 types
 
 import { useEffect, useMemo, useState } from "react"
+import { z } from "zod"
 import { Line, LineChart } from "recharts"
 import { Badge } from "@/registry/new-york-v4/ui/badge"
 import {
@@ -28,18 +29,23 @@ const getColorForResponseTime = (responseTime: number): string => {
   if (responseTime < 100) {
     return "#3498DB" // blue
   }
+
   if (responseTime < 200) {
     return "#2ECC71" // green
   }
+
   if (responseTime < 500) {
     return "#F1C40F" // yellow
   }
+
   if (responseTime < 1000) {
     return "#D35400" // orange
   }
+
   if (responseTime < 3000) {
     return "#C0392B" // red
   }
+
   return "#8E44AD" // purple
 }
 
@@ -54,19 +60,27 @@ export function LatencyLimitChart({
   useEffect(() => {
     const fetchLatencyData = async () => {
       setIsLoading(true)
+
       try {
         const response = await fetch(
           `/api/endpoint-monitors/${endpointMonitorId}/uptime/limit?limit=${limit}`,
         )
+
         if (!response.ok) {
           console.error(`Failed to fetch latency data: ${response.statusText}`)
           setData([])
+
           return
         }
-        const responseData = (await response.json()) as {
-          timestamp: string
-          responseTime: number
-        }[]
+
+        const responseData = z
+          .array(
+            z.object({
+              timestamp: z.string(),
+              responseTime: z.number(),
+            }),
+          )
+          .parse(await response.json())
 
         // Format data with gradient colors based on response time
         const formattedData = responseData.map((point) => ({
@@ -92,9 +106,11 @@ export function LatencyLimitChart({
     if (data.length === 0) {
       return { minResponseTime: 0, maxResponseTime: 0 }
     }
+
     const responseTimes = data.map((d) => d.responseTime)
     const minVal = Math.min(...responseTimes)
     const maxVal = Math.max(...responseTimes)
+
     // Add a small buffer if min and max are the same to avoid division by zero
     return {
       minResponseTime: minVal,
@@ -105,8 +121,10 @@ export function LatencyLimitChart({
   // Generate gradient stops based on response time values and thresholds (Smooth)
   const gradientStops = useMemo(() => {
     const range = maxResponseTime - minResponseTime
+
     if (range <= 0) {
       const color = getColorForResponseTime(minResponseTime)
+
       return [
         { offset: "0%", color },
         { offset: "100%", color },
@@ -211,6 +229,7 @@ export function LatencyLimitChart({
             <linearGradient id="colorResponseTime" x1="0%" y1="100%" x2="0%" y2="0%">
               {gradientStops.map((stop, i) => {
                 console.log("stop", stop)
+
                 return (
                   <stop
                     key={`stroke-${i}-${stop.offset}`}
@@ -231,18 +250,22 @@ export function LatencyLimitChart({
                 className="bg-accent min-w-auto"
                 labelClassName=""
                 formatter={(value, name) => {
-                  if (name === "responseTime" && typeof value === "number") {
-                    if (value >= 1000) {
-                      const seconds = value / 1000
+                  if (name === "responseTime" && Number.isFinite(value)) {
+                    const latency = Number(value)
+
+                    if (latency >= 1000) {
+                      const seconds = latency / 1000
+
                       return (
                         <p className="text-xs">
                           <span className="font-semibold">{seconds.toFixed(2)}</span> s
                         </p>
                       )
                     }
+
                     return (
                       <p className="text-xs">
-                        <span className="font-semibold">{value.toFixed(0)}</span> ms
+                        <span className="font-semibold">{latency.toFixed(0)}</span> ms
                       </p>
                     )
                   }

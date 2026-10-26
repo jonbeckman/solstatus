@@ -21,6 +21,7 @@ import { ChartLoadingOverlay } from "./chart-loading-overlay"
 
 const getTimeBucketStart = (timestampMs: number, range: TimeRange): number => {
   const date = new Date(timestampMs)
+
   switch (range) {
     case "30m": {
       // 30 second buckets for 30 minutes
@@ -28,49 +29,62 @@ const getTimeBucketStart = (timestampMs: number, range: TimeRange): number => {
       const roundedSeconds = Math.floor(seconds / 30) * 30
       const startOfMin = startOfMinute(date)
       startOfMin.setSeconds(roundedSeconds, 0)
+
       return getUnixTime(startOfMin)
     }
+
     case "1h": {
       return getUnixTime(startOfMinute(date))
     }
+
     case "3h": {
       // 2 minute buckets for 3 hours
       const minutes = date.getMinutes()
       const roundedMinutes = Math.floor(minutes / 2) * 2
       const startOfHr = startOfHour(date)
       startOfHr.setMinutes(roundedMinutes, 0, 0)
+
       return getUnixTime(startOfHr)
     }
+
     case "6h": {
       // 5 minute buckets for 6 hours
       const minutes = date.getMinutes()
       const roundedMinutes = Math.floor(minutes / 5) * 5
       const startOfHr = startOfHour(date)
       startOfHr.setMinutes(roundedMinutes, 0, 0)
+
       return getUnixTime(startOfHr)
     }
+
     case "1d": {
       const minutes = date.getMinutes()
       const roundedMinutes = Math.floor(minutes / 15) * 15
       const startOfHr = startOfHour(date)
       startOfHr.setMinutes(roundedMinutes, 0, 0)
+
       return getUnixTime(startOfHr)
     }
+
     case "2d": {
       // 30 minute buckets for 2 days
       const minutes = date.getMinutes()
       const roundedMinutes = Math.floor(minutes / 30) * 30
       const startOfHr = startOfHour(date)
       startOfHr.setMinutes(roundedMinutes, 0, 0)
+
       return getUnixTime(startOfHr)
     }
+
     case "7d": {
       const hours = date.getHours()
       const roundedHours = Math.floor(hours / 2) * 2
       const startOfDy = startOfDay(date)
       startOfDy.setHours(roundedHours, 0, 0, 0)
+
       return getUnixTime(startOfDy)
     }
+
     default: {
       return Math.floor(timestampMs / 1000)
     }
@@ -137,12 +151,15 @@ const processData = (
   const aggregatedData: {
     [key: number]: { values: number[]; count: number; sum: number }
   } = {}
+
   for (const point of data) {
     const bucketStartSeconds = getTimeBucketStart(new Date(point.timestamp).getTime(), range)
+
     if (bucketStartSeconds * 1000 >= startTime.getTime()) {
       if (!aggregatedData[bucketStartSeconds]) {
         aggregatedData[bucketStartSeconds] = { values: [], count: 0, sum: 0 }
       }
+
       aggregatedData[bucketStartSeconds].values.push(point.responseTime ?? 0)
       aggregatedData[bucketStartSeconds].sum += point.responseTime ?? 0
       aggregatedData[bucketStartSeconds].count++
@@ -159,34 +176,40 @@ const processData = (
       currentBucketTime.setSeconds(Math.floor(seconds / 30) * 30, 0)
       break
     }
+
     case "1h": {
       currentBucketTime = startOfMinute(startTime)
       break
     }
+
     case "3h": {
       const startMinutes = startTime.getMinutes()
       currentBucketTime = startOfHour(startTime)
       currentBucketTime.setMinutes(Math.floor(startMinutes / 2) * 2, 0, 0)
       break
     }
+
     case "6h": {
       const startMinutes = startTime.getMinutes()
       currentBucketTime = startOfHour(startTime)
       currentBucketTime.setMinutes(Math.floor(startMinutes / 5) * 5, 0, 0)
       break
     }
+
     case "1d": {
       const startMinutes = startTime.getMinutes()
       currentBucketTime = startOfHour(startTime)
       currentBucketTime.setMinutes(Math.floor(startMinutes / 15) * 15, 0, 0)
       break
     }
+
     case "2d": {
       const startMinutes = startTime.getMinutes()
       currentBucketTime = startOfHour(startTime)
       currentBucketTime.setMinutes(Math.floor(startMinutes / 30) * 30, 0, 0)
       break
     }
+
     case "7d": {
       const startHours = startTime.getHours()
       currentBucketTime = startOfDay(startTime)
@@ -206,6 +229,7 @@ const processData = (
 
     if (currentBucketTimestampSeconds * 1000 >= alignedStartTimeMs) {
       const data = aggregatedData[currentBucketTimestampSeconds]
+
       if (data) {
         processedData.push({
           timeBucket: currentBucketTimestampSeconds,
@@ -230,12 +254,14 @@ const processData = (
     if (processedData[i].avgLatency === null) {
       let prevIndex = -1
       let nextIndex = -1
+
       for (let j = i - 1; j >= 0; j--) {
         if (processedData[j].avgLatency !== null) {
           prevIndex = j
           break
         }
       }
+
       for (let j = i + 1; j < processedData.length; j++) {
         if (processedData[j].avgLatency !== null) {
           nextIndex = j
@@ -254,6 +280,7 @@ const processData = (
       ) {
         const timeDiffTotal = nextPoint.timeBucket - prevPoint.timeBucket
         const timeDiffCurrent = processedData[i].timeBucket - prevPoint.timeBucket
+
         if (timeDiffTotal > 0) {
           const valueDiff = nextPoint.avgLatency - prevPoint.avgLatency
           processedData[i].avgLatency =
@@ -274,6 +301,7 @@ const processData = (
 
 const formatXAxis = (tickItem: number, range: TimeRange): string => {
   const date = new Date(tickItem * 1000)
+
   switch (range) {
     case "30m":
       return format(date, "HH:mm:ss")
@@ -313,6 +341,7 @@ const CustomTooltip = ({
     const data = payload[0].payload
     const date = new Date(data.timeBucket * 1000)
     let formattedTime = ""
+
     switch (range) {
       case "30m":
         formattedTime = format(date, "HH:mm:ss")
@@ -345,11 +374,9 @@ const CustomTooltip = ({
       let maxLatency = 0
 
       if (Array.isArray(value)) {
-        minLatency = Number(value[0] as string)
-        maxLatency = Number(value[1] as string)
-      } else if (typeof value === "number") {
-        minLatency = maxLatency = value
-      } else if (typeof value === "string") {
+        minLatency = Number(value[0])
+        maxLatency = Number(value[1])
+      } else if (value === String(value) || Object.is(value, Number(value))) {
         minLatency = maxLatency = Number(value)
       }
 
@@ -365,6 +392,7 @@ const CustomTooltip = ({
       )
     }
   }
+
   return null
 }
 
@@ -419,6 +447,7 @@ const LatencyRangeChart: React.FC<LatencyRangeChartProps> = memo(
 
         return [startTime, Math.max(endTime, lastBucketTime)]
       }
+
       return ["auto", "auto"]
     }, [processedData, timeRange])
 
@@ -435,9 +464,11 @@ const LatencyRangeChart: React.FC<LatencyRangeChartProps> = memo(
           minVal = Math.min(minVal, p.avgLatency)
           maxVal = Math.max(maxVal, p.avgLatency)
         }
+
         if (p.minLatency !== null) {
           minVal = Math.min(minVal, p.minLatency)
         }
+
         if (p.maxLatency !== null) {
           maxVal = Math.max(maxVal, p.maxLatency)
         }

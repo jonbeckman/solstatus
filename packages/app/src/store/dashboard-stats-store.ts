@@ -1,6 +1,15 @@
 import { toast } from "sonner"
+import { z } from "zod"
 import { create } from "zustand"
 import { DEFAULT_TOAST_OPTIONS } from "@/lib/toasts"
+
+const dashboardStatsSchema = z.object({
+  totalEndpointMonitors: z.number(),
+  sitesWithAlerts: z.number(),
+  highestResponseTime: z.number(),
+  highestResponseTimeWebsiteId: z.string().nullable().optional(),
+  uptimePercentage: z.number(),
+})
 
 export interface DashboardStats {
   totalEndpointMonitors: number
@@ -31,12 +40,17 @@ export const useStatsStore = create<StatsState>((set, _get) => ({
 
     try {
       const response = await fetch("/api/endpoint-monitors/stats")
+
       if (!response.ok) {
         throw new Error("Failed to fetch dashboard statistics")
       }
-      const data = (await response.json()) as DashboardStats
+
+      const parsed = dashboardStatsSchema.parse(await response.json())
       set({
-        stats: data,
+        stats: {
+          ...parsed,
+          highestResponseTimeWebsiteId: parsed.highestResponseTimeWebsiteId ?? null,
+        },
         isLoading: false,
         error: null,
       })

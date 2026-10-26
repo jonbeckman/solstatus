@@ -27,6 +27,11 @@ import {
 import { Tabs, TabsContent } from "@/registry/new-york-v4/ui/tabs"
 import { useDataTableStore } from "@/store/data-table-store"
 import { columns } from "./columns"
+
+function isTableUpdater<T>(updater: T | ((current: T) => T)): updater is (current: T) => T {
+  return updater instanceof Function
+}
+
 import { DataRow } from "./data-row"
 import { DataTableLoadingOverlay } from "./data-table-loading-overlay"
 import { DataTableSkeleton } from "./data-table-skeleton"
@@ -43,6 +48,7 @@ export function DataTable() {
   const navigate = useNavigate()
   const pathname = useLocation({ select: (location) => location.pathname })
   const searchStr = useLocation({ select: (location) => location.searchStr })
+
   const searchParams = new URLSearchParams(
     searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
   )
@@ -108,6 +114,7 @@ export function DataTable() {
         // If the intended sort is NOT the default, set the params
         if (params.orderBy) {
           newParams.set("orderBy", params.orderBy)
+
           // A missing order defaults to desc in the list API. Omit the param.
           if (params.order) {
             newParams.set("order", params.order)
@@ -134,21 +141,16 @@ export function DataTable() {
   // Handle state changes with proper typing
   const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updater) => {
     const store = useDataTableStore.getState()
-    if (typeof updater === "function") {
-      store.setRowSelection(updater(store.rowSelection) as Record<string, boolean>)
-    } else {
-      store.setRowSelection(updater as Record<string, boolean>)
-    }
+
+    store.setRowSelection(isTableUpdater(updater) ? updater(store.rowSelection) : updater)
   }
 
   const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
     const store = useDataTableStore.getState()
     let newSorting: SortingState
-    if (typeof updater === "function") {
-      newSorting = updater(store.sorting)
-    } else {
-      newSorting = updater
-    }
+
+    newSorting = isTableUpdater(updater) ? updater(store.sorting) : updater
+
     store.setSorting(newSorting) // Update store first
 
     // Update URL params based on new sorting state
@@ -163,31 +165,21 @@ export function DataTable() {
 
   const handleColumnFiltersChange: OnChangeFn<ColumnFiltersState> = (updater) => {
     const store = useDataTableStore.getState()
-    if (typeof updater === "function") {
-      store.setColumnFilters(updater(store.columnFilters))
-    } else {
-      store.setColumnFilters(updater)
-    }
+
+    store.setColumnFilters(isTableUpdater(updater) ? updater(store.columnFilters) : updater)
   }
 
   const handleVisibilityChange: OnChangeFn<VisibilityState> = (updater) => {
     const store = useDataTableStore.getState()
-    if (typeof updater === "function") {
-      store.setColumnVisibility(updater(store.columnVisibility))
-    } else {
-      store.setColumnVisibility(updater)
-    }
+
+    store.setColumnVisibility(isTableUpdater(updater) ? updater(store.columnVisibility) : updater)
   }
 
   const handlePaginationChange: OnChangeFn<PaginationState> = (updater) => {
     const store = useDataTableStore.getState()
     let newPagination: PaginationState
 
-    if (typeof updater === "function") {
-      newPagination = updater(store.pagination)
-    } else {
-      newPagination = updater
-    }
+    newPagination = isTableUpdater(updater) ? updater(store.pagination) : updater
 
     // Always set the new pagination in the store
     store.setPagination(newPagination)
@@ -209,6 +201,7 @@ export function DataTable() {
     const urlParams = new URLSearchParams(
       searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
     )
+
     const pageParam = urlParams.get("page")
     const pageSizeParam = urlParams.get("pageSize")
     const searchParam = urlParams.get("search")
@@ -223,6 +216,7 @@ export function DataTable() {
     const currentPageSize = store.pagination.pageSize
     const targetPageIndex = pageParam ? Number.parseInt(pageParam, 10) : DEFAULT_PAGE_INDEX
     const targetPageSize = pageSizeParam ? Number.parseInt(pageSizeParam, 10) : DEFAULT_PAGE_SIZE
+
     if (targetPageIndex !== currentPageIndex || targetPageSize !== currentPageSize) {
       store.setPagination({
         pageIndex: targetPageIndex,
@@ -234,6 +228,7 @@ export function DataTable() {
     // Update search from URL if present and different from store
     const currentSearchValue = store.searchValue
     const targetSearchValue = searchParam ?? ""
+
     if (targetSearchValue !== currentSearchValue) {
       store.setSearchValue(targetSearchValue)
       needsUpdate = true
@@ -241,6 +236,7 @@ export function DataTable() {
 
     // Update sorting from URL if present and different from store
     const currentSorting = store.sorting
+
     if (orderByParam) {
       const targetSorting: SortingState = [
         {
@@ -248,6 +244,7 @@ export function DataTable() {
           desc: orderParam === "desc",
         },
       ]
+
       // Check if targetSorting is different from currentSorting
       if (
         currentSorting.length !== 1 ||

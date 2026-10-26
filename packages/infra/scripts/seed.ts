@@ -40,6 +40,7 @@ const checkIntervals = [30, 60, 120]
 
 const seedDatabase = async () => {
   const pathToDb = getLocalD1DB()
+
   if (!pathToDb) {
     console.error("❌ Could not find local D1 database")
     process.exit(1)
@@ -48,17 +49,21 @@ const seedDatabase = async () => {
   const client = createClient({
     url: `file:${pathToDb}`,
   })
+
   const db = drizzle({ client })
 
   console.log("Resetting database...")
   await reset(db, schema)
 
   console.log("Seeding database...")
+
   try {
     console.log("Seeding endpointMonitors...")
+
     // Create 23 endpointMonitors with predefined URLs
     const seedEndpointMonitors = endpointMonitorUrls.map((url) => {
       const domain = new URL(url).hostname.replace("www.", "")
+
       return {
         id: createId(PRE_ID.endpointMonitor),
         url: url,
@@ -66,6 +71,7 @@ const seedDatabase = async () => {
         checkInterval: checkIntervals[Math.floor(Math.random() * checkIntervals.length)],
       }
     })
+
     await db.insert(schema.EndpointMonitorsTable).values(seedEndpointMonitors)
 
     console.log("Seeding uptime checks...")
@@ -104,6 +110,7 @@ const seedDatabase = async () => {
 
       // Insert checks in chunks to avoid SQLite limits
       const chunkSize = 100
+
       for (let i = 0; i < uptimeChecks.length; i += chunkSize) {
         const chunk = uptimeChecks.slice(i, i + chunkSize)
         await db.insert(schema.UptimeChecksTable).values(chunk)
@@ -127,6 +134,7 @@ function getLocalD1DB() {
     // db:create / db:migrate use the same persist-to. Alchemy `infra:dev` stores a
     // separate local D1 under .alchemy/local and is not used here.
     const basePath = path.resolve(import.meta.dirname, "../.wrangler")
+
     const files = fs
       .readdirSync(basePath, { encoding: "utf-8", recursive: true })
       .filter((f) => f.endsWith(".sqlite"))
@@ -134,6 +142,7 @@ function getLocalD1DB() {
     files.sort((a, b) => {
       const statA = fs.statSync(path.join(basePath, a))
       const statB = fs.statSync(path.join(basePath, b))
+
       return statB.mtime.getTime() - statA.mtime.getTime()
     })
     const dbFile = files[0]
@@ -149,6 +158,7 @@ function getLocalD1DB() {
     } else {
       console.log(`Error resolving local D1 DB: ${err}`)
     }
+
     return null
   }
 }

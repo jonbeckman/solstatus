@@ -27,6 +27,7 @@ for (const port of ownedPorts) {
       done(false)
     })
   })
+
   if (occupied) {
     throw new Error(`Port ${port} is occupied; stop the existing SolStatus stack before e2e`)
   }
@@ -35,8 +36,11 @@ for (const port of ownedPorts) {
 const runId = randomUUID()
 const runDir = resolve(".e2e/runs", runId)
 const ownershipPath = resolve(".e2e/cleanup", `${runId}.json`)
+
 mkdirSync(runDir, { recursive: true, mode: 0o700 })
+
 mkdirSync(resolve(".e2e/logs"), { recursive: true, mode: 0o700 })
+
 mkdirSync(resolve(".e2e/cleanup"), { recursive: true, mode: 0o700 })
 
 const publishOwnership = (childPid?: number) => {
@@ -66,17 +70,28 @@ const env: NodeJS.ProcessEnv = {
   SECRET_ALCHEMY_PASSPHRASE:
     process.env.SECRET_ALCHEMY_PASSPHRASE || randomBytes(16).toString("hex"),
 }
+
 // Local emulation must not see a deploy token or a real account id.
 delete env.CLOUDFLARE_API_TOKEN
+
 delete env.CLOUDFLARE_ACCOUNT_ID
+
 delete env.CF_AI_GATEWAY_E2E_TOKEN
+
 delete env.CF_AI_GATEWAY_E2E_ID
+
 delete env.CF_AI_GATEWAY_E2E_SKIP_CACHE
+
 delete env.GH_TOKEN
+
 delete env.GITHUB_TOKEN
+
 delete env.NODE_CHANNEL_FD
+
 delete env.NODE_CHANNEL_SERIALIZATION_MODE
+
 delete env.NODE_UNIQUE_ID
+
 delete env.WATCH_REPORT_DEPENDENCIES
 
 const sensitiveValues = Object.entries(process.env)
@@ -91,6 +106,7 @@ const redact = (chunk: Buffer) =>
 
 const alchemyBin = realpathSync(resolve("node_modules/alchemy/bin/cli.js"))
 const entry = resolve("packages/infra/src/alchemy.run.ts")
+
 console.log(
   `Alchemy dev local emulation on ports ${ownedPorts.join(", ")} with state .e2e/runs/${runId}`,
 )
@@ -101,12 +117,15 @@ const child = spawn(process.execPath, [alchemyBin, "dev", entry, "--stage", "dev
   detached: true,
   stdio: ["ignore", "pipe", "pipe"],
 })
+
 publishOwnership(child.pid)
 
 let stopping = false
+
 const stop = (signal: NodeJS.Signals = "SIGTERM") => {
   if (stopping) return
   stopping = true
+
   if (child.pid) {
     try {
       process.kill(-child.pid, signal)
@@ -121,14 +140,17 @@ const stop = (signal: NodeJS.Signals = "SIGTERM") => {
 }
 
 process.on("SIGINT", () => stop("SIGINT"))
+
 process.on("SIGTERM", () => stop("SIGTERM"))
 
 child.stdout?.on("data", (chunk) => process.stdout.write(redact(chunk)))
+
 child.stderr?.on("data", (chunk) => process.stderr.write(redact(chunk)))
 
 child.on("exit", (code, signal) => {
   process.exitCode = stopping ? 0 : (code ?? (signal ? 130 : 1))
 })
+
 child.on("error", (error) => {
   console.error(error.message)
   process.exitCode = 1
