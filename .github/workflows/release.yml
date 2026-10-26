@@ -10,9 +10,7 @@ on:
       - master
 
 permissions:
-  contents: write
-  id-token: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: release-master
@@ -27,12 +25,31 @@ jobs:
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Writes go through the release app token. This job's GITHUB_TOKEN stays read-only.
+    # id-token: write stays for the existing npm publish step.
+    permissions:
+      contents: read
+      id-token: write
     steps:
+      # The app opens tegami/version-packages, so pull_request workflows start.
+      - name: Create release app token
+        id: release-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Check out validated commit
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
+          # Credentials stay in the checkout so the v* tag push uses this token.
+          token: ${{ steps.release-token.outputs.token }}
 
       - name: Set up Nub
         uses: nubjs/setup-nub@v0
@@ -51,5 +68,5 @@ jobs:
       - name: Version or publish release
         run: nub run tegami ci
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
