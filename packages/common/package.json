@@ -47,7 +47,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250702.0",
     "@libsql/client": "0.18.0",
-    "@types/node": "^24.12.4",
+    "@types/node": "^26.6.5",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "react": "^19.1.0",
     "tsrs": "0.20.0-ts7.1.0-beta",
