@@ -1,19 +1,20 @@
 ---
 name: apple-web-app
-description: "Use when implementing, debugging, or auditing iPhone/iPad Add to Home Screen or macOS Safari Add to Dock web app UI: safe areas, status bar, theme colour, keyboard, manifest, icons, splash screens, or installed navigation. Not for service workers, offline caching, or push."
+description: "Use when implementing, debugging, or auditing how any website or web app looks and behaves on iPhone and iPad — in Safari or added to the Home Screen — or added to the Mac Dock from Safari: safe areas, Safari's status bar and address bar tinting, full-screen overlays, theme colour, keyboard, manifest, icons, splash screens, or installed navigation. Not for service workers, offline caching, or push."
 metadata:
   source: hand-maintained by Joe Bell; derived from a production home-screen web app plus credited external sources
   reviewed: "2026-09-04 against iOS 26.x, macOS 26 / Safari 26"
   upstream: "https://github.com/joe-bell/skills/tree/main/skills/apple-web-app"
-  version: "2026-09-15.2"
+  version: "2026-10-15.1"
 ---
 
-# Apple web app UI
+# Websites and web apps on Apple devices
 
 ## Choose the scope
 
-Use this skill for installed iOS/iPadOS home-screen apps and macOS Safari Add to
-Dock UI. Service workers, offline caching, background sync and push
+Use this skill to give any website or web app a good experience on iPhone and
+iPad, in Safari itself or installed to the Home Screen, and for macOS Safari Add
+to Dock UI. Service workers, offline caching, background sync and push
 implementation belong elsewhere.
 
 Infer the platform, requested outcome and existing architecture from the task
@@ -38,8 +39,8 @@ instructions take precedence over this skill's defaults.
 | Mac Dock icons, title bar, display mode, navigation or storage | [macos-add-to-dock.md](references/macos-add-to-dock.md)                                                                               |
 | iOS head tags, manifest integration or icons                   | [head-and-icons.md](references/head-and-icons.md)                                                                                     |
 | iOS safe areas, scroll roots, cold launch or touch styling     | [layout-and-touch.md](references/layout-and-touch.md)                                                                                 |
-| iOS status bar, tint or light/dark appearance                  | [theme-color-and-status-bar.md](references/theme-color-and-status-bar.md)                                                             |
-| iOS overlays, keyboard or scroll locking                       | [overlays-and-keyboard.md](references/overlays-and-keyboard.md)                                                                       |
+| iOS status bar, Safari bar tinting or light/dark appearance    | [theme-color-and-status-bar.md](references/theme-color-and-status-bar.md)                                                             |
+| iOS overlays, full-screen dims, keyboard or scroll locking     | [overlays-and-keyboard.md](references/overlays-and-keyboard.md)                                                                       |
 | iOS startup images                                             | [splash-screens.md](references/splash-screens.md); read [ios-devices.md](references/ios-devices.md) when generating or checking sizes |
 | Install hints, installed navigation or storage continuity      | [install-ux.md](references/install-ux.md)                                                                                             |
 | A suspected iOS release regression                             | [ios-26-notes.md](references/ios-26-notes.md)                                                                                         |
