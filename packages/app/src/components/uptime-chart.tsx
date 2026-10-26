@@ -1,5 +1,3 @@
-// @ts-nocheck -- recharts 2 class components are not valid JSX under React 19 types
-
 import type { uptimeChecksSelectSchema } from "@solstatus/common/db"
 import {
   format,
@@ -14,16 +12,7 @@ import {
 } from "date-fns"
 import type React from "react"
 import { memo, useMemo } from "react"
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts"
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import type { z } from "zod"
 import type { TimeRange } from "@/types/endpointMonitor"
 import { PolkaDots } from "./bg-patterns/polka-dots"
@@ -448,35 +437,50 @@ interface UptimeChartProps {
   error?: string | null
 }
 
-interface CustomBarProps {
+interface UptimeBarPayload {
+  segments: Array<{
+    start: number
+    height: number
+    fill: string
+    name: string
+  }>
+  totalHeight: number
+}
+
+const uptimeLegendItems = [
+  { value: "2xx", color: "#22c55e" },
+  { value: "3xx", color: "#facc15" },
+  { value: "4xx", color: "#f97316" },
+  { value: "5xx", color: "#ef4444" },
+  { value: "No Data", color: "#ccc" },
+] as const
+
+// One rectangle draws every status segment. Recharts passes the row on payload.
+const CustomBar = ({
+  x,
+  y,
+  width,
+  height,
+  payload,
+}: {
   x: number
   y: number
   width: number
   height: number
-  payload: {
-    segments: Array<{
-      start: number
-      height: number
-      fill: string
-      name: string
-    }>
-    totalHeight: number
-  }
-}
+  payload?: unknown
+}) => {
+  // SAFETY: payload is the uptime chart row, which always includes segments and totalHeight.
+  const barPayload = payload as UptimeBarPayload | undefined
 
-// Custom bar shape that renders all segments in one pass
-const CustomBar = (props: unknown) => {
-  const { x, y, width, height, payload } = props as CustomBarProps
-
-  if (!payload || !payload.segments || payload.totalHeight === 0) {
+  if (!barPayload?.segments || barPayload.totalHeight === 0 || width <= 0 || height <= 0) {
     return <g />
   }
 
-  const scale = height / payload.totalHeight
+  const scale = height / barPayload.totalHeight
 
   return (
     <g>
-      {payload.segments.map((segment, _index) => (
+      {barPayload.segments.map((segment) => (
         <rect
           key={`${segment.name}-${segment.start}`}
           x={x}
@@ -585,60 +589,75 @@ export const UptimeChart: React.FC<UptimeChartProps> = memo(
         {isLoading && processedData.length > 0 && (
           <ChartLoadingOverlay message="Updating uptime data..." />
         )}
-        <div className="p-4 py-6 h-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={processedData}
-              margin={{
-                top: 16,
-                right: 8,
-                left: 16,
-                bottom: 4,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="timeBucket"
-                type="number"
-                domain={xDomain}
-                tickFormatter={(tick) => formatXAxis(tick, timeRange)}
-                scale="time"
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                allowDecimals={false}
-                domain={yDomain}
-                axisLine={false}
-                tickLine={false}
-                width={30}
-                label={{
-                  value: "# of Checks",
-                  angle: -90,
-                  position: "insideLeft",
-                  style: { textAnchor: "middle" },
-                  offset: -10,
+        <div className="flex h-full flex-col p-4 py-6">
+          <div className="min-h-0 flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={processedData}
+                margin={{
+                  top: 16,
+                  right: 8,
+                  left: 16,
+                  bottom: 4,
                 }}
-              />
-              <Tooltip
-                content={<CustomUptimeTooltip range={timeRange} />}
-                cursor={{ fill: "hsl(var(--muted))", fillOpacity: 0.3 }}
-              />
-              <Legend
-                wrapperStyle={{ paddingTop: "10px" }}
-                payload={[
-                  { value: "2xx", type: "rect", color: "#22c55e" },
-                  { value: "3xx", type: "rect", color: "#facc15" },
-                  { value: "4xx", type: "rect", color: "#f97316" },
-                  { value: "5xx", type: "rect", color: "#ef4444" },
-                  { value: "No Data", type: "rect", color: "#ccc" },
-                ]}
-              />
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="timeBucket"
+                  type="number"
+                  domain={xDomain}
+                  tickFormatter={(tick) => formatXAxis(tick, timeRange)}
+                  scale="time"
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  domain={yDomain}
+                  axisLine={false}
+                  tickLine={false}
+                  width={30}
+                  label={{
+                    value: "# of Checks",
+                    angle: -90,
+                    position: "insideLeft",
+                    style: { textAnchor: "middle" },
+                    offset: -10,
+                  }}
+                />
 
-              {/* Single Bar with custom shape renderer */}
-              <Bar dataKey="totalHeight" shape={CustomBar} isAnimationActive={false} />
-            </BarChart>
-          </ResponsiveContainer>
+                {/* Single Bar with custom shape renderer */}
+                <Bar
+                  dataKey="totalHeight"
+                  shape={(barProps) => (
+                    <CustomBar
+                      x={barProps.x}
+                      y={barProps.y}
+                      width={barProps.width}
+                      height={barProps.height}
+                      payload={barProps.payload}
+                    />
+                  )}
+                  isAnimationActive={false}
+                />
+                <Tooltip
+                  content={<CustomUptimeTooltip range={timeRange} />}
+                  cursor={{ fill: "hsl(var(--muted))", fillOpacity: 0.3 }}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2.5 text-sm">
+            {uptimeLegendItems.map((item) => (
+              <div key={item.value} className="flex items-center gap-1.5">
+                <span
+                  className="inline-block h-3.5 w-3.5"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span>{item.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )

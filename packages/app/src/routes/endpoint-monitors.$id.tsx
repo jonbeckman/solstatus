@@ -115,8 +115,12 @@ function EndpointMonitorDetailPage() {
       const monitor = data as z.infer<typeof endpointMonitorsSelectSchema>
       setEndpointMonitor(monitor)
 
-      // Set default time range based on monitor age if URL doesn't have a range
-      if (!searchParams.get("range") && !hasSetDefaultTimeRange.current && monitor.createdAt) {
+      // Set default time range based on monitor age if URL doesn't have a range.
+      // Depend on the search string, not a new URLSearchParams, so this callback stays stable.
+      const rangeInUrl = new URLSearchParams(
+        searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
+      ).get("range")
+      if (!rangeInUrl && !hasSetDefaultTimeRange.current && monitor.createdAt) {
         hasSetDefaultTimeRange.current = true
         const defaultRange = calculateDefaultTimeRange(new Date(monitor.createdAt))
         setTimeRange(defaultRange)
@@ -126,7 +130,7 @@ function EndpointMonitorDetailPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [endpointMonitorId, navigate, searchParams])
+  }, [endpointMonitorId, navigate, searchStr])
 
   const fetchUptimeData = useCallback(async () => {
     if (!endpointMonitorId) {

@@ -67,11 +67,11 @@
     "@effect/platform-node": "4.0.5",
     "@solstatus/infra": "workspace:*",
     "alchemy": "2.0.0-beta.83",
-    "dotenv": "16.5.0",
+    "dotenv": "18.0.9",
     "effect": "4.0.5"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250702.0",
+    "@cloudflare/workers-types": "^5.20261022.1",
     "@e2e-dev/decision": "0.3.0",
     "@e2e-dev/github": "0.4.3",
     "@e2e-dev/web": "0.15.3",
