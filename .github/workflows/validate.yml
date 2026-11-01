@@ -126,7 +126,7 @@ jobs:
 
       - name: Restore action replay cache
         id: action-replay-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .e2e/cache
           key: e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:${{ hashFiles('nub.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -199,7 +199,7 @@ jobs:
 
       - name: Preserve successful replay recordings
         if: success() && steps.e2e-run.outcome == 'success'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: .e2e/cache
           key: e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:${{ hashFiles('nub.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
