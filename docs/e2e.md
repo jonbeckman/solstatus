@@ -1,7 +1,7 @@
 # End-to-end validation
 
-SolStatus uses [tester-army/e2e](https://github.com/tester-army/e2e) `0.21.3` with
-`@e2e-dev/web@0.15.3`, `@e2e-dev/github@0.4.3`, and `@e2e-dev/decision@0.3.0` as its only
+SolStatus uses [tester-army/e2e](https://github.com/tester-army/e2e) `0.22.0` with
+`@e2e-dev/web@0.15.4`, `@e2e-dev/github@0.4.4`, and `@e2e-dev/decision@0.3.1` as its only
 automated test runner.
 `nub run test` executes `tests/**/*.e2e.ts` against the real Alchemy development stack
 (TanStack Start app on port 3000, monitor workers, local D1, better-auth). Vitest unit
