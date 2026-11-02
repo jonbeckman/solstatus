@@ -19,7 +19,7 @@ Do not add scripts, tests, or CI steps that only police the repo's own files, hi
 
 ## End-to-end testing
 
-- Pins: `e2e@0.21.3`, `@e2e-dev/web@0.15.3`, `@e2e-dev/github@0.4.3`, `@e2e-dev/decision@0.3.0`. Drizzle stays `drizzle-orm` / `drizzle-kit` `1.0.0-rc.5-ab785fc`.
+- Pins: `e2e@0.22.0`, `@e2e-dev/web@0.15.4`, `@e2e-dev/github@0.4.4`, `@e2e-dev/decision@0.3.1`. Drizzle stays `drizzle-orm` / `drizzle-kit` `1.0.0-rc.5-ab785fc`.
 - Layout: root `e2e.config.ts`, tests in `tests/**/*.e2e.ts`, helpers in `tests/support/`, lifecycle under `tests/lifecycle/` when needed, runner/cleanup/accounting under `scripts/e2e/` (copied `cf-clef-executor`, `ai-report`, `ai-usage`).
 - Unmodified upstream skill: `.agents/skills/e2e/` (symlink `.claude/skills/e2e`). Coverage map: `.cursor/skills/verify-solstatus/features/`.
 - After each `agent.act`, assert exactly with `expect`. No mocks, request interception, or test-only endpoints.
