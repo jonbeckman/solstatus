@@ -92,15 +92,23 @@ Add scripts that make the stack path explicit when the repo has more than one ap
 }
 ```
 
-Use plain `bun alchemy deploy` only in tiny repos where `alchemy.run.ts` at the root is unambiguous.
+Use plain `bun alchemy deploy` only in tiny repos where `alchemy.run.ts` at the
+root is unambiguous. Prefer the repo's per-app script when the app owns one
+(for example `bun run deploy:prod`), and check that app's README or run config
+for required environment. For Vite apps, build `client` before `ssr` so the SSR
+build can consume the hydration manifest.
 
 ## Org default
 
-For Darkmatter TypeScript/Effect projects, prefer Alchemy for deployable infrastructure:
+For Darkmatter TypeScript/Effect projects, Alchemy is the deploy and dev
+control plane:
 
 - New Cloudflare Workers, Vite/frontends, queues, R2/KV, workflows, AI Gateway, tunnels, and GitHub deploy automation should start with Alchemy.
-- Application data is Postgres-first. Use Kysely + `pg` for query-heavy TypeScript adapters, or Effect SQL Postgres for Effect-native database services. Let Alchemy own the deploy wiring, bindings, secrets, and network resources around that database where the provider supports it.
-- Use D1/sqlite only for narrow edge-local state, demos, or an explicit project decision. Do not pick D1 because the app is on Cloudflare if the data model belongs in Postgres.
+- Alchemy owns deploy wiring, bindings, secrets, and network resources. It does
+  not choose application persistence: follow
+  [darkmatter-ts-toolchain](../darkmatter-ts-toolchain/SKILL.md) for
+  Postgres-first application data, and do not use a Cloudflare-native database
+  as a shortcut around that policy.
 - New AWS Lambda, S3, DynamoDB, API Gateway, ECS/EC2/EKS/RDS, and static-site deploys should consider Alchemy first.
 - Shared preview environments should use Alchemy stages instead of bespoke name mangling.
 - Local webhook testing should use `alchemy dev` or an Alchemy-managed tunnel/preview flow instead of separate ngrok/Cloudflare Tunnel scripts when Alchemy can provide the route.
@@ -138,38 +146,25 @@ The load-bearing pieces are:
 - State: choose deliberately. Cloudflare deploys commonly use `Cloudflare.state()`; simple AWS examples may use `Alchemy.localState()`.
 - Effect body: declare resources with `yield*`, compose dependencies through references and bindings, and return useful outputs for smoke checks.
 
-## Effect-native provider module layout
+## Provider module layout
 
-Follow [codebase-design](../codebase-design/SKILL.md) for shared readability
-rules. A provider owns the operations that converge a resource and the cleanup
-needed when those operations fail or finish. Inspect the installed Alchemy
-version and pinned upstream provider before choosing API names or registration
-shapes. Upstream contributions follow that repository's own layout.
+Follow the "Readability and module design" section in the repository's
+AGENTS.md. A provider is one capability: keep the reconcile flow and the
+mapping, status, and cleanup helpers it needs together. Inspect the installed
+Alchemy version and pinned upstream provider before choosing API names or
+registration shapes. Upstream contributions follow that repository's own
+layout.
 
 For a provider implemented in a Darkmatter app or package:
 
-- Group by the resource or provider domain, then use `models/`, `services/`,
-  `adapters/`, and `workflows/` where those roles have real responsibilities.
-  A single-domain package already supplies the owner.
-- Keep resource schemas and inferred types together. Expose the resource
-  contract and supported provider layer through explicit package entries.
-- Keep adoption, comparison, mapping, and status helpers with the lifecycle
-  implementation that needs them. Extract when it hides complexity or enables
-  useful reuse; avoid a file per helper or separate `Types` and `Schemas` copies.
-- A shared client can own API requests, response decoding, and typed failures.
-  Use an Effect-native SDK directly; wrap a Promise SDK only at that edge.
-  Keep configuration and credentials in the existing config/provider layers.
-- Preserve Alchemy's resource/provider collection and binding contracts. Public
-  composition may register several resource layers without re-exporting every
-  internal helper through a chain of barrels.
-- Keep configured file limits. Document a targeted increase when a forced split
-  would scatter one coherent reconciler.
-
-Test refactors through the resource or provider interface. Retain lifecycle
-coverage for create, repeated deploy, adoption, update, and destroy as applicable.
-Use real provider clients or substitute an external service through a Layer.
-Do not extract or export private selection/mapping helpers just to test them;
-a public pure helper with its own contract can retain focused tests.
+- Preserve Alchemy's resource/provider collection, binding, and public-entry
+  contracts. Public composition may register several resource layers without
+  re-exporting every internal helper through a chain of barrels.
+- A shared client owns API requests, response decoding, and typed failures. Use
+  an Effect-native SDK directly; wrap a Promise SDK only at that edge. Keep
+  configuration and credentials in the existing config/provider layers.
+- Test provider behavior through the resource or provider interface. Coverage
+  decisions follow [when-to-write-tests](../when-to-write-tests/SKILL.md).
 
 ## Local development
 
@@ -266,7 +261,11 @@ If a service wraps a binding and accidentally leaks `WorkerEnvironment` / `Lambd
 
 ## Effect platform rules in app/runtime code
 
-Alchemy stacks and Worker/Function bodies run as Effect programs. Do not reach for raw async or Node primitives inside `Effect.gen`:
+Alchemy stacks and Worker/Function bodies run as Effect programs. General
+Effect service, error, and config patterns are in
+[effect-typescript](../effect-typescript/SKILL.md); the rules below apply them
+to stack bodies, custom resource helpers, and tests. Do not reach for raw
+async or Node primitives inside `Effect.gen`:
 
 | Don't                                       | Do                                                   |
 | ------------------------------------------- | ---------------------------------------------------- |
@@ -360,38 +359,58 @@ Provider test rules:
 - Use the scratch stack handed to the test; do not write to `.alchemy/` or shared state from provider tests.
 - Provider implementations should close over services at provider construction (`const client = yield* Client` before returning lifecycle methods), matching Cloudflare providers. Do not leave `yield* Client` requirements inside `read`/`diff`/`reconcile`/`delete` unless the effect is explicitly provided there; `test.provider` should catch this with a “Service not found” failure.
 - For live provider tests that need credentials, resolve them through the same AuthProvider/config path as `alchemy deploy` (for example env-method credentials or an `alchemy login` test profile). Skip or gate the test when credentials are absent; do not commit secrets.
-- Preserve useful public-contract tests, including pure calculations. Do not
-  require unit tests for every private selection/name/status/mapping helper;
-  provider tests should continue to verify real lifecycle semantics.
+- Preserve useful public-contract tests, including pure calculations. Coverage
+  decisions follow [when-to-write-tests](../when-to-write-tests/SKILL.md);
+  provider tests still verify real lifecycle semantics.
 
 ## Build and type checking
 
-Always type-check before committing changes that touch a stack, custom resource, or runtime binding:
+Before committing changes that touch a stack, custom resource, or runtime
+binding, run the repository's checks from
+[darkmatter-ts-toolchain](../darkmatter-ts-toolchain/SKILL.md): `typecheck`
+(tsgo, not `tsc`), tests, lint, and format.
 
-```bash
-bun tsc -b
-```
-
-This runs the workspace build in project-reference mode. CI fails on type errors, so this is non-negotiable. When stale artifacts or dependency drift cause unexplained failures, fall back to a clean rebuild:
+For direct `alchemy-effect` upstream contributions, follow that repository's
+commands instead. `bun tsc -b` runs the workspace project-reference build, and
+CI fails on type errors. When stale artifacts or dependency drift cause
+unexplained failures, a clean rebuild is the recovery path:
 
 ```bash
 bun run build       # clean + tsc + build the alchemy package
 bun build:clean     # full reset: clean . + bun i + build + download env
 ```
 
-`bun build:clean` removes untracked files (preserving `.env`), reinstalls dependencies, rebuilds, and refreshes environment files. Treat it as a recovery command, not a routine one.
+`bun build:clean` removes untracked files (preserving `.env`), reinstalls
+dependencies, rebuilds, and refreshes environment files. Treat it as a recovery
+command, not a routine one.
 
 ## Secrets and config
 
-Do not commit provider tokens, API keys, generated profiles, or state files unless the repo explicitly owns a remote state backend and the file is designed for version control.
+Do not commit provider tokens, API keys, generated profiles, or state files
+unless the repo explicitly owns a remote state backend and the file is designed
+for version control.
 
 Use these rules:
 
 - Prefer provider profiles or CI secrets for deploy credentials.
-- Use Alchemy secret resources or provider-native secret resources for runtime secrets.
-- Keep non-secret config out of secret resources. Runtime configuration is a named config file in the repo, read through `effect/Config`; on Workers, bundle the named configs and let the deploy set only the selector var ([ADR-0014](../../docs/adr/0014-named-config-files-over-flags-and-env.md)).
-- In darkmatter repos, route durable secrets through the repo's existing SOPS/Himitsu/CI secret path instead of inventing a new `.env` convention.
-- Document which profile, account, zone, region, or project owns each deploy target.
+- Use Alchemy secret resources or provider-native secret resources for runtime
+  secrets.
+- Keep non-secret config out of secret resources. Runtime configuration comes
+  from named config files read through `effect/Config`; the general named-config
+  procedure is in
+  [effect-typescript](../effect-typescript/SKILL.md#named-configuration). On
+  Workers, bundle the named configs and let the deploy set only the selector
+  variable (`APP_CONFIG`).
+- Secret access procedure is
+  [sops-secret-access](../sops-secret-access/SKILL.md). Route durable secrets
+  through the repo's existing SOPS/Himitsu/CI path instead of inventing a new
+  `.env` convention.
+- Deploy-time secrets commonly come from `himitsu read <path>`. Alchemy's
+  config schema requires `SOPS_AGE_KEY` explicitly in the environment and does
+  not fall back to `~/.config/sops/age/keys.txt`:
+  `SOPS_AGE_KEY=$(grep '^AGE-SECRET-KEY-' ~/.config/sops/age/keys.txt | head -1)`.
+- Document which profile, account, zone, region, or project owns each deploy
+  target.
 
 ## CI deploys
 
@@ -408,7 +427,7 @@ Example CI command shape:
 
 ```bash
 bun install --frozen-lockfile
-bun tsc -b
+bun run typecheck
 bun alchemy deploy ./alchemy.run.ts --stage "$ALCHEMY_STAGE" --profile "$ALCHEMY_PROFILE"
 ```
 
@@ -455,10 +474,8 @@ For Effect-native workers/functions, prefer a deployed fixture or smoke route ov
 - Secrets are not committed, echoed in logs, or encoded into stack outputs.
 - CI deploys are non-interactive and verify stack outputs or live endpoints.
 - Preview deploys have a destroy path.
-- Effect code uses typed errors, Layers, and `Schedule` for retries; Promise SDKs
-  are adapted at their edge, and pure transformations stay plain TypeScript.
-- Provider operations own completion, errors, and cleanup. File splits hide real
-  complexity and retain configured limits with documented, targeted exceptions.
+- Effect implementation follows [effect-typescript](../effect-typescript/SKILL.md);
+  module layout follows the shared "Readability and module design" section.
 
 ## Contributing back to `alchemy-effect`
 

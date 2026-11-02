@@ -14,7 +14,7 @@ Use the Cloudflare CLI (`cf`) unless the project already uses Wrangler or the us
 - **The project has `wrangler.jsonc`, `wrangler.json`, or `wrangler.toml`, and no `cloudflare.config.ts`:** use Wrangler for development and deployment, and load the `wrangler` skill. `cf` resource commands work alongside it. Run `cf migrate` only when the user asks.
 - **Every other project, including a new project or one with no Cloudflare configuration:** use `cf`. Load the `cf-cli` skill if it is installed; otherwise follow [Use cf with coding agents](https://developers.cloudflare.com/cf/agents/index.md). Do not install Wrangler or create a Wrangler configuration file.
 
-The product guidance below applies with either CLI. Where it names a Wrangler command or file, find the `cf` equivalent with `cf cli search "<task>"` or the [Wrangler to cf reference](https://developers.cloudflare.com/cf/wrangler/reference/index.md) instead of translating from memory.
+The product guidance below, and the documentation it links to, applies with either CLI. Many documentation pages show only Wrangler commands and configuration; in a `cf` project, do not run them or add a Wrangler configuration file. Use one CLI per project, apart from the `npx wrangler` commands the `cf-cli` skill lists as not yet supported by `cf`. Where guidance names a Wrangler command or file, find the `cf` equivalent with `cf cli search "<task>"` or the [Wrangler to cf reference](https://developers.cloudflare.com/cf/wrangler/reference/index.md) instead of translating from memory.
 
 ## Help the user find the right product
 
@@ -85,7 +85,7 @@ Find the row closest to the user's task. Products can appear in multiple rows, a
 | Proxy a TCP or UDP application | Spectrum | Protect and accelerate non-HTTP application traffic | [Spectrum docs](https://developers.cloudflare.com/spectrum/index.md) |
 | Connect a network directly to Cloudflare | Network Interconnect | Dedicated network connectivity is required | [Network Interconnect docs](https://developers.cloudflare.com/network-interconnect/index.md) |
 | Improve routing across the network | Argo Smart Routing | Optimize traffic paths to the origin | [Argo Smart Routing docs](https://developers.cloudflare.com/argo-smart-routing/index.md) |
-| Reduce Worker-to-backend latency | Smart Placement | Place Worker execution closer to the backends it calls | [Smart Placement](references/smart-placement/README.md) |
+| Reduce Worker-to-backend latency | Workers placement | Use explicit region hints for known regional databases, or traffic-based Smart Placement | [Workers placement docs](https://developers.cloudflare.com/workers/configuration/placement/index.md) |
 | Redirect URLs, rewrite paths or headers, or change origin routing | Rules | Use Redirect, Transform, or Origin Rules when configuration can express the required behavior | [Rules docs](https://developers.cloudflare.com/rules/index.md) |
 | Make small HTTP request or response changes | Snippets | Lightweight edge logic meets the need | [Snippets docs](https://developers.cloudflare.com/rules/snippets/index.md) |
 | Protect forms from automated abuse | Turnstile | Add bot challenges and server-side token validation | `turnstile-spin` skill; [Turnstile docs](https://developers.cloudflare.com/turnstile/index.md) |
@@ -149,3 +149,7 @@ Prefer [Workers Cache](https://developers.cloudflare.com/workers/cache/index.md)
 
 Cloudflare documentation: <https://developers.cloudflare.com/llms.txt>
 Cloudflare changelog: <https://developers.cloudflare.com/changelog/index.md>
+
+## Skill feedback
+
+If the user reports that this skill gave incorrect or outdated guidance, or is missing information, read [references/skill-feedback.md](references/skill-feedback.md).

@@ -181,6 +181,8 @@ async fetch(request: Request, env: Env): Promise<Response> {
 
 **Retrieve**: `/hyperdrive/` for current configuration and supported databases.
 
+For multiple sequential queries to one regional database, follow [database placement](./configuration.md#place-compute-near-regional-databases) before deployment. A Hyperdrive binding does not automatically place the Worker near its database.
+
 ---
 
 ## Code Patterns
@@ -236,7 +238,7 @@ fetch("https://api.example.com/webhook", { method: "POST", body: JSON.stringify(
 
 ### Be aware of platform limits
 
-Workers have a 10ms CPU time limit (Bundled) or 30s (Standard/Unbound). Heavy synchronous work — tight loops, large JSON parsing, compute-intensive crypto — can hit the CPU limit and terminate the request.
+Workers have CPU time limits based on the account plan. Heavy synchronous work — tight loops, large JSON parsing, compute-intensive crypto — can hit the CPU limit and terminate the request.
 
 **Check**: compute-heavy operations that run synchronously. Consider breaking work into smaller chunks, offloading to Queues/Workflows, or using WebAssembly for CPU-intensive tasks.
 
