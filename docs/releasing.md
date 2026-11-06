@@ -12,7 +12,7 @@ This repository publishes five npm packages:
 `package.json` and the root `VERSION` file, and publishes to npm.
 
 `VERSION` and the root `solstatus` package stay on the same SemVer value. The
-current release is `2.1.0`.
+published release is the `version` in the root `package.json`.
 
 ## Version policy
 
