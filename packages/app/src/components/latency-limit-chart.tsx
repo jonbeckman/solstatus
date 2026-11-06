@@ -227,18 +227,14 @@ export function LatencyLimitChart({
             {/* Vertical gradient for stroke color (Inverted) */}
             {/* y1=100% (bottom), y2=0% (top) */}
             <linearGradient id="colorResponseTime" x1="0%" y1="100%" x2="0%" y2="0%">
-              {gradientStops.map((stop, i) => {
-                console.log("stop", stop)
-
-                return (
-                  <stop
-                    key={`stroke-${i}-${stop.offset}`}
-                    offset={stop.offset}
-                    stopColor={stop.color}
-                    stopOpacity={1}
-                  />
-                )
-              })}
+              {gradientStops.map((stop, i) => (
+                <stop
+                  key={`stroke-${i}-${stop.offset}`}
+                  offset={stop.offset}
+                  stopColor={stop.color}
+                  stopOpacity={1}
+                />
+              ))}
             </linearGradient>
           </defs>
 

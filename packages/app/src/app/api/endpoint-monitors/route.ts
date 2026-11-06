@@ -51,17 +51,6 @@ export const GET = createRoute
     const orderBy = orderByParam ?? "consecutiveFailures"
     const order = orderParam ?? "desc"
 
-    console.log(
-      pageSize,
-      page,
-      orderBy,
-      order,
-      search,
-      isRunning,
-      checkIntervalMin,
-      checkIntervalMax,
-    )
-
     const orderByCol = getColumn(orderBy)
     const orderDir = getOrderDirection(order)
 
