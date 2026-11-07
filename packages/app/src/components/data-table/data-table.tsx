@@ -49,8 +49,9 @@ export function DataTable() {
   const pathname = useLocation({ select: (location) => location.pathname })
   const searchStr = useLocation({ select: (location) => location.searchStr })
 
-  const searchParams = new URLSearchParams(
-    searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
+  const searchParams = React.useMemo(
+    () => new URLSearchParams(searchStr.startsWith("?") ? searchStr.slice(1) : searchStr),
+    [searchStr],
   )
 
   // Get state and actions from the store

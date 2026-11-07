@@ -1,4 +1,3 @@
-/* oxlint-disable no-console -- Redacted stack startup diagnostics only. */
 import { spawn } from "node:child_process"
 import { randomBytes, randomUUID } from "node:crypto"
 import { existsSync, mkdirSync, realpathSync, writeFileSync } from "node:fs"

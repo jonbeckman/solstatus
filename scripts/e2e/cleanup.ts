@@ -1,4 +1,3 @@
-/* oxlint-disable no-console -- Reports resource identifiers only. */
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { resolve, sep } from "node:path"
 import { pathToFileURL } from "node:url"

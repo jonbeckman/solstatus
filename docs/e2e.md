@@ -19,7 +19,7 @@ Permanent SolStatus DNA exceptions that remain intentional:
 ## Coverage map
 
 Feature recipes live under
-[`.cursor/skills/verify-solstatus/features/`](../.cursor/skills/verify-solstatus/features/README.md).
+[`.agents/skills/verify-solstatus/features/`](../.agents/skills/verify-solstatus/features/README.md).
 Each file links to the canonical `tests/*.e2e.ts` suite for that product area.
 
 ## Run locally

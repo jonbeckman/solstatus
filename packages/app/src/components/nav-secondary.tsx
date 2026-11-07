@@ -1,6 +1,7 @@
 import { type Icon, IconBrightness } from "@tabler/icons-react"
 import { useTheme } from "next-themes"
-import React, { useId } from "react"
+import type React from "react"
+import { useId, useSyncExternalStore } from "react"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,6 +11,8 @@ import {
 } from "@/registry/new-york-v4/ui/sidebar"
 import { Skeleton } from "@/registry/new-york-v4/ui/skeleton"
 import { Switch } from "@/registry/new-york-v4/ui/switch"
+
+const subscribeToNothing = () => () => {}
 
 export function NavSecondary({
   items,
@@ -23,12 +26,15 @@ export function NavSecondary({
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
-  const darkModeSwitchId = useId()
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  // The theme is known only in the browser, so the server render shows the placeholder.
+  const mounted = useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  )
+
+  const darkModeSwitchId = useId()
 
   return (
     <SidebarGroup {...props}>
