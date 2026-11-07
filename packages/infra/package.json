@@ -63,7 +63,7 @@
     "dotenv": "18.0.9",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
-    "drizzle-seed": "1.0.0-rc.5-ab785fc",
+    "drizzle-seed": "1.0.0-rc.5",
     "react": "^19.1.0",
     "tsrs": "0.20.1-ts7.1.0-beta",
     "typescript": "7.0.2",
