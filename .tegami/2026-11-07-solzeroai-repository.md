@@ -1,10 +1,6 @@
 ---
 packages:
-  solstatus: patch
-  "@solstatus/app": patch
-  "@solstatus/api": patch
-  "@solstatus/common": patch
-  "@solstatus/infra": patch
+  "release:solstatus": patch
 ---
 
 ## Point package and app links at SolZeroAI/solstatus

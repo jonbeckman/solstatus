@@ -1,8 +1,6 @@
 ---
 packages:
-  "@solstatus/app": patch
-  "@solstatus/api": patch
-  "@solstatus/infra": patch
+  "release:solstatus": patch
 ---
 
 ## Run local development on the Alchemy dev stack

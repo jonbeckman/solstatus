@@ -1,6 +1,7 @@
 {
   "name": "@solstatus/app",
   "version": "3.0.0",
+  "private": true,
   "description": "Web application for SolStatus uptime monitoring service",
   "keywords": [
     "dashboard",

@@ -1,6 +1,7 @@
 {
   "name": "@solstatus/common",
   "version": "3.0.0",
+  "private": true,
   "description": "Common utilities and database schemas for SolStatus",
   "keywords": [
     "database",

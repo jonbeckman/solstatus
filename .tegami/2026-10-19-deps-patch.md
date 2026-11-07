@@ -1,10 +1,6 @@
 ---
 packages:
-  "solstatus": patch
-  "@solstatus/api": patch
-  "@solstatus/app": patch
-  "@solstatus/common": patch
-  "@solstatus/infra": patch
+  "release:solstatus": patch
 ---
 
 ### Update minor and patch dependencies

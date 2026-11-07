@@ -1,6 +1,6 @@
 ---
 packages:
-  "@solstatus/app": patch
+  "release:solstatus": patch
 ---
 
 ## Dashboard renders follow the React Compiler rules
