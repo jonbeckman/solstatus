@@ -3,7 +3,15 @@ import { msToHumanReadable, secsToHumanReadable } from "@solstatus/common/utils"
 import { IconPointFilled } from "@tabler/icons-react"
 import { createFileRoute, Link, useLocation, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
-import { startTransition, useCallback, useDeferredValue, useEffect, useRef, useState } from "react"
+import {
+  startTransition,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { z } from "zod"
 import { PolkaDots } from "@/components/bg-patterns/polka-dots"
 import { EndpointMonitorDetailHeader } from "@/components/endpoint-monitor-detail-header"
@@ -96,12 +104,10 @@ function EndpointMonitorDetailPage() {
   const [uptimeData, setUptimeData] = useState<z.infer<typeof uptimeChecksSelectSchema>[]>([])
   const [latestUptimeCheck, setLatestUptimeCheck] = useState<LatestUptimeCheck | null>(null) // New state for latest check
 
-  const [uptimePercentage, setUptimePercentage] = useState<number | null>(null)
-  const [avgLatency, setAvgLatency] = useState<number | null>(null)
   const [isUptimeDataLoading, setIsUptimeDataLoading] = useState(true)
   const [uptimeDataError, setUptimeDataError] = useState<string | null>(null)
   const isInitialRender = useRef(true)
-  const hasLoadedDataOnce = useRef(false)
+  const [hasLoadedDataOnce, setHasLoadedDataOnce] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Defer chart data updates to prevent blocking tab animations
@@ -168,8 +174,6 @@ function EndpointMonitorDetailPage() {
         // Don't clear existing data on error during refresh
         if (!hasExistingData) {
           setUptimeData([])
-          setUptimePercentage(null)
-          setAvgLatency(null)
         }
 
         setUptimeDataError(`Failed to load data: ${response.statusText}`)
@@ -181,7 +185,7 @@ function EndpointMonitorDetailPage() {
 
       setUptimeData(responseData)
       setUptimeDataError(null)
-      hasLoadedDataOnce.current = true
+      setHasLoadedDataOnce(true)
     } catch (error) {
       console.error("Error fetching combined uptime/latency data:", error)
 
@@ -272,9 +276,6 @@ function EndpointMonitorDetailPage() {
                     <p className="text-sm text-muted-foreground underline decoration-dashed cursor-help">
                       {`Checking every ${secsToHumanReadable(endpointMonitor.checkInterval)}`}
                     </p>
-                    {/* <span className="underline decoration-dashed cursor-help">
-                      {formatDistance(new Date(latestUptimeCheck.timestamp), new Date(), { addSuffix: true })}
-                    </span> */}
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Latest check:</p>
@@ -316,27 +317,21 @@ function EndpointMonitorDetailPage() {
     }
   }, [endpointMonitor, latestUptimeCheck, setHeaderLeftContent, setHeaderRightContent])
 
-  useEffect(() => {
-    if (uptimeData.length > 0) {
-      const uptimePercentage =
-        (uptimeData.filter((check) => check.isExpectedStatus).length / uptimeData.length) * 100
+  const uptimePercentage = useMemo(
+    () =>
+      uptimeData.length > 0
+        ? (uptimeData.filter((check) => check.isExpectedStatus).length / uptimeData.length) * 100
+        : null,
+    [uptimeData],
+  )
 
-      setUptimePercentage(uptimePercentage)
-    } else {
-      setUptimePercentage(null)
-    }
-  }, [uptimeData])
-
-  useEffect(() => {
-    if (uptimeData.length > 0) {
-      const avgLatency =
-        uptimeData.reduce((sum, check) => sum + (check.responseTime ?? 0), 0) / uptimeData.length
-
-      setAvgLatency(avgLatency)
-    } else {
-      setAvgLatency(null)
-    }
-  }, [uptimeData])
+  const avgLatency = useMemo(
+    () =>
+      uptimeData.length > 0
+        ? uptimeData.reduce((sum, check) => sum + (check.responseTime ?? 0), 0) / uptimeData.length
+        : null,
+    [uptimeData],
+  )
 
   if (isLoading) {
     return (
@@ -413,7 +408,7 @@ function EndpointMonitorDetailPage() {
             error={uptimeDataError}
           />
           <div className="mt-0 flex flex-col gap-6">
-            {deferredUptimeData.length > 0 || (isUptimeDataLoading && hasLoadedDataOnce.current) ? (
+            {deferredUptimeData.length > 0 || (isUptimeDataLoading && hasLoadedDataOnce) ? (
               <>
                 <Card
                   className={cn(

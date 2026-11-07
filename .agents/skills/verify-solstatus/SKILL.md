@@ -9,7 +9,7 @@ Read `.agents/skills/e2e/SKILL.md`, `docs/e2e.md`, and [`features/README.md`](fe
 before running or extending verification. The `features/` directory is the coverage map: one
 file per user-facing area, each linking to its canonical `tests/**/*.e2e.ts` suite(s).
 Automated tests use tester-army/e2e exclusively.
-Cloud-agent proof rules: [Cloud-agent PR artifacts](../../../AGENTS.md#cloud-agent-pr-artifacts).
+Cloud-agent proof rules: [Pull requests](../../../AGENTS.md#pull-requests).
 After `nub run test:e2e:cleanup`, the Evidence output stays in `.e2e/summary.md`, `.e2e/report.json`, `.e2e/junit.xml`, and `.e2e/logs/`. Cleanup removes `.e2e/runs/` and the ownership files under `.e2e/cleanup/`. Do not commit that output.
 
 ## Run

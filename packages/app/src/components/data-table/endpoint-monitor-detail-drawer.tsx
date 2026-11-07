@@ -8,10 +8,10 @@ import {
   IconRosetteDiscountCheckFilled,
   IconTrash,
 } from "@tabler/icons-react"
-import { formatDistance } from "date-fns"
 import type * as React from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import type { z } from "zod"
+import { timeAgo } from "@/lib/time-ago"
 import { useIsMobile } from "@/registry/new-york-v4/hooks/use-mobile"
 import { Badge } from "@/registry/new-york-v4/ui/badge"
 import { Button } from "@/registry/new-york-v4/ui/button"
@@ -57,7 +57,6 @@ export function EndpointMonitorDetailDrawer({
 
   const [isLoadingCheck, setIsLoadingCheck] = useState(false)
   const [checkError, setCheckError] = useState<string | null>(null)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const fetchLatestCheck = useCallback(async () => {
     if (!endpointMonitor.id) {
@@ -87,12 +86,12 @@ export function EndpointMonitorDetailDrawer({
     }
   }, [endpointMonitor.id])
 
-  useEffect(() => {
-    // Only fetch when drawer is opened
-    if (isDrawerOpen) {
-      fetchLatestCheck()
+  // Fetch the latest check each time the drawer opens.
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      void fetchLatestCheck()
     }
-  }, [isDrawerOpen, fetchLatestCheck])
+  }
 
   const defaultTrigger = (
     <Button
@@ -107,7 +106,7 @@ export function EndpointMonitorDetailDrawer({
   )
 
   return (
-    <Drawer direction={isMobile ? "bottom" : "right"} onOpenChange={setIsDrawerOpen}>
+    <Drawer direction={isMobile ? "bottom" : "right"} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>{trigger || defaultTrigger}</DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="gap-1">
@@ -272,9 +271,7 @@ export function EndpointMonitorDetailDrawer({
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <span className="underline decoration-dashed cursor-help">
-                                {formatDistance(new Date(latestUptimeCheck.timestamp), new Date(), {
-                                  addSuffix: true,
-                                })}
+                                {timeAgo(latestUptimeCheck.timestamp)}
                               </span>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -316,9 +313,7 @@ export function EndpointMonitorDetailDrawer({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="underline decoration-dashed cursor-help text-muted-foreground">
-                        {formatDistance(createdAt, new Date(), {
-                          addSuffix: true,
-                        })}
+                        {timeAgo(createdAt)}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -343,9 +338,7 @@ export function EndpointMonitorDetailDrawer({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="underline decoration-dashed cursor-help text-muted-foreground">
-                        {formatDistance(updatedAt, new Date(), {
-                          addSuffix: true,
-                        })}
+                        {timeAgo(updatedAt)}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>

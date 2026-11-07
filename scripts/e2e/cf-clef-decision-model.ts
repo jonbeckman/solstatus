@@ -1,4 +1,3 @@
-/* oxlint-disable no-console -- One cache-status line, with no request or credential text. */
 import { createHmac } from "node:crypto"
 import type { Experimental_DecisionModel } from "ai"
 import { gatewayCache, measuredTokens, recordAiUsage, type AiUsage } from "./ai-usage"

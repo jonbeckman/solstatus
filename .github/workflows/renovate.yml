@@ -1,0 +1,29 @@
+name: Renovate
+
+# The shared preset and workflow live in SolZeroAI/renovate-config.
+# A push that changes dependencies runs Renovate again, so it rebuilds
+# the dependency pull requests that now conflict on nub.lock.
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  push:
+    branches: [master]
+    paths:
+      - "**/package.json"
+      - nub.lock
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    uses: SolZeroAI/renovate-config/.github/workflows/renovate.yml@master
+    secrets: inherit
+    # Public repository: GitHub-hosted runners are free.
+    with:
+      runs-on: ubuntu-latest

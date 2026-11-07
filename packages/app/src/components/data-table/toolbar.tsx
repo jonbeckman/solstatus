@@ -47,6 +47,23 @@ export function Toolbar({ table }: ToolbarProps) {
   const setPagination = useDataTableStore((state) => state.setPagination)
   const fetchEndpointMonitors = useDataTableStore((state) => state.fetchEndpointMonitors)
 
+  // Write the search term into the URL
+  const updateUrlSearchParams = (term: string) => {
+    const newParams = new URLSearchParams(searchParams.toString())
+
+    if (term) {
+      newParams.set("search", term)
+    } else {
+      newParams.delete("search")
+    }
+
+    // Construct the URL, omitting '?' if no parameters
+    const queryString = newParams.toString()
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+
+    void navigate({ href: newUrl })
+  }
+
   // Debounce search updates to avoid too many requests
   const handleSearch = useDebouncedCallback((term: string) => {
     // Update the store with the new search value
@@ -64,23 +81,6 @@ export function Toolbar({ table }: ToolbarProps) {
     // Fetch data with new search term
     fetchEndpointMonitors()
   }, 500)
-
-  // Write the search term into the URL
-  const updateUrlSearchParams = (term: string) => {
-    const newParams = new URLSearchParams(searchParams.toString())
-
-    if (term) {
-      newParams.set("search", term)
-    } else {
-      newParams.delete("search")
-    }
-
-    // Construct the URL, omitting '?' if no parameters
-    const queryString = newParams.toString()
-    const newUrl = queryString ? `${pathname}?${queryString}` : pathname
-
-    void navigate({ href: newUrl })
-  }
 
   // Update search value
   const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

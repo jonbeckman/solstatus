@@ -84,7 +84,7 @@ function formatUrl(url: string, maxLength: number): string {
     }
 
     return formatted
-  } catch (_e) {
+  } catch {
     // If URL parsing fails, just truncate the original
     return `${url.substring(0, maxLength - 3)}...`
   }

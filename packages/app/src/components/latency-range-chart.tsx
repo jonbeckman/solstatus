@@ -15,6 +15,7 @@ import type React from "react"
 import { memo, useMemo } from "react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import type { z } from "zod"
+import { chartTimeDomain } from "@/lib/chart-time-domain"
 import type { TimeRange } from "@/types/endpointMonitor"
 import { ChartLoadingOverlay } from "./chart-loading-overlay"
 
@@ -412,43 +413,14 @@ const LatencyRangeChart: React.FC<LatencyRangeChartProps> = memo(
       return processData(data, timeRange)
     }, [data, timeRange])
 
-    const xDomain: [number | "auto", number | "auto"] = useMemo(() => {
-      if (processedData.length > 0) {
-        let startTime: number
-        const endTime = Math.floor(Date.now() / 1000)
-        const lastBucketTime = processedData[processedData.length - 1]?.timeBucket ?? endTime
-
-        switch (timeRange) {
-          case "30m":
-            startTime = getUnixTime(subMinutes(new Date(), 30))
-            break
-          case "1h":
-            startTime = getUnixTime(subHours(new Date(), 1))
-            break
-          case "3h":
-            startTime = getUnixTime(subHours(new Date(), 3))
-            break
-          case "6h":
-            startTime = getUnixTime(subHours(new Date(), 6))
-            break
-          case "1d":
-            startTime = getUnixTime(subDays(new Date(), 1))
-            break
-          case "2d":
-            startTime = getUnixTime(subDays(new Date(), 2))
-            break
-          case "7d":
-            startTime = getUnixTime(subWeeks(new Date(), 1))
-            break
-          default:
-            startTime = processedData[0]?.timeBucket ?? endTime - 3600
-        }
-
-        return [startTime, Math.max(endTime, lastBucketTime)]
-      }
-
-      return ["auto", "auto"]
-    }, [processedData, timeRange])
+    const xDomain = useMemo(
+      () =>
+        chartTimeDomain(
+          processedData.map((point) => point.timeBucket),
+          timeRange,
+        ),
+      [processedData, timeRange],
+    )
 
     const yDomain: [number | "auto", number | "auto"] = useMemo(() => {
       if (processedData.length === 0) {

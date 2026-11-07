@@ -1,4 +1,3 @@
-/* oxlint-disable no-console -- Reports cleanup status without private state. */
 import { spawn } from "node:child_process"
 import { mkdirSync, writeFileSync } from "node:fs"
 import { processMembers } from "./process-group"
