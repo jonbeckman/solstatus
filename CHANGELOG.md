@@ -1,3 +1,65 @@
+## solstatus@4.1.0
+
+### Drop unused uptime check ID and patch schema
+
+`uptimeChecksPatchSchema` is removed. Uptime check rows use integer
+auto-increment IDs, so `PRE_ID.uptimeCheck` and the exported `nanoid`
+helper are gone. Use `uptimeChecksSelectSchema` or
+`uptimeChecksInsertSchema`, and `createId(PRE_ID.endpointMonitor)` for
+endpoint monitor IDs.
+
+### Bump Alchemy to 2.0.0-beta.83
+
+Package consumers now get Alchemy 2.0.0-beta.83. That version is the
+intended pin. Effect stays on master's 4.0.5 with matching
+`@effect/platform-node` and `@effect/platform-node-shared`. Drizzle stays
+on 1.0.0-rc.5-ab785fc.
+
+Alchemy 2.0.0-beta.82 and later deploy Durable Objects with Cloudflare
+declarative exports. This is one-way. The first deploy of a Worker that
+hosts Durable Objects, including `monitor-trigger`, must go out at full
+traffic. Older Alchemy releases cannot deploy that Worker afterward.
+
+D1 resources pass the existing migrations directory through Alchemy's
+`migrations` input. The wrapper still forwards `--stage` and now also sets
+`ALCHEMY_STAGE` so Alchemy's stage env rename does not change deploy names.
+The Alchemy CLI entry is `alchemy/bin/cli.js` (`bin/alchemy.ts` is gone).
+
+### Update minor and patch dependencies
+
+Effect 4.0.5, Zod 4.6.7, and the matching lockfile refresh.
+
+### Harden API authentication and query parameterization
+
+API routes other than `/api/auth` now require a session. Endpoint monitor
+URL checks bind the submitted URL as a query parameter. Patch requests
+accept a valid `url` and do not accept `id`. Better Auth uses the Drizzle
+D1 client for its database adapter.
+
+### Update dotenv and dashboard chart dependencies
+
+The CLI loads `.env` with dotenv 18.0.9 and does not print an injection line.
+
+The dashboard charts use Recharts 3.10.1. Status legends stay next to the uptime and latency charts, and tooltips still show status counts and latency. Vite, date-fns, and the dropdown menu keep the versions the lockfile already resolved, with higher minimum ranges.
+
+### Run local development on the Alchemy dev stack
+
+`nub run dev` now runs the dashboard, both monitor workers, D1, and KV together with `alchemy dev`. The Wrangler dev scripts, the local Wrangler database scripts and configs, the seed script, and the Vite mock API are removed. A stack now stops with a clear error when `BETTER_AUTH_SECRET` is not set, instead of signing sessions with an empty secret.
+
+### Serve the API with Effect HttpApi and load data with TanStack Query
+
+The dashboard API is now an Effect `HttpApi` with typed requests, responses, and errors. Signed-in users can read the OpenAPI document at `/api/openapi.json` and the API docs at `/api/docs`. The dashboard loads and refreshes data with TanStack Query, and the list filters, sorting, paging, and the detail time range are kept in the URL.
+
+`POST /api/endpoint-monitors/{id}/execute-check` replaces the `GET` form of that endpoint.
+
+### Dashboard renders follow the React Compiler rules
+
+The latency and uptime charts share one time-range helper. The monitor details drawer loads the latest check when it opens, not from an effect. The monitor page derives its uptime percentage and average latency from the loaded checks. The theme switch reads the client state without an extra render.
+
+### Point package and app links at SolZeroAI/solstatus
+
+The repository moved to the SolZeroAI organization. Package metadata, the dashboard sidebar links, and the Opsgenie alert details now link to `github.com/SolZeroAI/solstatus`. GitHub redirects the old links.
+
 ## solstatus@3.0.0
 
 ### Align the published toolchain with Shared Project DNA
