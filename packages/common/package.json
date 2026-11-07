@@ -38,8 +38,8 @@
     "types": "tsrs"
   },
   "dependencies": {
-    "@alchemy.run/cloudflare": "2.0.0-beta.84",
-    "alchemy": "2.0.0-beta.84",
+    "@alchemy.run/cloudflare": "2.0.0-beta.85",
+    "alchemy": "2.0.0-beta.85",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "nanoid": "^5.1.5",
     "zod": "4.6.7"

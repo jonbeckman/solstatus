@@ -67,7 +67,7 @@
   "dependencies": {
     "@effect/platform-node": "4.1.2",
     "@solstatus/infra": "workspace:*",
-    "alchemy": "2.0.0-beta.84",
+    "alchemy": "2.0.0-beta.85",
     "dotenv": "16.5.0",
     "effect": "4.1.2"
   },
@@ -97,14 +97,14 @@
     "wrangler": "^4.22.0"
   },
   "overrides": {
-    "@alchemy.run/cloudflare": "2.0.0-beta.84",
+    "@alchemy.run/cloudflare": "2.0.0-beta.85",
     "@effect/platform-node": "4.1.2",
     "@effect/platform-node-shared": "4.1.2",
     "@effect/sql-d1": "4.1.2",
     "@libsql/client": "0.18.0",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "alchemy": "2.0.0-beta.84",
+    "alchemy": "2.0.0-beta.85",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "effect": "4.1.2",
