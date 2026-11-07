@@ -1,7 +1,6 @@
 ---
 packages:
-  solstatus: patch
-  "@solstatus/app": patch
+  "release:solstatus": patch
 ---
 
 ## Update dotenv and dashboard chart dependencies

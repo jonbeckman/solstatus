@@ -1,10 +1,6 @@
 ---
 packages:
-  solstatus: patch
-  "@solstatus/common": patch
-  "@solstatus/api": patch
-  "@solstatus/app": patch
-  "@solstatus/infra": patch
+  "release:solstatus": patch
 ---
 
 ## Bump Alchemy to 2.0.0-beta.83

@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   release:
-    name: Version or publish npm packages
+    name: Version or release SolStatus
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
@@ -29,10 +29,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # Writes go through the release app token. This job's GITHUB_TOKEN stays read-only.
-    # id-token: write stays for the npm publish step.
     permissions:
       contents: read
-      id-token: write
+    outputs:
+      published: ${{ steps.published.outputs.published }}
+      tag: ${{ steps.published.outputs.tag }}
+      sha: ${{ steps.published.outputs.sha }}
     steps:
       # The app opens tegami/version-packages, so pull_request workflows start.
       - name: Create release app token
@@ -60,13 +62,26 @@ jobs:
           nub-version: 0.9.6
           node-version-file: .nvmrc
           cache-dependency-path: nub.lock
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: nub install --frozen-lockfile
 
-      - name: Build
-        run: nub run build
+      # Only the version commit releases, so the registry package publishes only from it.
+      - name: Skip registry publish when the version tag exists
+        id: published
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_COMMIT: ${{ startsWith(github.event.workflow_run.head_commit.message, 'Version Packages') && github.event.workflow_run.head_commit.author.email == '341870119+solzero-bot[bot]@users.noreply.github.com' }}
+        run: |
+          set -euo pipefail
+          version="$(tr -d '[:space:]' < VERSION)"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          if [ "$RELEASE_COMMIT" = "true" ] && [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && ! gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${version}" >/dev/null 2>&1; then
+            echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
 
       # Only the merge of the Tegami version pull request publishes, because only its Validate
       # run tests the release. Another master push only opens or updates the version pull
@@ -80,5 +95,70 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RELEASE_COMMIT: ${{ startsWith(github.event.workflow_run.head_commit.message, 'Version Packages') && github.event.workflow_run.head_commit.author.email == '341870119+solzero-bot[bot]@users.noreply.github.com' }}
+
+  # The only job that requests id-token. The alchemy.new trusted publisher matches this
+  # repository, release.yml, the alchemy-new environment, and refs/heads/master.
+  registry:
+    name: Publish alchemy.new registry package
+    needs: release
+    if: needs.release.result == 'success' && needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: alchemy-new
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.sha }}
+
+      - name: Set up Nub
+        uses: nubjs/setup-nub@v0
+        with:
+          nub-version: 0.9.6
+          node-version-file: .nvmrc
+          cache-dependency-path: nub.lock
+
+      - name: Install, build, and prune production dependencies
+        env:
+          # Nub's global virtual store symlinks node_modules/.store at a cache
+          # directory outside the repository. The publish action rejects those
+          # links. This install materializes the store inside the workspace.
+          NPM_CONFIG_ENABLE_GLOBAL_VIRTUAL_STORE: "false"
+        run: |
+          nub install --frozen-lockfile
+          nub run build
+          nub prune --prod
+
+      # Keep the exclude list identical to registry-dry-run.yml.
+      - name: Publish to alchemy.new
+        uses: SolZeroAI/alchemy-new-publish-action@v1
+        with:
+          version: ${{ needs.release.outputs.tag }}
+          exclude: |
+            **/*.md
+            **/*.map
+            node_modules/**/*.ts
+            node_modules/**/*.tsx
+            node_modules/**/*.mts
+            node_modules/**/*.cts
+            # Alchemy's Node export for this subpath is the TypeScript source.
+            !node_modules/**/alchemy/src/Runtime/Bootstrap/**
+            !node_modules/**/alchemy/src/Runtime/Bootstrap/**/*.ts
+            node_modules/.store/drizzle-kit@*
+            node_modules/.store/@electric-sql+*
+            node_modules/.store/workerd@*/node_modules/workerd/bin/workerd
+            # The 1.20261002.1 binary ships as @cloudflare/workerd-linux-64.
+            node_modules/.store/@cloudflare+workerd-linux-64@*/node_modules/@cloudflare/workerd-linux-64/bin/workerd
+            # esbuild's JavaScript API loads @esbuild/linux-x64. This path is a second copy.
+            node_modules/.store/esbuild@*/node_modules/esbuild/bin/esbuild
+            # TypeScript's native binary. Alchemy transpiles the stack with Oxc.
+            node_modules/.store/@typescript+typescript-linux-x64@*
+            # musl build of libsql. The deploy runner is glibc. D1 does not load libsql.
+            node_modules/.store/@libsql+linux-x64-musl@*
+            # Alchemy loads Cloudflare, not the GCP client.
+            node_modules/.store/@distilled.cloud+gcp@*
+            docs/dashboard-demo.gif

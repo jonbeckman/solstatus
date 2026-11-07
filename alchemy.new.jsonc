@@ -7,12 +7,13 @@
   "name": "SolStatus",
   "description": "Self host a low-cost, globally-distributed uptime monitoring service on Cloudflare.",
   "publisher": {
-    "name": "SolStatus",
-    "github": "jonbeckman",
+    "name": "SolZero",
+    "github": "SolZeroAI",
+    "website": "https://solzero.dev",
   },
   "source": {
     "kind": "registry",
-    "org": "jonbeckman",
+    "org": "solzero",
     "project": "solstatus",
   },
   "deployment": {
@@ -42,8 +43,8 @@
     {
       "name": "BETTER_AUTH_SECRET",
       "label": "Session signing secret",
-      "description": "Signs dashboard sessions. SolStatus reads BETTER_AUTH_SECRET when it deploys. Leave this empty to deploy; the worker then receives an empty secret.",
-      "required": false,
+      "description": "Signs dashboard sessions. Use a random value of at least 32 characters, for example the output of `openssl rand -hex 32`. Keep the same value on later deploys, or every session ends.",
+      "required": true,
       "secret": true,
       "type": "string",
     },

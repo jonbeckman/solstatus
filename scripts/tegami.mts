@@ -1,38 +1,31 @@
-import { writeFile } from "node:fs/promises"
-import { join } from "node:path"
 import { tegami } from "tegami"
 import { runCli } from "tegami/cli"
 import { github } from "tegami/plugins/github"
+import { solStatusRelease } from "./releases/solstatus-release.ts"
 
-const publishedPackageId = "npm:solstatus"
-
+// SolStatus ships one release: the alchemy.new registry package. The workspace packages
+// are private, so Tegami versions the root VERSION file and tags v<version>.
 const release = tegami({
+  ignore: [/^npm:/],
   npm: {
     client: "nub",
+    updateLockFile: false,
   },
   plugins: [
     github({
       repo: "SolZeroAI/solstatus",
       release: {
         eager: false,
+        create({ pkg }) {
+          return { title: `SolStatus v${pkg.version}` }
+        },
       },
       versionPr: {
         base: "master",
         branch: "tegami/version-packages",
       },
     }),
-    {
-      name: "root-version-file",
-      async applyDraft(draft) {
-        const pkg = this.graph.get(publishedPackageId)
-
-        if (!pkg) return
-        const nextVersion = draft.getPackageDraft(pkg.id)?.bumpVersion(pkg)
-
-        if (!nextVersion) return
-        await writeFile(join(this.cwd, "VERSION"), `${nextVersion}\n`)
-      },
-    },
+    solStatusRelease(),
   ],
 })
 

@@ -1,7 +1,6 @@
 ---
 packages:
-  "@solstatus/app": patch
-  "@solstatus/common": patch
+  "release:solstatus": patch
 ---
 
 ## Harden API authentication and query parameterization

@@ -1,7 +1,6 @@
 ---
 packages:
-  "@solstatus/common":
-    type: major
+  "release:solstatus": patch
 ---
 
 ## Drop unused uptime check ID and patch schema

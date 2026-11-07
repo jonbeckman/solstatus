@@ -67,16 +67,5 @@ See the [infra README](./packages/infra/README.md#database-management) for more 
 ### Dependency Management
 Renovate opens dependency pull requests from the shared `SolZeroAI/renovate-config` preset and merges them when CI passes.
 
-### npm Publishing
-Tegami versions and publishes the npm packages after Validate succeeds on `master`:
-- `solstatus` - Main CLI package
-- `@solstatus/common` - Shared utilities and schemas
-- `@solstatus/api` - API workers
-- `@solstatus/app` - Web application
-- `@solstatus/infra` - Infrastructure tools
-
-See [docs/releasing.md](./docs/releasing.md). To enable npm publishing:
-1. Create an npm access token at https://www.npmjs.com/
-2. Add it as a GitHub secret named `NPM_TOKEN`
-3. Enable **Allow GitHub Actions to create and approve pull requests**
-4. Create the `release:none` label for toolchain-only pull requests
+### Releases
+Tegami versions SolStatus after Validate succeeds on `master`. Merging the version pull request tags `v<version>` and publishes that version to the [alchemy.new](https://alchemy.new) registry as `solzero/solstatus`, through GitHub OIDC trusted publishing. The workspace packages are private and are not published to npm. See [docs/releasing.md](./docs/releasing.md).

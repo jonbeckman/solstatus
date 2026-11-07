@@ -73,9 +73,9 @@ A cloud-agent pull request that changes user-visible behavior must attach proof.
 
 ## Release management
 
-- Follow `docs/releasing.md`. Add a Tegami release entry under `.tegami/` when a change has an observable effect on a published package.
+- Follow `docs/releasing.md`. Add a Tegami release entry under `.tegami/` that targets `"release:solstatus"` when a change has an observable effect on a deployment. SolStatus publishes only to the alchemy.new registry. The workspace packages are private.
 - Use the `release:none` label for a change with no observable effect, and explain that choice in the pull request.
-- Do not edit `VERSION`, package versions, `CHANGELOG.md`, or `.tegami/publish-lock.yaml` on a feature branch. The automated version pull request owns those files.
+- Do not edit `VERSION`, `CHANGELOG.md`, or `.tegami/publish-lock.yaml` on a feature branch. The automated version pull request owns those files.
 
 ## Architecture
 

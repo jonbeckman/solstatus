@@ -1,6 +1,7 @@
 {
   "name": "@solstatus/api",
   "version": "3.0.0",
+  "private": true,
   "description": "API workers for SolStatus uptime monitoring service",
   "keywords": [
     "api",
