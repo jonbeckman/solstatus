@@ -9,14 +9,14 @@
     "tanstack-start",
     "web"
   ],
-  "homepage": "https://github.com/jonbeckman/solstatus/tree/master/packages/app#readme",
+  "homepage": "https://github.com/SolZeroAI/solstatus/tree/master/packages/app#readme",
   "bugs": {
-    "url": "https://github.com/jonbeckman/solstatus/issues"
+    "url": "https://github.com/SolZeroAI/solstatus/issues"
   },
   "license": "AGPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jonbeckman/solstatus.git",
+    "url": "git+https://github.com/SolZeroAI/solstatus.git",
     "directory": "packages/app"
   },
   "files": [

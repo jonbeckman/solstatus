@@ -2,6 +2,8 @@ name: Registry dry run
 
 on:
   pull_request:
+    branches:
+      - master
     types:
       - opened
       - synchronize
@@ -11,8 +13,9 @@ on:
 permissions:
   contents: read
 
+# A new push cancels the dry run of the commit it replaces.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -21,7 +24,8 @@ jobs:
     if: >-
       github.event_name == 'pull_request' &&
       github.event.pull_request.draft == false &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !(github.head_ref == 'tegami/version-packages' && github.event.pull_request.user.login == 'solzero-bot[bot]')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:

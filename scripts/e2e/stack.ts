@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process"
 import { randomBytes, randomUUID } from "node:crypto"
-import { existsSync, mkdirSync, realpathSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, realpathSync, rmSync } from "node:fs"
 import { createConnection } from "node:net"
 import { resolve } from "node:path"
 
@@ -34,31 +34,10 @@ for (const port of ownedPorts) {
 
 const runId = randomUUID()
 const runDir = resolve(".e2e/runs", runId)
-const ownershipPath = resolve(".e2e/cleanup", `${runId}.json`)
 
 mkdirSync(runDir, { recursive: true, mode: 0o700 })
 
 mkdirSync(resolve(".e2e/logs"), { recursive: true, mode: 0o700 })
-
-mkdirSync(resolve(".e2e/cleanup"), { recursive: true, mode: 0o700 })
-
-const publishOwnership = (childPid?: number) => {
-  writeFileSync(
-    ownershipPath,
-    JSON.stringify({
-      id: runId,
-      pid: process.pid,
-      childPid,
-      stateDir: runDir,
-      ports: ownedPorts,
-      stage: "dev",
-      startedAt: new Date().toISOString(),
-    }),
-    { mode: 0o600 },
-  )
-}
-
-publishOwnership()
 
 const env: NodeJS.ProcessEnv = {
   ...process.env,
@@ -78,8 +57,6 @@ delete env.CLOUDFLARE_ACCOUNT_ID
 delete env.CF_AI_GATEWAY_E2E_TOKEN
 
 delete env.CF_AI_GATEWAY_E2E_ID
-
-delete env.CF_AI_GATEWAY_E2E_SKIP_CACHE
 
 delete env.GH_TOKEN
 
@@ -116,8 +93,6 @@ const child = spawn(process.execPath, [alchemyBin, "dev", entry, "--stage", "dev
   detached: true,
   stdio: ["ignore", "pipe", "pipe"],
 })
-
-publishOwnership(child.pid)
 
 let stopping = false
 
@@ -159,3 +134,6 @@ await new Promise<void>((resolvePromise) => {
   child.on("exit", () => resolvePromise())
   child.on("error", () => resolvePromise())
 })
+
+// The run state is local emulation only. Remove it so no run leaves files behind.
+rmSync(runDir, { recursive: true, force: true })

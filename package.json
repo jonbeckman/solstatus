@@ -8,14 +8,14 @@
     "solstatus",
     "uptime"
   ],
-  "homepage": "https://github.com/jonbeckman/solstatus#readme",
+  "homepage": "https://github.com/SolZeroAI/solstatus#readme",
   "bugs": {
-    "url": "https://github.com/jonbeckman/solstatus/issues"
+    "url": "https://github.com/SolZeroAI/solstatus/issues"
   },
   "license": "AGPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jonbeckman/solstatus.git"
+    "url": "git+https://github.com/SolZeroAI/solstatus.git"
   },
   "bin": {
     "solstatus": "./src/index.ts"
@@ -56,13 +56,12 @@
     "build": "nub run typecheck",
     "types": "nub run typecheck",
     "types:each": "nub run --filter '@solstatus/common' types && nub run --filter '@solstatus/api' types && nub run --filter '@solstatus/app' types && nub run --filter '@solstatus/infra' types",
-    "test:e2e": "tsx scripts/e2e/run.ts",
-    "test:e2e:live": "tsx scripts/e2e/run.ts --no-cache",
-    "test:e2e:cache-strict": "tsx scripts/e2e/run.ts --strict-cache",
-    "test:e2e:install": "nub exec e2e-web install chromium --with-deps",
-    "test:e2e:list": "nub exec e2e list",
-    "test:e2e:cleanup": "tsx scripts/e2e/cleanup.ts",
-    "test:e2e:mcp": "tsx scripts/e2e/run.ts --mcp",
+    "test:e2e": "e2e run",
+    "test:e2e:live": "e2e run --no-cache",
+    "test:e2e:cache-strict": "e2e run --strict-cache",
+    "test:e2e:install": "e2e-web install chromium --with-deps",
+    "test:e2e:list": "e2e list",
+    "test:e2e:mcp": "e2e mcp",
     "typecheck:e2e": "tsrs --pretty false --noEmit --incremental false -p tests/tsconfig.json"
   },
   "dependencies": {
@@ -73,6 +72,9 @@
     "effect": "4.1.2"
   },
   "devDependencies": {
+    "@ai-sdk/anthropic": "4.0.87",
+    "@ai-sdk/openai": "4.0.101",
+    "@ai-sdk/typesafe-ai": "3.0.26",
     "@cloudflare/workers-types": "^5.20261022.1",
     "@e2e-dev/decision": "0.3.1",
     "@e2e-dev/github": "0.4.4",

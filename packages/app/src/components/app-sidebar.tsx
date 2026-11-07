@@ -41,31 +41,31 @@ const data = {
         },
         {
           title: "Synthetic (blocked)",
-          url: "https://github.com/jonbeckman/solstatus/issues/19#issuecomment-2878393426",
+          url: "https://github.com/SolZeroAI/solstatus/issues/19#issuecomment-2878393426",
           external: true,
           icon: IconAppWindow,
         },
         {
           title: "Agentic (soon)",
-          url: "https://github.com/jonbeckman/solstatus/issues/39",
+          url: "https://github.com/SolZeroAI/solstatus/issues/39",
           external: true,
           icon: IconSparkles,
         },
         {
           title: "Heartbeat (soon)",
-          url: "https://github.com/jonbeckman/solstatus/issues/43",
+          url: "https://github.com/SolZeroAI/solstatus/issues/43",
           external: true,
           icon: IconHeartbeat,
         },
         {
           title: "TCP (soon)",
-          url: "https://github.com/jonbeckman/solstatus/issues/44",
+          url: "https://github.com/SolZeroAI/solstatus/issues/44",
           external: true,
           icon: IconPrismLight,
         },
         {
           title: "Other? Let me know!",
-          url: "https://github.com/jonbeckman/solstatus/issues",
+          url: "https://github.com/SolZeroAI/solstatus/issues",
           external: true,
           icon: IconBulb,
         },
@@ -84,7 +84,7 @@ const data = {
         },
         {
           title: "Email (soon)",
-          url: "https://github.com/jonbeckman/solstatus/issues/47",
+          url: "https://github.com/SolZeroAI/solstatus/issues/47",
           external: true,
           icon: IconMail,
         },
@@ -95,7 +95,7 @@ const data = {
     {
       title: "GitHub",
       icon: IconBrandGithub,
-      url: "https://github.com/jonbeckman/solstatus",
+      url: "https://github.com/SolZeroAI/solstatus",
       external: true,
     },
     {

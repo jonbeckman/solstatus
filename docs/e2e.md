@@ -1,20 +1,17 @@
 # End-to-end validation
 
-SolStatus uses [tester-army/e2e](https://github.com/tester-army/e2e) `0.22.0` with
-`@e2e-dev/web@0.15.4`, `@e2e-dev/github@0.4.4`, and `@e2e-dev/decision@0.3.1` as its only
-automated test runner.
-`nub run test` executes `tests/**/*.e2e.ts` against the real Alchemy development stack
-(TanStack Start app on port 3000, monitor workers, local D1, better-auth). Vitest unit
-suites have been removed. Do not restore mocks, request interception, or a second runner.
+SolStatus uses [tester-army/e2e](https://github.com/tester-army/e2e) as its only automated
+test runner. `nub run test` runs `tests/**/*.e2e.ts` against the real Alchemy development stack:
+the TanStack Start app on port 3000, the monitor workers, local D1, and better-auth. Do not add
+Vitest, mocks, request interception, or a second runner.
 
-Permanent SolStatus DNA exceptions that remain intentional:
+SolStatus keeps these choices on purpose:
 
 - better-auth (not Clerk)
 - Cloudflare D1 (not PlanetScale)
 - no turbo (direct Nub scripts)
-- CLI uses Effect 4 `effect/cli` (not the Effect 3 `@effect/cli` peer)
-- deploy-on-release for pre/prod on published non-prerelease GitHub Release SHA
-- Tegami go/no-go unchanged
+- the CLI uses Effect 4 `effect/cli` (not the Effect 3 `@effect/cli` peer)
+- deploy on release
 
 ## Coverage map
 
@@ -31,82 +28,80 @@ nub run test:e2e:list
 nub exec e2e list --changed-since origin/master
 nub exec e2e run --changed-since origin/master
 nub run test
-nub run test:e2e -- tests/dashboard.e2e.ts
+nub run test:e2e tests/dashboard.e2e.ts
 nub run test:e2e:live
 nub run test:e2e:cache-strict
-nub run test:e2e:cleanup
 ```
 
-`scripts/e2e/stack.ts` starts `alchemy dev packages/infra/src/alchemy.run.ts --stage dev`
-(Alchemy `2.0.0-beta.85`) with its working directory at `.e2e/runs/<uuid>`. Local D1,
-KV, and Alchemy state stay in that directory's `.alchemy` tree. Cleanup deletes that
-directory only. It does not call `alchemy deploy` or `alchemy destroy`.
+Pass `--changed-since` to `nub exec e2e` directly. Do not write `nub run test -- --changed-since`.
+e2e treats a flag after `--` as a test file.
 
-`BETTER_AUTH_SECRET` comes from the environment or `packages/infra/.dev.vars`. When
-both are empty, the launcher generates one for that process. Local emulation does
-not read `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`. Provide
-`CF_AI_GATEWAY_E2E_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (optional `CF_AI_GATEWAY_E2E_ID`,
-default `default`) for Clef. The account id is the Workers AI route
-`accounts/{account}/ai/run`. Existing shell or CI values override dotenv files.
-Ports 3000, 8787, and 8788 must be free.
+`scripts/e2e/stack.ts` starts `alchemy dev packages/infra/src/alchemy.run.ts --stage dev` with
+its working directory at `.e2e/runs/<uuid>`. Local D1, KV, and Alchemy state stay in that
+directory. The launcher stops its processes and removes the directory on exit. It does not call
+`alchemy deploy` or `alchemy destroy`, and it does not read `CLOUDFLARE_API_TOKEN`. Ports 3000,
+8787, and 8788 must be free.
 
-Declare credentials and secrets in `e2e.config.ts`. Never hard-code them in test files.
-Use registered secret handles for any browser credential input.
+`BETTER_AUTH_SECRET` comes from the environment or `packages/infra/.dev.vars`. When both are
+empty, the launcher generates one for that run.
 
-Replay here means tester-army/e2e recorded browser actions, stored under `.e2e/cache`.
-It is separate from Cloudflare AI Gateway response caching. The decision model and the
-Clef executor send `cf-aig-cache-ttl`, `cf-aig-cache-key`, and `cf-aig-skip-cache`.
-Pull requests set `CF_AI_GATEWAY_E2E_SKIP_CACHE=0`, so an identical Clef request can
-log `Clef decision gateway cache: hit`. `test:e2e:live` bypasses action replay. A
-workflow dispatch with `e2e_live` also sets `CF_AI_GATEWAY_E2E_SKIP_CACHE=1`.
-`test:e2e:cache-strict` rejects stale recordings. Inspect `.e2e/report.json` and
-`.e2e/ai-usage/summary.md` for model-call and cache evidence.
+## Models
 
-Cloudflare Clef (`@cf/cloudflare/clef`) is a System One decision API. `scripts/e2e/cf-clef-executor.ts`
-sends redacted accessible trees and images through Workers AI with the `cf-aig-gateway-id`
-header. It supports `agent.act` and visual `assert`; exact text, URL, status, and data checks
-use deterministic `expect`. After each `agent.act`, assert exactly. No Jev fallback exists.
-Gateway tokens never belong in source, commands, logs, artifacts, or browser processes.
+`scripts/e2e/models.ts` and `scripts/e2e/filters.ts` are identical in every SolZero repository.
+Do not edit them here. `models.ts` points official AI SDK providers at the Cloudflare AI Gateway:
 
-`e2e.config.ts` sets `filters` to `decisionFilter({ model: createClefDecisionModel() })`.
-That model is `scripts/e2e/cf-clef-decision-model.ts`. It asks Clef boolean questions through
-the same Cloudflare AI Gateway. Pass `--changed-since origin/master` to `nub exec e2e list`
-or `nub exec e2e run` on a pull request so the filter selects affected tests. Do not write
-`nub run test -- --changed-since`. e2e treats a flag after `--` as a test file. Fetch the
-base ref first. Without the flag, every test runs. A change to `e2e.config.ts` leaves nothing
-out. The pull-request job in `Validate` passes the flag. Push, merge-queue, and scheduled
-runs do not.
+- The decision model answers `agent.act`, `agent.assert`, and the affected-test filter.
+  `E2E_DECISION_MODEL` selects it. The default is Cloudflare Clef.
+- The language model writes text values. `E2E_LANGUAGE_MODEL` selects it.
+
+Provide `CF_AI_GATEWAY_E2E_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and optionally
+`CF_AI_GATEWAY_E2E_ID` (default `default`). This is the account's existing default gateway, not
+a gateway the application provisions. CI reads the model names from organization Actions
+variables. Shell and CI values override dotenv files. Never put a gateway token in source,
+commands, logs, artifacts, or browser processes.
+
+`e2e.config.ts` wraps `decisionFilter` in `ignoreUnobservedChanges`. Changes to agent docs,
+skills, and release files are not sent to the filter, so a skills refresh or a version pull
+request runs no tests. A change to `e2e.config.ts` or the lockfile keeps every test.
+
+## Replay
+
+Action replay recordings in `.e2e/cache` are committed. CI replays them with `--strict-cache`, so
+a stale recording fails the run. When you change an `agent.act` step or the UI it drives,
+re-record before you mark the pull request ready:
+
+```sh
+gh workflow run validate.yml --ref <branch> -f e2e_record=true
+```
+
+The run records every test, then the release app commits the changed recordings to the branch.
+Without CI access, run `nub run test` locally and commit `.e2e/cache`.
 
 ## CI
 
-`Validate` keeps a `validate` job for typecheck/lint/format and `nub run test:e2e:list`.
-A separate required `e2e` job (fork-PR guarded) checks out full history, restores the
-action replay cache from `.e2e/cache`, initializes AI accounting, and on a ready pull request
-runs `nub exec e2e run --changed-since origin/<base>`. Draft pull requests skip the
-`validate` and `e2e` jobs, so those checks stay skipped. Marking the pull request ready
-runs those jobs under the same check names, and later pushes run them again while it
-stays ready.
-A live run uses
-`nub exec e2e run --no-cache --changed-since origin/<base>`. Other events run every test.
-The job removes the UUID local state directory on `always()`, summarizes usage, saves
-the replay cache on success, and uploads reports. Manual inputs: `e2e_lifecycle`,
-optional `e2e_live`.
+`Validate` has three jobs:
 
-The e2e job does not read `CLOUDFLARE_API_TOKEN`. It reads `CF_AI_GATEWAY_E2E_TOKEN`
-and `CLOUDFLARE_ACCOUNT_ID` for Clef. `BETTER_AUTH_SECRET` may be generated per job.
-Baseline flags: `E2E_TELEMETRY_DISABLED=1`, `E2E_AI_USAGE=1`, `CF_AI_GATEWAY_E2E_ID=default`,
-and `CF_AI_GATEWAY_E2E_SKIP_CACHE=0` unless `e2e_live` is set. `GITHUB_TOKEN` is scoped
-to test steps only. `nub run test:e2e:cache-strict` is the local command that fails a
-stale action replay.
+- `Repository validation` runs typecheck, lint, format, actionlint, and `nub run test:e2e:list`.
+- `Detect release commit` finds the merge of the Tegami version pull request on master.
+- `Cloudflare end-to-end flows` runs the suite.
+
+Draft pull requests skip the jobs. A ready pull request runs the tests that the decision filter
+selects since `origin/<base>`. A newer push to the same pull request cancels the older run.
+Runs from different pull requests do not share a queue, because each run boots its own local
+stack.
+
+An ordinary master merge runs no tests. The Tegami version pull request runs nothing. Its merge
+runs validation and the tests that the changes since the last tested release can affect, and
+`Release` publishes only after that run passes. Any other master merge only opens or updates the
+version pull request.
 
 ## Author and diagnose
 
 Read `.agents/skills/e2e/SKILL.md` and the verify-solstatus skill. Put new tests under
-`tests/**/*.e2e.ts`. Helpers belong in `tests/support/`. Lifecycle regressions, when added,
-live under `tests/lifecycle/` with their own config. Runner/cleanup/accounting scripts under
-`scripts/e2e/` include copied `cf-clef-executor`, `ai-report`, and `ai-usage` (kept in-repo;
-do not invent a shared package).
+`tests/**/*.e2e.ts`. Helpers belong in `tests/support/`. Declare credentials and secrets in
+`e2e.config.ts`, never in test files. After each `agent.act`, assert exactly with `expect`.
 
-On failure, read `.e2e/summary.md`, then `.e2e/report.json`, failure artifacts, and the
-redacted `.e2e/logs/stack.log`. Distinguish collection/config, startup, locator, assertion,
-and provider failures. Do not invent a pass for a missing secret.
+On failure, read `.e2e/summary.md`, then `.e2e/report.json`, failure artifacts, and the redacted
+`.e2e/logs/stack.log`. `.e2e/ai-usage/summary.md` lists the suite's model calls. Distinguish
+collection, startup, locator, assertion, and provider failures. Do not invent a pass for a
+missing secret.

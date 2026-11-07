@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-11-07T07:03:29.813Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap button \"Create Endpoint Monitor\"",
+        "target": {
+          "role": "button",
+          "name": "Create Endpoint Monitor"
+        }
+      }
+    ],
+    "executor": {
+      "name": "decision",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/dashboard.e2e.ts::dashboard::dashboard%20shows%20endpoint%20monitors%20heading%20and%20create%20action",
+      "targetId": "chromium",
+      "instructionDigest": "425ff94a5223b49f133826586ca6fdb707178a0c2c097f4deaf173910f1008be",
+      "paramsDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "callIndex": 0,
+      "agent": "default"
+    },
+    "recordedBy": {
+      "provider": "anthropic.messages",
+      "model": "anthropic/claude-haiku-5.5"
+    },
+    "summary": "The screen shows the step is done (p=0.862, confidence 0.629).",
+    "startPath": "/",
+    "endPath": "/",
+    "endAnchors": [
+      {
+        "role": "heading",
+        "name": "Add Endpoint Monitor"
+      },
+      {
+        "text": "Add a new endpoint to monitor uptime and performance"
+      },
+      {
+        "text": "Endpoint Monitor Name"
+      },
+      {
+        "role": "textbox",
+        "name": "Endpoint Monitor Name",
+        "placeholder": "My Endpoint Monitor"
+      },
+      {
+        "text": "A friendly name to identify this endpoint monitor"
+      },
+      {
+        "text": "URL"
+      },
+      {
+        "role": "textbox",
+        "name": "URL",
+        "placeholder": "https://x.com/SolBeckman_"
+      },
+      {
+        "text": "The full URL to monitor (including https://)"
+      }
+    ],
+    "goneAnchors": [
+      {
+        "role": "image",
+        "name": "SolStatus Logo"
+      },
+      {
+        "text": "SolStatus"
+      },
+      {
+        "role": "link",
+        "name": "Monitors"
+      },
+      {
+        "role": "link",
+        "name": "Notifications"
+      },
+      {
+        "text": "GitHub"
+      },
+      {
+        "text": "2.1.0-dev"
+      },
+      {
+        "text": "Dark Mode"
+      },
+      {
+        "text": "Toggle Sidebar"
+      }
+    ],
+    "endWaitMs": 11368,
+    "keyedBy": {
+      "cacheSchema": "trace-1",
+      "policyVersion": "conservative/6",
+      "project": "fe664fe750af376dd64cd56aded646031caa1d5f846b379a094c4e371f1e6af9",
+      "platform": "web",
+      "engineName": "web",
+      "engineSpiVersion": 1,
+      "appIdentity": "5453dba08f65156fa7534f2b25dcb22a3f5a5e2c3f743e469aa7f257103175e2",
+      "agentContextDigest": "0c849fbcdd9ea3523795999d3526ba310993ddb3daf48d7d95378bbd77b9b96c"
+    }
+  }
+}
