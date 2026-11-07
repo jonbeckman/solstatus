@@ -6,6 +6,7 @@ import { createHash } from "node:crypto"
 // Never propagate report labels, prompts, response bodies or arbitrary log fields.
 const directory = ".e2e/ai-usage"
 const sources = new Set(["executor", "decision", "application", "stagehand"])
+
 const models = new Map([
   ["@cf/cloudflare/clef", { input: 0.24, output: 0 }],
   ["@cf/openai/gpt-oss-120b", { input: 0.35, output: 0.75 }],
@@ -13,8 +14,10 @@ const models = new Map([
   ["google/gemini-3-flash-preview", { input: 0.5, output: 3, cached: 0.05 }],
   ["unknown", null],
 ])
+
 const cacheModes = new Set(["hit", "miss", "bypass", "unknown"])
 const layers = new Set(["gateway", "stagehand", "none"])
+
 const replayReasons = new Set([
   "retry",
   "no-entry",
@@ -29,6 +32,7 @@ const replayReasons = new Set([
   "viewport-changed",
   "end-mismatch",
 ])
+
 const reportPaths = [
   ".e2e/report.json",
   ".e2e/lifecycle/report.json",
@@ -37,6 +41,7 @@ const reportPaths = [
     (app) => `.e2e/${app}/report.json`,
   ),
 ]
+
 const countNames = [
   "discovered",
   "selected",
@@ -47,23 +52,36 @@ const countNames = [
   "flaky",
   "skipped",
 ]
+
 const numeric = (value) => Number.isSafeInteger(value) && value >= 0
 const nullable = (value) => value === null || numeric(value)
+
+const isString = (value) => {
+  try {
+    return value === String(value)
+  } catch {
+    return false
+  }
+}
+
 const timestamp = (value) =>
-  typeof value === "string" &&
+  isString(value) &&
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value) &&
   Number.isFinite(Date.parse(value))
-const sha = (value) => (typeof value === "string" && /^[a-f0-9]{40}$/.test(value) ? value : null)
+
+const sha = (value) => (isString(value) && /^[a-f0-9]{40}$/.test(value) ? value : null)
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"))
 
 async function logs() {
   const names = await readdir(".e2e/logs").catch(() => [])
+
   return names
     .filter((name) => /^[a-zA-Z0-9_.-]{1,100}\.log$/.test(name))
     .map((name) => join(".e2e/logs", name))
 }
 
 const digest = (buffer) => createHash("sha256").update(buffer).digest("hex")
+
 async function privateWrite(name, content) {
   const path = `${directory}/${name}`
   await writeFile(path, content, { mode: 0o600 })
@@ -73,14 +91,18 @@ async function privateWrite(name, content) {
 async function init() {
   await mkdir(directory, { recursive: true, mode: 0o700 })
   await chmod(directory, 0o700)
+
   const logOffsets = {},
     logPrefixes = {}
+
   for (const path of await logs()) {
     const buffer = await readFile(path)
     logOffsets[path] = buffer.length
     logPrefixes[path] = digest(buffer)
   }
+
   let commit = null
+
   try {
     commit = sha(
       execFileSync("git", ["rev-parse", "HEAD"], {
@@ -89,6 +111,7 @@ async function init() {
       }).trim(),
     )
   } catch {}
+
   await privateWrite(
     "run.json",
     JSON.stringify(
@@ -132,13 +155,16 @@ function record(value, start) {
     !timestamp(value.startedAt)
   )
     return null
+
   if (Date.parse(value.startedAt) < start) return "stale"
+
   if (
     value.cachedInputTokens !== null &&
     value.inputTokens !== null &&
     value.cachedInputTokens > value.inputTokens
   )
     return null
+
   return {
     source: value.source,
     model: value.model,
@@ -156,24 +182,29 @@ function record(value, start) {
 function estimate(value) {
   if (value.cache === "hit") return { cost: 0, status: "zero" }
   const rate = models.get(value.model)
+
   if (!rate || value.inputTokens === null || (rate.output > 0 && value.outputTokens === null))
     return { cost: null, status: "unavailable" }
   // Gemini output usage already includes reasoning tokens. Never add them twice.
   const cached = rate.cached ? (value.cachedInputTokens ?? 0) : 0
+
   const cost =
     ((value.inputTokens - cached) * rate.input +
       cached * (rate.cached ?? 0) +
       (value.outputTokens ?? 0) * rate.output) /
     1_000_000
+
   return { cost, status: value.cache === "unknown" ? "upper-bound" : "estimated" }
 }
 
 async function summarize() {
   const metadata = await readJson(`${directory}/run.json`)
+
   if (metadata.schemaVersion !== 1 || !timestamp(metadata.startedAt))
     throw new Error("Run accounting was not initialized")
   const start = Date.parse(metadata.startedAt)
   const tests = Object.fromEntries(countNames.map((name) => [name, 0]))
+
   const replay = {
     steps: 0,
     actionSteps: 0,
@@ -188,24 +219,32 @@ async function summarize() {
     reasons: {},
     durations: { actionMs: 0, replayedMs: 0, liveActionMs: 0 },
   }
+
   let e2eMs = 0,
     reports = 0,
     rejectedRecords = 0,
     staleRecords = 0
+
   let incomplete = false
+
   const collectSteps = (steps) => {
     for (const step of steps ?? []) {
       if (step.kind === "agent") {
         if (step.api === "agent.act") {
           replay.actionSteps += 1
+
           if (step.cache?.mode === "missed") replay.missedSteps += 1
           else if (!step.cache) replay.uncachedActionSteps += 1
+
           if (step.cache?.notRecorded === "param-collision") replay.notRecordedSteps += 1
+
           if (step.cache?.reason) {
             const reason = replayReasons.has(step.cache.reason) ? step.cache.reason : "unknown"
             replay.reasons[reason] = (replay.reasons[reason] ?? 0) + 1
           }
+
           const field = step.cache?.mode === "self-finalized" ? "replayedMs" : "liveActionMs"
+
           for (const key of ["actionMs", field]) {
             if (Number.isFinite(step.durationMs) && step.durationMs >= 0) {
               if (replay.durations[key] !== null) replay.durations[key] += step.durationMs
@@ -213,24 +252,32 @@ async function summarize() {
           }
         } else replay.liveJudgmentSteps += 1
       }
+
       if (["self-finalized", "agent-concluded"].includes(step.cache?.mode)) {
         replay.steps += 1
+
         if (step.cache.mode === "self-finalized") replay.fullyReplayedSteps += 1
         else replay.partiallyReplayedSteps += 1
+
         if (numeric(step.cache.replayedActions))
           replay.replayedActions += step.cache.replayedActions
       }
+
       if (numeric(step.metrics?.modelCalls)) replay.modelCalls += step.metrics.modelCalls
     }
   }
+
   for (const path of reportPaths) {
     let report
+
     try {
       report = await readJson(path)
     } catch {
       continue
     }
+
     const run = report?.run
+
     if (
       report?.schemaVersion !== "report-1" ||
       !timestamp(run?.startedAt) ||
@@ -238,9 +285,11 @@ async function summarize() {
     )
       continue
     reports += 1
+
     if (timestamp(run.finishedAt) && Date.parse(run.finishedAt) >= Date.parse(run.startedAt))
       e2eMs += Date.parse(run.finishedAt) - Date.parse(run.startedAt)
     else incomplete = true
+
     for (const name of countNames) {
       if (numeric(run.summary?.[name]))
         tests[name] =
@@ -249,45 +298,60 @@ async function summarize() {
             : tests[name] + run.summary[name]
       else incomplete = true
     }
+
     for (const result of run.results ?? [])
       for (const attempt of result.attempts ?? []) collectSteps(attempt.steps)
+
     for (const group of run.serialGroups ?? [])
       for (const attempt of group.attempts ?? [])
         for (const member of attempt.members ?? []) collectSteps(member.steps)
   }
+
   const entries = []
+
   const parseLine = (line) => {
     if (!line.trim()) return
     let value
+
     try {
       value = record(JSON.parse(line), start)
     } catch {}
+
     if (value === "stale") staleRecords += 1
     else if (!value) rejectedRecords += 1
     else entries.push(value)
   }
+
   for (const line of (await readFile(`${directory}/executor.jsonl`, "utf8").catch(() => "")).split(
     "\n",
   ))
     parseLine(line)
+
   for (const path of await logs()) {
     const buffer = await readFile(path)
     const previous = metadata.logOffsets?.[path]
+
     const prefixMatches =
       numeric(previous) &&
       previous <= buffer.length &&
       metadata.logPrefixes?.[path] === digest(buffer.subarray(0, previous))
+
     const offset = prefixMatches ? previous : 0
+
     // Byte offsets exclude pre-init lines; timestamps also protect rotated/replaced logs.
     for (const line of buffer.subarray(offset).toString("utf8").split("\n")) {
       const marker = line.indexOf("E2E_AI_USAGE ")
+
       if (marker !== -1) parseLine(line.slice(marker + "E2E_AI_USAGE ".length))
     }
   }
+
   const recordedExecutorCalls = entries
     .filter((entry) => entry.source === "executor")
     .reduce((sum, entry) => sum + (entry.requests ?? 0), 0)
+
   const missingExecutorCalls = Math.max(0, replay.modelCalls - recordedExecutorCalls)
+
   if (missingExecutorCalls)
     entries.push({
       source: "executor",
@@ -302,8 +366,10 @@ async function summarize() {
       status: "success",
     })
   const groups = new Map()
+
   for (const entry of entries) {
     const key = `${entry.source}:${entry.model}:${entry.cacheLayer}`
+
     if (!groups.has(key))
       groups.set(key, {
         source: entry.source,
@@ -335,15 +401,18 @@ async function summarize() {
     group.records += 1
     group.cache[entry.cache] += entry.requests ?? entry.operations
     group.operations += entry.operations
+
     for (const field of ["requests", "inputTokens", "outputTokens", "cachedInputTokens"]) {
       if (entry[field] === null) group[field] = null
       else if (group[field] !== null) group[field] += entry[field]
     }
+
     group.knownInputTokens += entry.inputTokens ?? 0
     group.knownOutputTokens += entry.outputTokens ?? 0
     group.knownCachedInputTokens += entry.cachedInputTokens ?? 0
     group.errors += Number(entry.status === "error")
     group.missingUsage += Number(entry.inputTokens === null || entry.outputTokens === null)
+
     if (["miss", "bypass"].includes(entry.cache)) {
       group.confirmedNonCachedRequests += entry.requests ?? 0
       group.confirmedNonCachedOperations += entry.operations
@@ -351,27 +420,35 @@ async function summarize() {
       group.potentialNonCachedRequests += entry.requests ?? 0
       group.potentialNonCachedOperations += entry.operations
     }
+
     const price = estimate(entry)
+
     if (price.status === "upper-bound") group.uncertainCostUsd += price.cost ?? 0
     else group.knownCostUsd += price.cost ?? 0
+
     if (price.cost === null) group.estimatedCostUsd = null
     else if (group.estimatedCostUsd !== null) group.estimatedCostUsd += price.cost
+
     if (price.status === "unavailable") group.costStatus = "partial"
     else if (price.status === "upper-bound" && group.costStatus !== "partial")
       group.costStatus = "upper-bound"
     group.partial ||= entry.cache === "unknown" || entry.requests === null || price.cost === null
   }
+
   const rows = [...groups.values()].sort((a, b) =>
     `${a.source}:${a.model}:${a.cacheLayer}`.localeCompare(
       `${b.source}:${b.model}:${b.cacheLayer}`,
     ),
   )
+
   const sum = (field) =>
     rows.some((row) => row[field] === null)
       ? null
       : rows.reduce((total, row) => total + row[field], 0)
+
   const partial =
     incomplete || reports === 0 || rejectedRecords > 0 || rows.some((row) => row.partial)
+
   const needsComment =
     rejectedRecords > 0 ||
     rows.some(
@@ -382,6 +459,7 @@ async function summarize() {
           row.potentialNonCachedOperations >
         0,
     )
+
   const summary = {
     schemaVersion: 1,
     validatedSha: sha(metadata.validatedSha),
@@ -398,7 +476,9 @@ async function summarize() {
     rejectedRecords,
     staleRecords,
     replayCacheRestored:
-      typeof metadata.replayCacheRestored === "boolean" ? metadata.replayCacheRestored : null,
+      metadata.replayCacheRestored === true || metadata.replayCacheRestored === false
+        ? metadata.replayCacheRestored
+        : null,
     models: rows,
     totals: {
       requests: sum("requests"),
@@ -421,9 +501,11 @@ async function summarize() {
       potentialNonCachedOperations: sum("potentialNonCachedOperations"),
     },
   }
+
   const display = (value) => (value === null ? "unknown" : String(value))
   const money = (value) => (value === null ? "unavailable" : `$${value.toFixed(8)}`)
   const duration = (value) => (value === null ? "unknown" : `${(value / 1000).toFixed(2)}s`)
+
   const markdown = [
     "### E2E AI usage",
     "",
@@ -463,10 +545,12 @@ async function summarize() {
     "Rates checked 2026-10-05: [Clef](https://developers.cloudflare.com/workers-ai/models/clef/), [GPT OSS 120B](https://developers.cloudflare.com/workers-ai/models/gpt-oss-120b/), [GPT OSS 20B](https://developers.cloudflare.com/workers-ai/models/gpt-oss-20b/), [Gemini](https://ai.google.dev/gemini-api/docs/pricing).",
     "",
   ].join("\n")
+
   await mkdir(directory, { recursive: true, mode: 0o700 })
   await chmod(directory, 0o700)
   await privateWrite("summary.json", JSON.stringify(summary, null, 2) + "\n")
   await privateWrite("summary.md", markdown)
+
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, markdown)
 }
 

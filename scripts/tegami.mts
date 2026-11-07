@@ -25,8 +25,10 @@ const release = tegami({
       name: "root-version-file",
       async applyDraft(draft) {
         const pkg = this.graph.get(publishedPackageId)
+
         if (!pkg) return
         const nextVersion = draft.getPackageDraft(pkg.id)?.bumpVersion(pkg)
+
         if (!nextVersion) return
         await writeFile(join(this.cwd, "VERSION"), `${nextVersion}\n`)
       },

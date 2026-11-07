@@ -1,11 +1,20 @@
 import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import { IconChevronDown, IconLayoutColumns, IconSearch, IconX } from "@tabler/icons-react"
-import type { Table } from "@tanstack/react-table"
+import type { ColumnDef, Table } from "@tanstack/react-table"
 import { useLocation, useNavigate } from "@tanstack/react-router"
 import type * as React from "react"
 import { useDebouncedCallback } from "use-debounce"
 import type { z } from "zod"
 import type { AppColumnDef } from "@/components/data-table/columns"
+
+type EndpointMonitorRow = z.infer<typeof endpointMonitorsSelectSchema>
+
+function isAppColumn(
+  columnDef: ColumnDef<EndpointMonitorRow>,
+): columnDef is AppColumnDef<EndpointMonitorRow> {
+  return "headerLabel" in columnDef
+}
+
 import { Button } from "@/registry/new-york-v4/ui/button"
 import {
   DropdownMenu,
@@ -27,6 +36,7 @@ export function Toolbar({ table }: ToolbarProps) {
   const navigate = useNavigate()
   const pathname = useLocation({ select: (location) => location.pathname })
   const searchStr = useLocation({ select: (location) => location.searchStr })
+
   const searchParams = new URLSearchParams(
     searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
   )
@@ -117,8 +127,9 @@ export function Toolbar({ table }: ToolbarProps) {
               .filter((column) => typeof column.accessorFn !== "undefined" && column.getCanHide())
               .map((column) => {
                 const headerLabel =
-                  (column.columnDef as AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>)
-                    .headerLabel ?? column.id
+                  (isAppColumn(column.columnDef) ? column.columnDef.headerLabel : undefined) ??
+                  column.id
+
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}

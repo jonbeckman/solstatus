@@ -20,6 +20,7 @@ import { ChartLoadingOverlay } from "./chart-loading-overlay"
 
 const getTimeBucketStart = (timestampMs: number, range: TimeRange): number => {
   const date = new Date(timestampMs)
+
   switch (range) {
     case "30m": {
       // 30 second buckets for 30 minutes
@@ -27,49 +28,62 @@ const getTimeBucketStart = (timestampMs: number, range: TimeRange): number => {
       const roundedSeconds = Math.floor(seconds / 30) * 30
       const startOfMin = startOfMinute(date)
       startOfMin.setSeconds(roundedSeconds, 0)
+
       return getUnixTime(startOfMin)
     }
+
     case "1h": {
       return getUnixTime(startOfMinute(date))
     }
+
     case "3h": {
       // 2 minute buckets for 3 hours
       const minutes = date.getMinutes()
       const roundedMinutes = Math.floor(minutes / 2) * 2
       const startOfHr = startOfHour(date)
       startOfHr.setMinutes(roundedMinutes, 0, 0)
+
       return getUnixTime(startOfHr)
     }
+
     case "6h": {
       // 5 minute buckets for 6 hours
       const minutes = date.getMinutes()
       const roundedMinutes = Math.floor(minutes / 5) * 5
       const startOfHr = startOfHour(date)
       startOfHr.setMinutes(roundedMinutes, 0, 0)
+
       return getUnixTime(startOfHr)
     }
+
     case "1d": {
       const minutes = date.getMinutes()
       const roundedMinutes = Math.floor(minutes / 15) * 15
       const startOfHr = startOfHour(date)
       startOfHr.setMinutes(roundedMinutes, 0, 0)
+
       return getUnixTime(startOfHr)
     }
+
     case "2d": {
       // 30 minute buckets for 2 days
       const minutes = date.getMinutes()
       const roundedMinutes = Math.floor(minutes / 30) * 30
       const startOfHr = startOfHour(date)
       startOfHr.setMinutes(roundedMinutes, 0, 0)
+
       return getUnixTime(startOfHr)
     }
+
     case "7d": {
       const hours = date.getHours()
       const roundedHours = Math.floor(hours / 2) * 2
       const startOfDy = startOfDay(date)
       startOfDy.setHours(roundedHours, 0, 0, 0)
+
       return getUnixTime(startOfDy)
     }
+
     default: {
       return Math.floor(timestampMs / 1000) // Fallback, should not happen
     }
@@ -157,11 +171,13 @@ const processUptimeData = (
   // Aggregate checks into time buckets
   for (const check of data) {
     const bucketStartSeconds = getTimeBucketStart(new Date(check.timestamp).getTime(), range)
+
     // Only include data within the selected time range
     if (bucketStartSeconds * 1000 >= startTime.getTime()) {
       if (!aggregatedData[bucketStartSeconds]) {
         aggregatedData[bucketStartSeconds] = { checks: [] }
       }
+
       aggregatedData[bucketStartSeconds].checks.push(check)
     }
   }
@@ -177,6 +193,7 @@ const processUptimeData = (
       currentBucketTime.setSeconds(Math.floor(seconds / 30) * 30, 0)
       break
     }
+
     case "1h":
       currentBucketTime = startOfMinute(startTime)
       break
@@ -186,24 +203,28 @@ const processUptimeData = (
       currentBucketTime.setMinutes(Math.floor(startMinutes / 2) * 2, 0, 0)
       break
     }
+
     case "6h": {
       const startMinutes = startTime.getMinutes()
       currentBucketTime = startOfHour(startTime)
       currentBucketTime.setMinutes(Math.floor(startMinutes / 5) * 5, 0, 0)
       break
     }
+
     case "1d": {
       const startMinutes = startTime.getMinutes()
       currentBucketTime = startOfHour(startTime)
       currentBucketTime.setMinutes(Math.floor(startMinutes / 15) * 15, 0, 0)
       break
     }
+
     case "2d": {
       const startMinutes = startTime.getMinutes()
       currentBucketTime = startOfHour(startTime)
       currentBucketTime.setMinutes(Math.floor(startMinutes / 30) * 30, 0, 0)
       break
     }
+
     case "7d": {
       const startHours = startTime.getHours()
       currentBucketTime = startOfDay(startTime)
@@ -211,6 +232,7 @@ const processUptimeData = (
       break
     }
   }
+
   const alignedStartTimeMs = currentBucketTime.getTime()
 
   // Iterate through expected time buckets
@@ -234,6 +256,7 @@ const processUptimeData = (
 
       if (bucketData) {
         countTotalChecksInBucket = bucketData.checks.length
+
         for (const check of bucketData.checks) {
           if (!check.status) {
             countNoData++
@@ -258,6 +281,7 @@ const processUptimeData = (
       const segments: ProcessedUptimeDataPoint["segments"] = []
 
       let currentY = 0
+
       if (count2xx > 0) {
         segments.push({
           start: currentY,
@@ -268,6 +292,7 @@ const processUptimeData = (
         })
         currentY += count2xx
       }
+
       if (count3xx > 0) {
         segments.push({
           start: currentY,
@@ -278,6 +303,7 @@ const processUptimeData = (
         })
         currentY += count3xx
       }
+
       if (count4xx > 0) {
         segments.push({
           start: currentY,
@@ -288,6 +314,7 @@ const processUptimeData = (
         })
         currentY += count4xx
       }
+
       if (count5xx > 0) {
         segments.push({
           start: currentY,
@@ -298,6 +325,7 @@ const processUptimeData = (
         })
         currentY += count5xx
       }
+
       if (countNoData > 0) {
         segments.push({
           start: currentY,
@@ -330,6 +358,7 @@ const processUptimeData = (
 
 const formatXAxis = (tickItem: number, range: TimeRange): string => {
   const date = new Date(tickItem * 1000)
+
   switch (range) {
     case "30m":
       return format(date, "HH:mm:ss")
@@ -373,6 +402,7 @@ const CustomUptimeTooltip: React.FC<CustomUptimeTooltipProps> = ({
     const dataPoint = payload[0].payload // Full data for the time bucket
     const date = new Date(label * 1000)
     let formattedTime = ""
+
     switch (range) {
       case "30m":
         formattedTime = format(date, "HH:mm:ss")
@@ -437,14 +467,20 @@ interface UptimeChartProps {
   error?: string | null
 }
 
-interface UptimeBarPayload {
-  segments: Array<{
-    start: number
-    height: number
-    fill: string
-    name: string
-  }>
-  totalHeight: number
+interface CustomBarProps {
+  x: number
+  y: number
+  width: number
+  height: number
+  payload?: {
+    segments: Array<{
+      start: number
+      height: number
+      fill: string
+      name: string
+    }>
+    totalHeight: number
+  }
 }
 
 const uptimeLegendItems = [
@@ -455,32 +491,16 @@ const uptimeLegendItems = [
   { value: "No Data", color: "#ccc" },
 ] as const
 
-// One rectangle draws every status segment. Recharts passes the row on payload.
-const CustomBar = ({
-  x,
-  y,
-  width,
-  height,
-  payload,
-}: {
-  x: number
-  y: number
-  width: number
-  height: number
-  payload?: unknown
-}) => {
-  // SAFETY: payload is the uptime chart row, which always includes segments and totalHeight.
-  const barPayload = payload as UptimeBarPayload | undefined
-
-  if (!barPayload?.segments || barPayload.totalHeight === 0 || width <= 0 || height <= 0) {
+const CustomBar = ({ x, y, width, height, payload }: CustomBarProps) => {
+  if (!payload?.segments || payload.totalHeight === 0 || width <= 0 || height <= 0) {
     return <g />
   }
 
-  const scale = height / barPayload.totalHeight
+  const scale = height / payload.totalHeight
 
   return (
     <g>
-      {barPayload.segments.map((segment) => (
+      {payload.segments.map((segment) => (
         <rect
           key={`${segment.name}-${segment.start}`}
           x={x}
@@ -535,9 +555,11 @@ export const UptimeChart: React.FC<UptimeChartProps> = memo(
           default:
             startTime = processedData[0]?.timeBucket ?? endTime - 3600
         }
+
         // Ensure the domain covers the full range, even if data is sparse at the end
         return [startTime, Math.max(endTime, lastBucketTime)]
       }
+
       return ["auto", "auto"] // Fallback if no data
     }, [processedData, timeRange])
 
@@ -547,6 +569,7 @@ export const UptimeChart: React.FC<UptimeChartProps> = memo(
       }
 
       let maxCount = 0
+
       for (const p of processedData) {
         const totalInBucket = p.count2xx + p.count3xx + p.count4xx + p.count5xx + p.countNoData
         maxCount = Math.max(maxCount, totalInBucket)
@@ -627,19 +650,8 @@ export const UptimeChart: React.FC<UptimeChartProps> = memo(
                 />
 
                 {/* Single Bar with custom shape renderer */}
-                <Bar
-                  dataKey="totalHeight"
-                  shape={(barProps) => (
-                    <CustomBar
-                      x={barProps.x}
-                      y={barProps.y}
-                      width={barProps.width}
-                      height={barProps.height}
-                      payload={barProps.payload}
-                    />
-                  )}
-                  isAnimationActive={false}
-                />
+                {/* oxlint-disable-next-line anti-slop/no-shape-in-symbol-names -- Recharts owns the Bar shape prop name. */}
+                <Bar dataKey="totalHeight" shape={CustomBar} isAnimationActive={false} />
                 <Tooltip
                   content={<CustomUptimeTooltip range={timeRange} />}
                   cursor={{ fill: "hsl(var(--muted))", fillOpacity: 0.3 }}

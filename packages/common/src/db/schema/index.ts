@@ -2,6 +2,7 @@ import { AccountTable, SessionTable, UserTable, VerificationTable } from "./auth
 import { EndpointMonitorsTable, UptimeChecksTable } from "./endpointMonitor"
 
 export * from "./auth-schema"
+
 export * from "./endpointMonitor"
 
 export const schema = {

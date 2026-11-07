@@ -16,9 +16,11 @@ export async function request(path: string, init?: RequestInit) {
 
 export async function json<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await request(path, init)
+
   if (!response.ok) {
     throw new Error(`${path} returned ${response.status}`)
   }
+
   // SAFETY: callers declare the expected JSON shape for the endpoint under test.
   return (await response.json()) as T
 }

@@ -30,6 +30,7 @@ export const GET = createRoute
 
     const now = new Date()
     let startTime: Date
+
     switch (range) {
       case "30m":
         startTime = subMinutes(now, 30)
@@ -72,9 +73,11 @@ export const GET = createRoute
       console.log(
         `Uptime checks in range [${range}] for endpointMonitor [${endpointMonitorId}]: ${results.length}`,
       )
+
       return Response.json(results, { status: StatusCodes.OK })
     } catch (error) {
       console.error("Error fetching uptime data: ", error)
+
       return Response.json(
         { error: "Failed to fetch uptime data" },
         { status: StatusCodes.INTERNAL_SERVER_ERROR },

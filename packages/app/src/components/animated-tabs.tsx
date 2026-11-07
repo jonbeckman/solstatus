@@ -18,6 +18,7 @@ const TabsList = React.forwardRef<
     width: 0,
     height: 0,
   })
+
   const tabsListRef = useRef<HTMLDivElement | null>(null)
 
   const updateIndicator = React.useCallback(() => {
@@ -26,6 +27,7 @@ const TabsList = React.forwardRef<
     }
 
     const activeTab = tabsListRef.current.querySelector<HTMLElement>('[data-state="active"]')
+
     if (!activeTab) {
       return
     }
@@ -84,6 +86,7 @@ const TabsList = React.forwardRef<
     </div>
   )
 })
+
 TabsList.displayName = List.displayName
 
 const TabsTrigger = React.forwardRef<
@@ -100,6 +103,7 @@ const TabsTrigger = React.forwardRef<
     {...props}
   />
 ))
+
 TabsTrigger.displayName = Trigger.displayName
 
 export { Tabs, TabsList, TabsTrigger }

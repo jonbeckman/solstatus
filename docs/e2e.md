@@ -1,7 +1,7 @@
 # End-to-end validation
 
-SolStatus uses [tester-army/e2e](https://github.com/tester-army/e2e) `0.21.3` with
-`@e2e-dev/web@0.15.3`, `@e2e-dev/github@0.4.3`, and `@e2e-dev/decision@0.3.0` as its only
+SolStatus uses [tester-army/e2e](https://github.com/tester-army/e2e) `0.22.0` with
+`@e2e-dev/web@0.15.4`, `@e2e-dev/github@0.4.4`, and `@e2e-dev/decision@0.3.1` as its only
 automated test runner.
 `nub run test` executes `tests/**/*.e2e.ts` against the real Alchemy development stack
 (TanStack Start app on port 3000, monitor workers, local D1, better-auth). Vitest unit
@@ -38,7 +38,7 @@ nub run test:e2e:cleanup
 ```
 
 `scripts/e2e/stack.ts` starts `alchemy dev packages/infra/src/alchemy.run.ts --stage dev`
-(Alchemy `2.0.0-beta.83`) with its working directory at `.e2e/runs/<uuid>`. Local D1,
+(Alchemy `2.0.0-beta.84`) with its working directory at `.e2e/runs/<uuid>`. Local D1,
 KV, and Alchemy state stay in that directory's `.alchemy` tree. Cleanup deletes that
 directory only. It does not call `alchemy deploy` or `alchemy destroy`.
 
@@ -81,8 +81,12 @@ runs do not.
 
 `Validate` keeps a `validate` job for typecheck/lint/format and `nub run test:e2e:list`.
 A separate required `e2e` job (fork-PR guarded) checks out full history, restores the
-action replay cache from `.e2e/cache`, initializes AI accounting, and on a pull request
-runs `nub exec e2e run --changed-since origin/<base>`. A live run uses
+action replay cache from `.e2e/cache`, initializes AI accounting, and on a ready pull request
+runs `nub exec e2e run --changed-since origin/<base>`. Draft pull requests skip the
+`validate` and `e2e` jobs, so those checks stay skipped. Marking the pull request ready
+runs those jobs under the same check names, and later pushes run them again while it
+stays ready.
+A live run uses
 `nub exec e2e run --no-cache --changed-since origin/<base>`. Other events run every test.
 The job removes the UUID local state directory on `always()`, summarizes usage, saves
 the replay cache on success, and uploads reports. Manual inputs: `e2e_lifecycle`,

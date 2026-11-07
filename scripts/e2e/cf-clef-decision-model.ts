@@ -4,7 +4,9 @@ import type { Experimental_DecisionModel } from "ai"
 import { gatewayCache, measuredTokens, recordAiUsage, type AiUsage } from "./ai-usage"
 
 type ClefDecisionModel = Exclude<Experimental_DecisionModel, string>
+
 type DecideOptions = Parameters<Extract<ClefDecisionModel, { doDecide: unknown }>["doDecide"]>[0]
+
 type DecideResult = Awaited<
   ReturnType<Extract<ClefDecisionModel, { doDecide: unknown }>["doDecide"]>
 >
@@ -43,11 +45,13 @@ async function decideWithClef(options: DecideOptions): Promise<DecideResult> {
   const account = process.env.CLOUDFLARE_ACCOUNT_ID
   const token = process.env.CF_AI_GATEWAY_E2E_TOKEN
   const gateway = process.env.CF_AI_GATEWAY_E2E_ID ?? "default"
+
   if (!account || !token) {
     throw new Error(
       "Set CLOUDFLARE_ACCOUNT_ID and CF_AI_GATEWAY_E2E_TOKEN for the Clef decision filter.",
     )
   }
+
   if (!/^[a-f0-9]{32}$/i.test(account) || !/^[a-zA-Z0-9_-]+$/.test(gateway)) {
     throw new Error("Invalid Cloudflare account or gateway identifier.")
   }
@@ -56,10 +60,12 @@ async function decideWithClef(options: DecideOptions): Promise<DecideResult> {
     string,
     { type: "choice"; instructions: string; criteria: { true: string; false: string } }
   > = {}
+
   for (const [id, question] of Object.entries(options.questions)) {
     if (question.type !== "boolean") {
       throw new Error(`Clef decision filter model answers boolean questions, got ${question.type}.`)
     }
+
     const trueText = inputText(question.criteria?.true) || "The statement holds."
     const falseText = inputText(question.criteria?.false) || "The statement does not hold."
     questions[id] = {
@@ -74,17 +80,21 @@ async function decideWithClef(options: DecideOptions): Promise<DecideResult> {
     state: clefState(options.state),
     questions,
   })
+
   const response = await postClef(account, gateway, token, body, options.abortSignal)
   // SAFETY: The gateway body is Clef's Workers AI envelope. `result.answers` is checked before use.
   const envelope = (await response.json()) as { success?: boolean; result?: ClefResult }
+
   if (envelope.success === false || envelope.result?.answers === undefined) {
     throw new Error("Cloudflare Clef returned no decision result.")
   }
 
   const answers: DecideResult["answers"] = {}
+
   for (const id of Object.keys(questions)) {
     const answer = envelope.result.answers[id]
     const probability = answer?.probabilities?.true
+
     if (
       answer?.type !== "choice" ||
       (answer.choice !== "true" && answer.choice !== "false") ||
@@ -95,24 +105,32 @@ async function decideWithClef(options: DecideOptions): Promise<DecideResult> {
     ) {
       throw new Error("Clef returned an invalid boolean decision.")
     }
+
     answers[id] = { type: "boolean", probability }
   }
 
   const inputTokens = finiteToken(envelope.result.usage?.input_tokens)
   const outputTokens = finiteToken(envelope.result.usage?.output_tokens)
-  return {
+
+  const result = {
     answers,
     warnings: [],
-    ...(inputTokens === undefined && outputTokens === undefined
-      ? {}
-      : {
-          usage: {
-            ...(inputTokens === undefined ? {} : { inputTokens }),
-            ...(outputTokens === undefined ? {} : { outputTokens }),
-          },
-        }),
     response: { modelId },
   }
+
+  if (inputTokens !== undefined && outputTokens !== undefined) {
+    return { ...result, usage: { inputTokens, outputTokens } }
+  }
+
+  if (inputTokens !== undefined) {
+    return { ...result, usage: { inputTokens } }
+  }
+
+  if (outputTokens !== undefined) {
+    return { ...result, usage: { outputTokens } }
+  }
+
+  return result
 }
 
 async function postClef(
@@ -123,16 +141,20 @@ async function postClef(
   abortSignal: AbortSignal | undefined,
 ): Promise<Response> {
   const bypass = process.env.CF_AI_GATEWAY_E2E_SKIP_CACHE === "1"
+
   const cacheKey = `e2e-clef-${createHmac("sha256", token)
     .update(JSON.stringify([account, gateway, modelId, body]))
     .digest("hex")}`
+
   let lastStatus = 0
+
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const startedAt = new Date().toISOString()
     let cache: AiUsage["cache"] = bypass ? "bypass" : "unknown"
     let status: AiUsage["status"] = "error"
     let httpStatus: number | null = null
     let usage: ClefResult["usage"] | undefined
+
     try {
       const response = await fetch(
         `https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/${modelId}`,
@@ -151,20 +173,26 @@ async function postClef(
           body,
         },
       )
+
       httpStatus = response.status
       cache = gatewayCache(response.headers, bypass)
+
       if (response.ok) {
         status = "success"
         usage = await readUsage(response)
         console.error(`Clef decision gateway cache: ${cache}`)
+
         return response
       }
+
       lastStatus = response.status
       await response.body?.cancel()
+
       if (attempt < 2 && (response.status === 429 || response.status >= 500)) {
         await delay(500 * 2 ** attempt, abortSignal)
         continue
       }
+
       break
     } finally {
       recordAiUsage({
@@ -184,6 +212,7 @@ async function postClef(
       })
     }
   }
+
   throw new Error(`Cloudflare Clef request failed (HTTP ${lastStatus}).`)
 }
 
@@ -192,30 +221,47 @@ async function readUsage(response: Response): Promise<ClefResult["usage"] | unde
     .clone()
     .json()
     .catch(() => undefined)
+
   // SAFETY: Usage is optional accounting data. Callers ignore a missing result.
   const payload = body as { result?: ClefResult } | undefined
+
   return payload?.result?.usage
 }
 
-function clefState(state: DecideOptions["state"]): unknown {
+function clefState(state: DecideOptions["state"]) {
   const json = state.filter((part) => part.type === "json")
+
   if (json.length === 1) return json[0]?.value
   const parts: unknown[] = []
+
   for (const part of state) {
     if (part.type === "text") parts.push({ type: "text", text: part.text })
     else if (part.type === "json") parts.push({ type: "json", value: part.value })
   }
+
   return { parts }
 }
 
-function inputText(value: unknown): string {
-  if (typeof value === "string") return value
+type DecisionQuestion = DecideOptions["questions"][string]
+
+function isDecisionString(
+  value: DecisionQuestion["instructions"] | null | undefined,
+): value is string {
+  return value === String(value)
+}
+
+function inputText(value: DecisionQuestion["instructions"] | null | undefined): string {
+  if (isDecisionString(value)) return value
+
   if (value === undefined || value === null) return ""
+
   return JSON.stringify(value)
 }
 
 function finiteToken(value: number | undefined): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined
+  if (value === undefined || !Number.isFinite(value) || value < 0) return undefined
+
+  return value
 }
 
 function delay(ms: number, signal: AbortSignal | undefined): Promise<void> {

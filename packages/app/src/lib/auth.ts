@@ -26,7 +26,7 @@ export const auth = betterAuth({
   plugins: [
     emailOTP({
       sendVerificationOTP: async ({ email, otp, type }, _request) => {
-        // send email to user with OTP
+        // No mailer is configured. The worker log is the local OTP delivery path.
         console.log({ email, otp, type })
       },
       otpLength: 6,

@@ -11,6 +11,7 @@ export const takeUniqueOrThrow = <T>(values: T[]): T => {
   if (values.length < 1) {
     throw new Error("No values found")
   }
+
   if (values.length > 1) {
     throw new Error(`Found non unique value of size [${values.length}]`)
   }
@@ -28,6 +29,7 @@ export const takeFirstOrNull = <T>(values: T[]): T | null => {
   if (values.length < 1) {
     return null
   }
+
   if (values.length > 1) {
     throw new Error(`Found non unique value of size [${values.length}]`)
   }

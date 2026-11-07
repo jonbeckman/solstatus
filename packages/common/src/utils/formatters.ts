@@ -15,16 +15,19 @@ export function secsToHumanReadable(seconds: number, short = false, toFixed = 0)
   }
 
   const minutes = Math.floor(seconds / 60)
+
   if (minutes < 60) {
     return `${Number.parseFloat(minutes.toFixed(toFixed))}${short ? "" : " "}${short ? "m" : "minutes"}`
   }
 
   const hours = Math.floor(minutes / 60)
+
   if (hours < 24) {
     return `${Number.parseFloat(hours.toFixed(toFixed))}${short ? "" : " "}${short ? "h" : "hours"}`
   }
 
   const days = Math.floor(hours / 24)
+
   return `${Number.parseFloat(days.toFixed(toFixed))}${short ? "" : " "}${short ? "d" : "days"}`
 }
 

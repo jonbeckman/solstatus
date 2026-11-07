@@ -42,6 +42,7 @@ describe("app API", { requires: ["browser"] }, () => {
       monitorExecName: string
       monitorTriggerName: string
     }>("/api/infra-metadata", { headers })
+
     expect(metadata.cloudflareAccountId.length).toBeGreaterThan(0)
     expect(metadata.monitorExecName.length).toBeGreaterThan(0)
     expect(metadata.monitorTriggerName.length).toBeGreaterThan(0)
@@ -54,11 +55,13 @@ describe("app API", { requires: ["browser"] }, () => {
       isRunning: true,
       expectedStatusCode: 200,
     }
+
     const created = await request("/api/endpoint-monitors", {
       method: "POST",
       headers: { ...headers, "content-type": "application/json" },
       body: JSON.stringify(payload),
     })
+
     const createdText = await created.text()
     expect(created.status, createdText).toBe(201)
     expect(JSON.parse(createdText)).toMatchObject({ url: quotedUrl })
@@ -68,6 +71,7 @@ describe("app API", { requires: ["browser"] }, () => {
       headers: { ...headers, "content-type": "application/json" },
       body: JSON.stringify(payload),
     })
+
     const conflictText = await conflict.text()
     expect(conflict.status, conflictText).toBe(409)
     expect(JSON.parse(conflictText)).toMatchObject({

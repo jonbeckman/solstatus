@@ -22,11 +22,13 @@ function matchRoute(
   if (pathname === "/api/endpoint-monitors") {
     return { handlers: endpointMonitors, params: {} }
   }
+
   if (pathname === "/api/endpoint-monitors/stats") {
     return { handlers: endpointMonitorStats, params: {} }
   }
 
   const idMatch = pathname.match(/^\/api\/endpoint-monitors\/([^/]+)(?:\/(.*))?$/)
+
   if (!idMatch) {
     return null
   }
@@ -38,21 +40,27 @@ function matchRoute(
   if (rest === "") {
     return { handlers: endpointMonitorById, params }
   }
+
   if (rest === "execute-check") {
     return { handlers: endpointMonitorExecuteCheck, params }
   }
+
   if (rest === "pause") {
     return { handlers: endpointMonitorPause, params }
   }
+
   if (rest === "resume") {
     return { handlers: endpointMonitorResume, params }
   }
+
   if (rest === "uptime") {
     return { handlers: endpointMonitorUptime, params }
   }
+
   if (rest === "uptime/limit") {
     return { handlers: endpointMonitorUptimeLimit, params }
   }
+
   if (rest === "uptime/range") {
     return { handlers: endpointMonitorUptimeRange, params }
   }
@@ -62,6 +70,7 @@ function matchRoute(
 
 async function infraMetadataResponse() {
   const { env } = getWorkerEnv()
+
   return Response.json({
     cloudflareAccountId: env.CLOUDFLARE_ACCOUNT_ID,
     monitorExecName: env.MONITOR_EXEC_NAME,
@@ -82,6 +91,7 @@ export async function dispatchApi(request: Request): Promise<Response> {
   }
 
   const session = await auth.api.getSession({ headers: request.headers })
+
   if (!session) {
     return Response.json(
       { message: ReasonPhrases.UNAUTHORIZED },
@@ -94,11 +104,13 @@ export async function dispatchApi(request: Request): Promise<Response> {
   }
 
   const matched = matchRoute(pathname)
+
   if (!matched) {
     return Response.json({ message: ReasonPhrases.NOT_FOUND }, { status: StatusCodes.NOT_FOUND })
   }
 
   const handler = matched.handlers[request.method]
+
   if (!handler) {
     return new Response(null, { status: StatusCodes.METHOD_NOT_ALLOWED })
   }

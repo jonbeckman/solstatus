@@ -2,7 +2,7 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import type { DBResource } from "@solstatus/common/infra"
 import type { InfraMetadata } from "@solstatus/common/utils/types"
-import * as Cloudflare from "alchemy/Cloudflare"
+import * as Cloudflare from "@alchemy.run/cloudflare"
 import * as Effect from "effect/Effect"
 import * as Redacted from "effect/Redacted"
 
@@ -21,12 +21,15 @@ export function createApi(
       monitorExecName: `${resPrefix}-monitor-exec`,
       monitorTriggerName: `${resPrefix}-monitor-trigger`,
     }
+
     const monitorExecWorker = yield* createMonitorExecWorker(infraMetadata, stage, db)
+
     const monitorTriggerWorker = yield* createMonitorTriggerWorker(
       infraMetadata,
       db,
       monitorExecWorker,
     )
+
     return {
       monitorExecWorker,
       monitorTriggerWorker,
@@ -40,6 +43,7 @@ export function createMonitorExecWorker(
   db: DBResource,
 ) {
   const entrypoint = resolve(__dirname, "../src/monitor-exec.ts")
+
   return Cloudflare.Worker("monitor-exec", {
     name: infraMetadata.monitorExecName,
     main: entrypoint,
@@ -70,9 +74,11 @@ export function createMonitorTriggerWorker(
   monitorExecWorker: Effect.Success<ReturnType<typeof createMonitorExecWorker>>,
 ) {
   const entrypoint = resolve(__dirname, "../src/monitor-trigger.ts")
+
   const monitorTriggerDo = Cloudflare.DurableObject("monitor-trigger-do", {
     className: "MonitorTrigger",
   })
+
   return Cloudflare.Worker("monitor-trigger", {
     name: infraMetadata.monitorTriggerName,
     main: entrypoint,
@@ -96,6 +102,7 @@ export function createMonitorTriggerWorker(
 }
 
 export type MonitorExecWorkerResource = Effect.Success<ReturnType<typeof createMonitorExecWorker>>
+
 export type MonitorTriggerWorkerResource = Effect.Success<
   ReturnType<typeof createMonitorTriggerWorker>
 >

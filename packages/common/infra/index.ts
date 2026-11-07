@@ -1,6 +1,6 @@
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import * as Cloudflare from "alchemy/Cloudflare"
+import * as Cloudflare from "@alchemy.run/cloudflare"
 import * as Effect from "effect/Effect"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -9,6 +9,7 @@ const migrationsDir = resolve(__dirname, "../src/db/migrations")
 
 export function createSessionsStorageKV(resPrefix: string) {
   const kvName = `${resPrefix}-sessions-storage`
+
   return Cloudflare.KV.Namespace("sessions-storage", {
     title: kvName,
   })
@@ -22,4 +23,5 @@ export function createDB(resPrefix: string) {
 }
 
 export type SessionsStorageKVResource = Effect.Success<ReturnType<typeof createSessionsStorageKV>>
+
 export type DBResource = Effect.Success<ReturnType<typeof createDB>>

@@ -46,6 +46,7 @@ export const GET = createRoute
       return Response.json(results, { status: StatusCodes.OK })
     } catch (error) {
       console.error("Error fetching latency data: ", error)
+
       return Response.json(
         { error: "Failed to fetch latency data" },
         { status: StatusCodes.INTERNAL_SERVER_ERROR },

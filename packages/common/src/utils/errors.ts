@@ -1,26 +1,33 @@
-export function getErrorMessage(error: unknown): string {
-  if (error && typeof error === "object" && "message" in error) {
-    return (error as { message: string }).message
+export function getErrorMessage(cause: unknown): string {
+  if (cause instanceof Error) {
+    return cause.message
   }
-  return String(error)
+
+  if (cause instanceof Object && "message" in cause) {
+    return String(cause.message)
+  }
+
+  return String(cause)
 }
 
-export function getErrorStack(error: unknown): string | undefined {
-  if (error instanceof Error) {
-    return error.stack
+export function getErrorStack(cause: unknown): string | undefined {
+  if (cause instanceof Error) {
+    return cause.stack
   }
 
   return undefined
 }
 
-export function logError(error: unknown): string {
-  const message = getErrorMessage(error)
+export function logError(cause: unknown): string {
+  const message = getErrorMessage(cause)
   console.error(message)
+
   return message
 }
 
-export function logErrorStack(error: unknown) {
-  const stack = getErrorStack(error)
+export function logErrorStack(cause: unknown) {
+  const stack = getErrorStack(cause)
+
   if (stack) {
     console.error(stack)
   }

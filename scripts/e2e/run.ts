@@ -4,12 +4,15 @@ import { mkdirSync, writeFileSync } from "node:fs"
 import { processMembers } from "./process-group"
 
 const mcp = process.argv[2] === "--mcp"
+
 // A package manager forwards `nub run <script> -- --changed-since <ref>` with the
 // separator intact. e2e then treats the flag as a test file. Drop the separator.
 const forwarded = process.argv.slice(mcp ? 3 : 2).filter((arg) => arg !== "--")
+
 if (mcp) process.env.E2E_MCP_PROTOCOL = "1"
 
 mkdirSync(".e2e", { recursive: true })
+
 if (process.env.E2E_CLEANUP_APPEND !== "1") {
   writeFileSync(
     ".e2e/cleanup-summary.json",
@@ -19,6 +22,7 @@ if (process.env.E2E_CLEANUP_APPEND !== "1") {
 
 const runner = processMembers().find((member) => member.pid === process.pid)
 let interrupted = false
+
 const child = spawn("nub", ["exec", "e2e", mcp ? "mcp" : "run", ...forwarded], {
   detached: true,
   stdio: "inherit",
@@ -35,6 +39,7 @@ const child = spawn("nub", ["exec", "e2e", mcp ? "mcp" : "run", ...forwarded], {
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.on(signal, () => {
     interrupted = true
+
     if (child.pid) {
       try {
         process.kill(-child.pid, signal)

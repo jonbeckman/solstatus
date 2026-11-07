@@ -42,18 +42,22 @@ it does not.
 
 ## Validation
 
-Run the repository checks before opening a pull request:
+Open the pull request as a draft. Run lint, typecheck, and tests locally before each push:
 
 ```sh
-nub run typecheck
 nub run lint
-nub run format
+nub run typecheck
 nub run test
+nub run format
 ```
+
+Full CI runs when the pull request is marked ready for review, and on each later push while it stays ready. Draft pull requests do not run the full CI jobs.
 
 If a check cannot run in your environment, explain why in the pull request.
 
 ## Pull requests
+
+Open the pull request as a draft. Run lint, typecheck, and tests locally before each push. Mark the pull request ready for review when the work is done. Full CI runs only on ready pull requests.
 
 A strong pull request includes:
 

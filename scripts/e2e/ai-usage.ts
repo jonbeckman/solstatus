@@ -18,18 +18,24 @@ export type AiUsage = {
 
 export function gatewayCache(headers: Headers, bypass: boolean): AiUsage["cache"] {
   const status = headers.get("cf-aig-cache-status")?.toUpperCase()
+
   if (status === "HIT") return "hit"
+
   if (bypass) return "bypass"
+
   return status === "MISS" ? "miss" : "unknown"
 }
 
-export function measuredTokens(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null
+export function measuredTokens(value: number | null | undefined): number | null {
+  if (value == null || !Number.isFinite(value) || value < 0) return null
+
+  return value
 }
 
 /** Private ledger contains only counters, never request or response content. */
 export function recordAiUsage(record: AiUsage): void {
   if (process.env.E2E_AI_USAGE !== "1") return
+
   try {
     mkdirSync(".e2e/ai-usage", { recursive: true, mode: 0o700 })
     appendFileSync(".e2e/ai-usage/executor.jsonl", `${JSON.stringify(record)}\n`, {

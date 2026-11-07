@@ -1,4 +1,4 @@
-import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
+import { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import type {
   ColumnFiltersState,
   PaginationState,
@@ -6,7 +6,7 @@ import type {
   VisibilityState,
 } from "@tanstack/react-table"
 import { toast } from "sonner"
-import type { z } from "zod"
+import { z } from "zod"
 import { create } from "zustand"
 import { DEFAULT_TOAST_OPTIONS } from "@/lib/toasts"
 
@@ -104,9 +104,11 @@ export const useDataTableStore = create<DataTableState>((set, get) => ({
       const delays = [0, 150, 300, 600]
       let response: Response | null = null
       let failureDetail = ""
+
       for (const delay of delays) {
         if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay))
         response = await fetch(listUrl)
+
         if (response.ok || response.status < 500) break
         failureDetail = (await response.text()).slice(0, 300)
       }
@@ -117,17 +119,19 @@ export const useDataTableStore = create<DataTableState>((set, get) => ({
         )
       }
 
-      const responseData = (await response.json()) as {
-        data: z.infer<typeof endpointMonitorsSelectSchema>[]
-        totalCount: number
-      }
+      const responseData = z
+        .object({
+          data: z.array(endpointMonitorsSelectSchema),
+          totalCount: z.number(),
+        })
+        .parse(await response.json())
 
       // Extract data and totalCount from the response
       const { data: endpointMonitorsData, totalCount } = responseData
 
       // Update state with received data and update lastRefreshed timestamp
       set({
-        data: endpointMonitorsData as z.infer<typeof endpointMonitorsSelectSchema>[],
+        data: endpointMonitorsData,
         totalEndpointMonitors: totalCount,
         lastRefreshed: Date.now(), // Update refresh timestamp
       })

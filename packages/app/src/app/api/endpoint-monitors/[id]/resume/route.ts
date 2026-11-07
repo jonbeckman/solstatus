@@ -1,5 +1,4 @@
 import { getWorkerEnv } from "@/lib/worker-env"
-import type { InitPayload } from "@solstatus/api/monitor-trigger"
 import { takeUniqueOrThrow, useDrizzle } from "@solstatus/common/db"
 import { EndpointMonitorsTable } from "@solstatus/common/db/schema"
 import { getErrorMessage, MonitorTriggerNotInitializedError } from "@solstatus/common/utils"
@@ -19,6 +18,7 @@ import { idStringParamsSchema } from "@/lib/route-schemas"
 export const POST = createRoute.params(idStringParamsSchema).handler(async (_request, context) => {
   const { env } = getWorkerEnv()
   const db = useDrizzle(env.DB)
+
   const endpointMonitor = await db
     .select()
     .from(EndpointMonitorsTable)
@@ -41,7 +41,7 @@ export const POST = createRoute.params(idStringParamsSchema).handler(async (_req
         monitorId: endpointMonitor.id,
         monitorType: "endpoint",
         checkInterval: endpointMonitor.checkInterval,
-      } as InitPayload)
+      })
     } else {
       throw error
     }

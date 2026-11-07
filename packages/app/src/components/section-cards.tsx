@@ -30,6 +30,7 @@ export function SectionCards() {
   useEffect(() => {
     fetchDashboardStats()
     const intervalId = setInterval(fetchDashboardStats, 60 * 1000)
+
     return () => clearInterval(intervalId)
   }, [fetchDashboardStats])
 

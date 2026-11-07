@@ -8,6 +8,7 @@ export const createDatabaseConfig = (
   token: string,
 ): Config => {
   console.log("databaseId", databaseId)
+
   return defineConfig({
     // Work around https://github.com/drizzle-team/drizzle-orm/issues/3217
     out: relative("./", resolve(__dirname, "migrations")),

@@ -84,6 +84,22 @@ initialization:
 
 Source: React Spectrum recipe, in [sources.md](sources.md).
 
+For a dim that also reaches Safari's status bar and address bar, recipe D in
+[theme-color-and-status-bar.md](theme-color-and-status-bar.md), use a fixed
+layer:
+
+```html
+<div class="fixed inset-0 bg-black/20"></div>
+```
+
+A transparent press-target layer over a separately painted dim needs
+`after:content-['']` so Safari samples through it. Tailwind adds `content: ''`
+to every `before:` and `after:` utility, so any such class creates the
+pseudo-element: an unrelated `before:` utility can make a layer sample through
+by accident, and removing it can put both bars back to the page background.
+Source: Tailwind CSS v4 documentation; Joe Bell (iOS Simulator 26.5 23F77,
+2026-09-23), in [sources.md](sources.md).
+
 ## Touch & native-feel
 
 Use `select-none touch-manipulation` on chrome, `[-webkit-touch-callout:none]`

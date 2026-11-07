@@ -1,4 +1,4 @@
-import type { endpointMonitorsSelectSchema, uptimeChecksSelectSchema } from "@solstatus/common/db"
+import { uptimeChecksSelectSchema, type endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import { msToHumanReadable, secsToHumanReadable } from "@solstatus/common/utils"
 import {
   IconAlertTriangle,
@@ -54,6 +54,7 @@ export function EndpointMonitorDetailDrawer({
   const [latestUptimeCheck, setLatestUptimeCheck] = useState<z.infer<
     typeof uptimeChecksSelectSchema
   > | null>(null)
+
   const [isLoadingCheck, setIsLoadingCheck] = useState(false)
   const [checkError, setCheckError] = useState<string | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -62,10 +63,13 @@ export function EndpointMonitorDetailDrawer({
     if (!endpointMonitor.id) {
       return
     }
+
     setIsLoadingCheck(true)
     setCheckError(null)
+
     try {
       const response = await fetch(`/api/endpoint-monitors/${endpointMonitor.id}/uptime`)
+
       if (!response.ok) {
         if (response.status === 404) {
           setLatestUptimeCheck(null) // No check found yet
@@ -73,8 +77,7 @@ export function EndpointMonitorDetailDrawer({
           throw new Error(`HTTP error! status: ${response.status}`)
         }
       } else {
-        const data = await response.json()
-        setLatestUptimeCheck(data as z.infer<typeof uptimeChecksSelectSchema>)
+        setLatestUptimeCheck(uptimeChecksSelectSchema.parse(await response.json()))
       }
     } catch (error) {
       console.error("Failed to fetch latest uptime check:", error)
