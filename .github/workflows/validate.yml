@@ -245,7 +245,9 @@ jobs:
     needs: e2e
     # A dispatched e2e_record run commits its recordings to the branch it ran on.
     # The App token push starts pull request CI; a GITHUB_TOKEN push would not.
-    if: github.event_name == 'workflow_dispatch' && inputs.e2e_record && inputs.e2e_commit && github.ref_name != github.event.repository.default_branch
+    # The release job skips on a dispatch, so check the e2e result instead of the
+    # default success() of every upstream job.
+    if: ${{ !cancelled() && needs.e2e.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.e2e_record && inputs.e2e_commit && github.ref_name != github.event.repository.default_branch }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
