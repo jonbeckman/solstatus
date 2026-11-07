@@ -4,10 +4,10 @@
 TanStack Start on Vite, with shadcn, TailwindCSS v4, and Drizzle. Some other notable points:
 - nub as package manager
 - oxlint and oxfmt as linter/formatter
-- zustand for state management
+- TanStack Query for server state, with URL search params for list and range state
 - Cloudflare Workers via TanStack Start (not Next.js or OpenNext)
 
-API handlers under `src/app/api/` are dispatched by `dispatchApi` from the TanStack Start server entry.
+The API is an Effect `HttpApi` in `src/server/api/`. `dispatchApi` serves it from the TanStack Start server entry after the Better Auth session check. Signed-in users can read the docs at `/api/docs`.
 
 ## Development
 

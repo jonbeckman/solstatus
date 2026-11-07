@@ -14,8 +14,8 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { useLocation, useNavigate } from "@tanstack/react-router"
-import React from "react"
+import { useNavigate, useSearch } from "@tanstack/react-router"
+import { useState } from "react"
 import {
   Table,
   TableBody,
@@ -24,252 +24,112 @@ import {
   TableHeader,
   TableRow,
 } from "@/registry/new-york-v4/ui/table"
+import { type EndpointMonitorListParams, useEndpointMonitors } from "@/lib/api-queries"
 import { Tabs, TabsContent } from "@/registry/new-york-v4/ui/tabs"
-import { useDataTableStore } from "@/store/data-table-store"
+import type { EndpointMonitor, SortOrder } from "@/server/api/schemas"
+
 import { columns } from "./columns"
-
-function isTableUpdater<T>(updater: T | ((current: T) => T)): updater is (current: T) => T {
-  return updater instanceof Function
-}
-
 import { DataRow } from "./data-row"
 import { DataTableLoadingOverlay } from "./data-table-loading-overlay"
 import { DataTableSkeleton } from "./data-table-skeleton"
 import { Pagination } from "./pagination"
 import { Toolbar } from "./toolbar"
 
-// Default pagination values
-const DEFAULT_PAGE_INDEX = 0
-const DEFAULT_PAGE_SIZE = 10
+// The dashboard URL search params. A key is present only when it differs from its default.
+interface DashboardSearchParams {
+  page?: number
+  pageSize?: number
+  search?: string
+  orderBy?: string
+  order?: SortOrder
+}
+
+function isTableUpdater<T>(updater: T | ((current: T) => T)): updater is (current: T) => T {
+  return updater instanceof Function
+}
+
+export const DEFAULT_PAGE_SIZE = 10
+export const DEFAULT_ORDER_BY = "consecutiveFailures"
+
+const defaultColumnVisibility: VisibilityState = {
+  createdAt: false,
+  updatedAt: false,
+  activeAlert: false,
+}
+
+const noMonitors: readonly EndpointMonitor[] = []
 
 export function DataTable() {
   "use no memo"
 
-  const navigate = useNavigate()
-  const pathname = useLocation({ select: (location) => location.pathname })
-  const searchStr = useLocation({ select: (location) => location.searchStr })
+  // The URL holds the page, page size, sort, and search, so a reload or a shared link keeps them.
+  const search = useSearch({ from: "/" })
+  const navigate = useNavigate({ from: "/" })
 
-  const searchParams = React.useMemo(
-    () => new URLSearchParams(searchStr.startsWith("?") ? searchStr.slice(1) : searchStr),
-    [searchStr],
-  )
+  const params: EndpointMonitorListParams = {
+    page: search.page ?? 0,
+    pageSize: search.pageSize ?? DEFAULT_PAGE_SIZE,
+    orderBy: search.orderBy ?? DEFAULT_ORDER_BY,
+    order: search.order ?? "desc",
+    search: search.search ?? "",
+  }
 
-  // Get state and actions from the store
-  const data = useDataTableStore((state) => state.data)
-  const isLoading = useDataTableStore((state) => state.isLoading)
-  const totalEndpointMonitors = useDataTableStore((state) => state.totalEndpointMonitors)
-  const rowSelection = useDataTableStore((state) => state.rowSelection)
-  const columnVisibility = useDataTableStore((state) => state.columnVisibility)
-  const columnFilters = useDataTableStore((state) => state.columnFilters)
-  const sorting = useDataTableStore((state) => state.sorting)
-  const pagination = useDataTableStore((state) => state.pagination)
+  const pagination: PaginationState = { pageIndex: params.page, pageSize: params.pageSize }
+  const sorting: SortingState = [{ id: params.orderBy, desc: params.order === "desc" }]
 
-  // Update URL with query params, omitting default values
-  const updateUrlParams = React.useCallback(
-    (params: {
-      page?: number
-      pageSize?: number
-      search?: string
-      orderBy?: string
-      order?: "asc" | "desc"
-    }) => {
-      const newParams = new URLSearchParams(searchParams.toString())
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [columnVisibility, setColumnVisibility] = useState(defaultColumnVisibility)
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
-      // Handle page parameter - only include if not default (0)
-      if (params.page !== undefined) {
-        if (params.page === DEFAULT_PAGE_INDEX) {
-          newParams.delete("page")
-        } else {
-          newParams.set("page", params.page.toString())
-        }
-      }
+  const monitors = useEndpointMonitors(params)
+  const data = monitors.data?.data ?? noMonitors
+  const totalEndpointMonitors = monitors.data?.totalCount ?? 0
 
-      // Handle pageSize parameter - only include if not default (10)
-      if (params.pageSize !== undefined) {
-        if (params.pageSize === DEFAULT_PAGE_SIZE) {
-          newParams.delete("pageSize")
-        } else {
-          newParams.set("pageSize", params.pageSize.toString())
-        }
-      }
+  // Omit default values, so the plain dashboard URL stays plain.
+  const updateSearch = (next: Partial<EndpointMonitorListParams>) => {
+    const merged = { ...params, ...next }
+    const isDefaultSort = merged.orderBy === DEFAULT_ORDER_BY && merged.order === "desc"
 
-      // Handle search parameter - only include if not empty
-      if (params.search !== undefined) {
-        if (params.search) {
-          newParams.set("search", params.search)
-        } else {
-          newParams.delete("search")
-        }
-      }
+    const search: DashboardSearchParams = {}
 
-      // Handle sorting parameters, omitting defaults
-      const isDefaultSort = params.orderBy === "consecutiveFailures" && params.order === "desc"
+    if (merged.page !== 0) {
+      search.page = merged.page
+    }
 
-      if (params.orderBy === undefined && params.order === undefined) {
-        // No sorting params passed in this update, existing ones remain or are absent
-      } else if (isDefaultSort) {
-        // If the intended sort IS the default, ensure the params are removed from URL
-        newParams.delete("orderBy")
-        newParams.delete("order")
-      } else {
-        // If the intended sort is NOT the default, set the params
-        if (params.orderBy) {
-          newParams.set("orderBy", params.orderBy)
+    if (merged.pageSize !== DEFAULT_PAGE_SIZE) {
+      search.pageSize = merged.pageSize
+    }
 
-          // A missing order defaults to desc in the list API. Omit the param.
-          if (params.order) {
-            newParams.set("order", params.order)
-          } else {
-            newParams.delete("order") // Remove order if not specified for non-default orderBy
-          }
-        } else {
-          // Clearing sort explicitly (orderBy is '', null, or undefined)
-          // Revert to default by removing params.
-          newParams.delete("orderBy")
-          newParams.delete("order")
-        }
-      }
+    if (merged.search) {
+      search.search = merged.search
+    }
 
-      // Construct the new URL, omitting '?' if no parameters
-      const queryString = newParams.toString()
-      const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+    if (!isDefaultSort) {
+      search.orderBy = merged.orderBy
+      search.order = merged.order
+    }
 
-      void navigate({ href: newUrl })
-    },
-    [pathname, searchParams, navigate],
-  )
-
-  // Handle state changes with proper typing
-  const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updater) => {
-    const store = useDataTableStore.getState()
-
-    store.setRowSelection(isTableUpdater(updater) ? updater(store.rowSelection) : updater)
+    void navigate({ search })
   }
 
   const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
-    const store = useDataTableStore.getState()
-    let newSorting: SortingState
+    const [next] = isTableUpdater(updater) ? updater(sorting) : updater
 
-    newSorting = isTableUpdater(updater) ? updater(store.sorting) : updater
-
-    store.setSorting(newSorting) // Update store first
-
-    // Update URL params based on new sorting state
-    updateUrlParams({
-      orderBy: newSorting[0]?.id,
-      order: newSorting[0]?.desc ? "desc" : "asc",
-    })
-
-    // Fetch data with new sorting
-    store.fetchEndpointMonitors()
-  }
-
-  const handleColumnFiltersChange: OnChangeFn<ColumnFiltersState> = (updater) => {
-    const store = useDataTableStore.getState()
-
-    store.setColumnFilters(isTableUpdater(updater) ? updater(store.columnFilters) : updater)
-  }
-
-  const handleVisibilityChange: OnChangeFn<VisibilityState> = (updater) => {
-    const store = useDataTableStore.getState()
-
-    store.setColumnVisibility(isTableUpdater(updater) ? updater(store.columnVisibility) : updater)
+    updateSearch(
+      next
+        ? { orderBy: next.id, order: next.desc ? "desc" : "asc", page: 0 }
+        : { orderBy: DEFAULT_ORDER_BY, order: "desc", page: 0 },
+    )
   }
 
   const handlePaginationChange: OnChangeFn<PaginationState> = (updater) => {
-    const store = useDataTableStore.getState()
-    let newPagination: PaginationState
+    const next = isTableUpdater(updater) ? updater(pagination) : updater
 
-    newPagination = isTableUpdater(updater) ? updater(store.pagination) : updater
-
-    // Always set the new pagination in the store
-    store.setPagination(newPagination)
-
-    // Update URL with new pagination values
-    updateUrlParams({
-      page: newPagination.pageIndex,
-      pageSize: newPagination.pageSize,
-    })
-
-    // Fetch data with new pagination
-    store.fetchEndpointMonitors()
+    updateSearch({ page: next.pageIndex, pageSize: next.pageSize })
   }
 
-  // Initialize from URL params on first load.
-  // Depend on the URL string. `searchParams` is a new object every render, and an empty
-  // result (such as 401) would otherwise refetch on each of those renders.
-  React.useEffect(() => {
-    const urlParams = new URLSearchParams(
-      searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
-    )
-
-    const pageParam = urlParams.get("page")
-    const pageSizeParam = urlParams.get("pageSize")
-    const searchParam = urlParams.get("search")
-    const orderByParam = urlParams.get("orderBy")
-    const orderParam = urlParams.get("order")
-
-    const store = useDataTableStore.getState()
-    let needsUpdate = false
-
-    // Update pagination from URL if present and different from store
-    const currentPageIndex = store.pagination.pageIndex
-    const currentPageSize = store.pagination.pageSize
-    const targetPageIndex = pageParam ? Number.parseInt(pageParam, 10) : DEFAULT_PAGE_INDEX
-    const targetPageSize = pageSizeParam ? Number.parseInt(pageSizeParam, 10) : DEFAULT_PAGE_SIZE
-
-    if (targetPageIndex !== currentPageIndex || targetPageSize !== currentPageSize) {
-      store.setPagination({
-        pageIndex: targetPageIndex,
-        pageSize: targetPageSize,
-      })
-      needsUpdate = true
-    }
-
-    // Update search from URL if present and different from store
-    const currentSearchValue = store.searchValue
-    const targetSearchValue = searchParam ?? ""
-
-    if (targetSearchValue !== currentSearchValue) {
-      store.setSearchValue(targetSearchValue)
-      needsUpdate = true
-    }
-
-    // Update sorting from URL if present and different from store
-    const currentSorting = store.sorting
-
-    if (orderByParam) {
-      const targetSorting: SortingState = [
-        {
-          id: orderByParam,
-          desc: orderParam === "desc",
-        },
-      ]
-
-      // Check if targetSorting is different from currentSorting
-      if (
-        currentSorting.length !== 1 ||
-        currentSorting[0].id !== targetSorting[0].id ||
-        currentSorting[0].desc !== targetSorting[0].desc
-      ) {
-        store.setSorting(targetSorting)
-        needsUpdate = true
-      }
-    } else if (currentSorting.length > 0 && currentSorting[0].id !== "consecutiveFailures") {
-      // If no sort params in URL, but current sort isn't the default, reset to default
-      store.setSorting([{ id: "consecutiveFailures", desc: true }])
-      needsUpdate = true
-    }
-
-    // Fetch data only if any state was updated or initially
-    if (needsUpdate || store.data.length === 0) {
-      // Fetch if state changed or data is empty
-      store.fetchEndpointMonitors()
-    }
-  }, [searchStr])
-
   const table = useReactTable({
-    data,
+    data: [...data],
     columns,
     state: {
       sorting,
@@ -280,10 +140,10 @@ export function DataTable() {
     },
     getRowId: (row) => row.id,
     enableRowSelection: true,
-    onRowSelectionChange: handleRowSelectionChange,
+    onRowSelectionChange: setRowSelection,
     onSortingChange: handleSortingChange,
-    onColumnFiltersChange: handleColumnFiltersChange,
-    onColumnVisibilityChange: handleVisibilityChange,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -296,12 +156,17 @@ export function DataTable() {
   })
 
   const hasData = data.length > 0
+  const isLoading = monitors.isFetching
 
   return (
     <Tabs defaultValue="endpointMonitors" className="w-full flex-col justify-start gap-6">
-      <Toolbar table={table} totalEndpointMonitors={totalEndpointMonitors} />
+      <Toolbar
+        table={table}
+        searchValue={params.search}
+        onSearch={(term) => updateSearch({ search: term, page: 0 })}
+      />
       <TabsContent value="endpointMonitors" className="relative flex flex-col gap-4 overflow-auto">
-        {isLoading && !hasData ? (
+        {monitors.isPending ? (
           <DataTableSkeleton />
         ) : (
           <div className="overflow-hidden rounded-lg border relative">
@@ -336,7 +201,7 @@ export function DataTable() {
             </Table>
           </div>
         )}
-        <Pagination table={table} />
+        <Pagination table={table} totalEndpointMonitors={totalEndpointMonitors} />
       </TabsContent>
     </Tabs>
   )

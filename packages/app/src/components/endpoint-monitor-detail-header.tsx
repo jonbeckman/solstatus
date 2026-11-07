@@ -1,11 +1,9 @@
-import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
-import type { InfraMetadata } from "@solstatus/common/utils/types"
 import { IconActivity, IconLogs, IconMetronome, IconPencil } from "@tabler/icons-react"
 import { ExternalLink, MoreVertical, Pause, Play, RefreshCw } from "lucide-react"
-import { useCallback, useEffect, useState, useTransition } from "react"
+import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
-import type { z } from "zod"
-import { getInfraMetadata } from "@/lib/infra-metadata"
+import { runApi } from "@/lib/api-client"
+import { refreshEndpointMonitors, useInfraMetadata } from "@/lib/api-queries"
 import { DEFAULT_TOAST_OPTIONS } from "@/lib/toasts"
 import { Badge } from "@/registry/new-york-v4/ui/badge"
 import { Button } from "@/registry/new-york-v4/ui/button"
@@ -16,11 +14,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/registry/new-york-v4/ui/dropdown-menu"
+import type { EndpointMonitor } from "@/server/api/schemas"
 import { AddEndpointMonitorDialog } from "./add-endpoint-monitor-dialog"
 
 interface WebsiteDetailHeaderProps {
-  endpointMonitor: z.infer<typeof endpointMonitorsSelectSchema>
-  onStatusChange?: () => void
+  endpointMonitor: EndpointMonitor
 }
 
 // Creatively format URLs based on length
@@ -90,108 +88,54 @@ function formatUrl(url: string, maxLength: number): string {
   }
 }
 
-export function EndpointMonitorDetailHeader({
-  endpointMonitor,
-  onStatusChange,
-}: WebsiteDetailHeaderProps) {
-  const [isLoading, setIsLoading] = useState(false)
+type MonitorAction = "executeCheck" | "pause" | "resume"
 
-  const [infraMetadata, setInfraMetadata] = useState<InfraMetadata | null>(null)
-  const [isInfraMetadataPending, startInfraMetadataTransition] = useTransition()
-  useEffect(() => {
-    startInfraMetadataTransition(async () => {
-      const updatedInfraMetadata = await getInfraMetadata()
-      setInfraMetadata(updatedInfraMetadata)
-    })
-  }, [])
+const actionToasts: Record<
+  MonitorAction,
+  { success: string; description: string; failure: string }
+> = {
+  executeCheck: {
+    success: "Check executed",
+    description: "The endpoint monitor check has been manually executed.",
+    failure: "Failed to execute check",
+  },
+  pause: {
+    success: "Monitoring paused",
+    description: "Endpoint monitoring has been paused.",
+    failure: "Failed to pause monitoring",
+  },
+  resume: {
+    success: "Monitoring resumed",
+    description: "Endpoint monitoring has been resumed.",
+    failure: "Failed to resume monitoring",
+  },
+}
 
-  const refreshWebsiteData = useCallback(async () => {
-    if (onStatusChange) {
-      onStatusChange()
-    }
-  }, [onStatusChange])
+export function EndpointMonitorDetailHeader({ endpointMonitor }: WebsiteDetailHeaderProps) {
+  const { data: infraMetadata } = useInfraMetadata()
 
-  const executeCheck = async () => {
-    setIsLoading(true)
-
-    try {
-      const response = await fetch(`/api/endpoint-monitors/${endpointMonitor.id}/execute-check`)
-
-      if (!response.ok) {
-        throw new Error("Failed to execute check")
-      }
-
-      toast.success("Check executed", {
-        description: "The endpoint monitor check has been manually executed.",
+  const action = useMutation({
+    mutationFn: (kind: MonitorAction) =>
+      runApi((client) => client.endpointMonitors[kind]({ params: { id: endpointMonitor.id } })),
+    onSuccess: (_response, kind) => {
+      toast.success(actionToasts[kind].success, {
+        description: actionToasts[kind].description,
         ...DEFAULT_TOAST_OPTIONS,
       })
-      // Refresh endpoint monitor status after executing check
-      await refreshWebsiteData()
-    } catch (error) {
-      toast.error("Failed to execute check", {
+    },
+    onError: (error, kind) => {
+      toast.error(actionToasts[kind].failure, {
         description: `${error}`,
         ...DEFAULT_TOAST_OPTIONS,
       })
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    },
+    onSettled: () => refreshEndpointMonitors(),
+  })
 
-  const pauseMonitoring = async () => {
-    setIsLoading(true)
-
-    try {
-      const response = await fetch(`/api/endpoint-monitors/${endpointMonitor.id}/pause`, {
-        method: "POST",
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to pause monitoring")
-      }
-
-      toast.success("Monitoring paused", {
-        description: "Endpoint monitoring has been paused.",
-        ...DEFAULT_TOAST_OPTIONS,
-      })
-      // Refresh endpoint monitor status after pausing
-      await refreshWebsiteData()
-    } catch (error) {
-      toast.error("Failed to pause monitoring", {
-        description: `${error}`,
-        ...DEFAULT_TOAST_OPTIONS,
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const resumeMonitoring = async () => {
-    setIsLoading(true)
-
-    try {
-      const response = await fetch(`/api/endpoint-monitors/${endpointMonitor.id}/resume`, {
-        method: "POST",
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to resume monitoring")
-      }
-
-      toast.success("Monitoring resumed", {
-        description: "Endpoint monitoring has been resumed.",
-        ...DEFAULT_TOAST_OPTIONS,
-      })
-      // Refresh endpoint monitor status after resuming
-      await refreshWebsiteData()
-    } catch (error) {
-      toast.error("Failed to resume monitoring", {
-        description: `${error}`,
-        ...DEFAULT_TOAST_OPTIONS,
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const isLoading = action.isPending
+  const executeCheck = () => action.mutate("executeCheck")
+  const pauseMonitoring = () => action.mutate("pause")
+  const resumeMonitoring = () => action.mutate("resume")
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -226,7 +170,7 @@ export function EndpointMonitorDetailHeader({
         </div>
       </div>
       <div className="flex flex-col sm:flex-row gap-4">
-        {!isInfraMetadataPending && infraMetadata && (
+        {infraMetadata && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" disabled={isLoading}>
@@ -269,7 +213,6 @@ export function EndpointMonitorDetailHeader({
           <DropdownMenuContent align="end">
             <AddEndpointMonitorDialog
               endpointMonitor={endpointMonitor}
-              onSuccess={refreshWebsiteData}
               trigger={
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <IconPencil className="mr-2 h-4 w-4" />

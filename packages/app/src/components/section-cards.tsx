@@ -10,7 +10,6 @@ import {
   IconTrendingDown,
   IconTrendingUp,
 } from "@tabler/icons-react"
-import { useEffect } from "react"
 import { Badge } from "@/registry/new-york-v4/ui/badge"
 import {
   Card,
@@ -20,21 +19,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/registry/new-york-v4/ui/card"
-import { useStatsStore } from "@/store/dashboard-stats-store"
+import { useDashboardStats } from "@/lib/api-queries"
 
 export function SectionCards() {
-  const statsStore = useStatsStore()
+  const { data: stats, isPending, isError } = useDashboardStats()
 
-  const { stats, isLoading, error, fetchDashboardStats } = statsStore
-
-  useEffect(() => {
-    fetchDashboardStats()
-    const intervalId = setInterval(fetchDashboardStats, 60 * 1000)
-
-    return () => clearInterval(intervalId)
-  }, [fetchDashboardStats])
-
-  if (isLoading && !stats) {
+  if (isPending) {
     return (
       <div className="flex justify-center items-center p-8">
         <IconLoader2 className="animate-spin h-8 w-8" />
@@ -42,8 +32,8 @@ export function SectionCards() {
     )
   }
 
-  if (error && !stats) {
-    return <div className="p-4 text-center text-red-500">{error}</div>
+  if (isError && !stats) {
+    return <div className="p-4 text-center text-red-500">Failed to load dashboard statistics</div>
   }
 
   // Use placeholder values until data is loaded
@@ -51,7 +41,7 @@ export function SectionCards() {
     totalEndpointMonitors: 0,
     sitesWithAlerts: 0,
     highestResponseTime: 0,
-    highestResponseTimeWebsiteId: null,
+    highestResponseTimeEndpointMonitorId: null,
     uptimePercentage: 100,
   }
 
@@ -115,15 +105,15 @@ export function SectionCards() {
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium items-center">
-            {data.highestResponseTimeWebsiteId ? (
+            {data.highestResponseTimeEndpointMonitorId ? (
               <>
                 <IconLink className="h-4 w-4" />
                 <a
-                  href={`/endpoint-monitors/${data.highestResponseTimeWebsiteId}`}
+                  href={`/endpoint-monitors/${data.highestResponseTimeEndpointMonitorId}`}
                   className="hover:underline"
-                  title={`View endpoint monitor ${data.highestResponseTimeWebsiteId}`}
+                  title={`View endpoint monitor ${data.highestResponseTimeEndpointMonitorId}`}
                 >
-                  {data.highestResponseTimeWebsiteId}
+                  {data.highestResponseTimeEndpointMonitorId}
                 </a>
               </>
             ) : (

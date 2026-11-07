@@ -1,7 +1,5 @@
 import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1"
 
-export * from "./zod-schema"
-
 export function useDrizzle(D1: D1Database): DrizzleD1Database {
   return drizzle(D1)
 }

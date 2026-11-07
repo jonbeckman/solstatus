@@ -1,4 +1,3 @@
-import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -7,7 +6,6 @@ import {
 } from "@tabler/icons-react"
 import type { Table } from "@tanstack/react-table"
 import React, { useId } from "react"
-import type { z } from "zod"
 import { Button } from "@/registry/new-york-v4/ui/button"
 import { Label } from "@/registry/new-york-v4/ui/label"
 import {
@@ -17,17 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/registry/new-york-v4/ui/select"
-import { useDataTableStore } from "@/store/data-table-store"
+import type { EndpointMonitor } from "@/server/api/schemas"
 
 interface PaginationProps {
-  table: Table<z.infer<typeof endpointMonitorsSelectSchema>>
+  table: Table<EndpointMonitor>
+  totalEndpointMonitors: number
 }
 
-export function Pagination({ table }: PaginationProps) {
+export function Pagination({ table, totalEndpointMonitors }: PaginationProps) {
   "use no memo"
   const rowsPerPageId = useId()
-  const pagination = useDataTableStore((state) => state.pagination)
-  const totalEndpointMonitors = useDataTableStore((state) => state.totalEndpointMonitors)
+  const { pagination } = table.getState()
 
   // Calculate page count locally to ensure it's consistent
   const pageCount = Math.max(1, Math.ceil(totalEndpointMonitors / pagination.pageSize))

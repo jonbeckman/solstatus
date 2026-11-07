@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
-import { z } from "zod"
+import { useMemo } from "react"
 import { Line, LineChart } from "recharts"
 import { Badge } from "@/registry/new-york-v4/ui/badge"
 import {
@@ -9,6 +8,7 @@ import {
   ChartTooltipContent,
 } from "@/registry/new-york-v4/ui/chart"
 import { Skeleton } from "@/registry/new-york-v4/ui/skeleton"
+import { useRecentLatency } from "@/lib/api-queries"
 
 interface LatencyLimitChartProps {
   endpointMonitorId: string
@@ -52,52 +52,18 @@ export function LatencyLimitChart({
   limit = 30,
   height = 75,
 }: LatencyLimitChartProps) {
-  const [data, setData] = useState<LatencyDataPoint[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const latency = useRecentLatency(endpointMonitorId, limit)
+  const isLoading = latency.isPending
 
-  useEffect(() => {
-    const fetchLatencyData = async () => {
-      setIsLoading(true)
-
-      try {
-        const response = await fetch(
-          `/api/endpoint-monitors/${endpointMonitorId}/uptime/limit?limit=${limit}`,
-        )
-
-        if (!response.ok) {
-          console.error(`Failed to fetch latency data: ${response.statusText}`)
-          setData([])
-
-          return
-        }
-
-        const responseData = z
-          .array(
-            z.object({
-              timestamp: z.string(),
-              responseTime: z.number(),
-            }),
-          )
-          .parse(await response.json())
-
-        // Format data with gradient colors based on response time
-        const formattedData = responseData.map((point) => ({
-          timestamp: point.timestamp,
-          responseTime: point.responseTime,
-          gradientColor: getColorForResponseTime(point.responseTime),
-        }))
-
-        setData(formattedData)
-      } catch (error) {
-        console.error("Error fetching latency data:", error)
-        setData([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchLatencyData()
-  }, [endpointMonitorId, limit])
+  const data = useMemo<LatencyDataPoint[]>(
+    () =>
+      (latency.data ?? []).map((point) => ({
+        timestamp: point.timestamp.toISOString(),
+        responseTime: point.responseTime ?? 0,
+        gradientColor: getColorForResponseTime(point.responseTime ?? 0),
+      })),
+    [latency.data],
+  )
 
   // Calculate min/max response times for gradient calculation
   const { minResponseTime, maxResponseTime } = useMemo(() => {

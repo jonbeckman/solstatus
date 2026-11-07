@@ -1,6 +1,5 @@
-import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
+import type { EndpointMonitorRow } from "@solstatus/common/db/schema"
 import type { InfraMetadata } from "@solstatus/common/utils/types"
-import type { z } from "zod"
 
 /**
  * Opsgenie API integration for creating alerts
@@ -89,7 +88,7 @@ async function sendOpsgenieAlert(
  */
 export async function createEndpointMonitorDownAlert(
   apiKey: string,
-  endpointMonitor: z.infer<typeof endpointMonitorsSelectSchema>,
+  endpointMonitor: EndpointMonitorRow,
   infraMetadata: InfraMetadata,
   status?: number,
   error?: string,

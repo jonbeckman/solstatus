@@ -1,4 +1,6 @@
 import { toast } from "sonner"
+import { runApi } from "@/lib/api-client"
+import { refreshEndpointMonitors } from "@/lib/api-queries"
 import { DEFAULT_TOAST_OPTIONS } from "@/lib/toasts"
 
 export async function handleResumeMonitoring(endpointMonitorId: string) {
@@ -19,17 +21,11 @@ export async function handleToggleStatus(endpointMonitorId: string, newStatus: b
   }
 
   try {
-    const endpoint = newStatus
-      ? `/api/endpoint-monitors/${endpointMonitorId}/resume`
-      : `/api/endpoint-monitors/${endpointMonitorId}/pause`
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-    })
-
-    if (!response.ok) {
-      throw new Error(`Received status code ${response.status}`)
-    }
+    await runApi((client) =>
+      newStatus
+        ? client.endpointMonitors.resume({ params: { id: endpointMonitorId } })
+        : client.endpointMonitors.pause({ params: { id: endpointMonitorId } }),
+    )
 
     toast.success(`Successfully ${newStatus ? "resumed" : "paused"} monitoring`, {
       ...DEFAULT_TOAST_OPTIONS,
@@ -44,6 +40,8 @@ export async function handleToggleStatus(endpointMonitorId: string, newStatus: b
     })
 
     return false
+  } finally {
+    await refreshEndpointMonitors()
   }
 }
 
@@ -53,13 +51,7 @@ export async function handleDeleteWebsite(endpointMonitorId: string) {
   }
 
   try {
-    const response = await fetch(`/api/endpoint-monitors/${endpointMonitorId}`, {
-      method: "DELETE",
-    })
-
-    if (!response.ok) {
-      throw new Error(`Received status code ${response.status}`)
-    }
+    await runApi((client) => client.endpointMonitors.delete({ params: { id: endpointMonitorId } }))
 
     toast.success("Endpoint monitor deleted successfully", {
       ...DEFAULT_TOAST_OPTIONS,
@@ -74,5 +66,7 @@ export async function handleDeleteWebsite(endpointMonitorId: string) {
     })
 
     return false
+  } finally {
+    await refreshEndpointMonitors()
   }
 }

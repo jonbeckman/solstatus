@@ -1,13 +1,11 @@
-import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import { secsToHumanReadable } from "@solstatus/common/utils"
 import { IconBellExclamation, IconLayoutSidebarRightExpand } from "@tabler/icons-react"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { z } from "zod"
 import { LatencyLimitChart } from "@/components/latency-limit-chart"
 import { Badge } from "@/registry/new-york-v4/ui/badge"
 import { Button } from "@/registry/new-york-v4/ui/button"
 import { Checkbox } from "@/registry/new-york-v4/ui/checkbox"
-import { useDataTableStore } from "@/store/data-table-store"
+import type { EndpointMonitor } from "@/server/api/schemas"
 import { DataTableColumnHeader } from "./column-header"
 import { EndpointMonitorDetailDrawer } from "./endpoint-monitor-detail-drawer"
 
@@ -36,7 +34,7 @@ export type AppColumnDef<TData> = ColumnDef<TData> & {
   headerLabel?: string
 }
 
-export const columns: AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>[] = [
+export const columns: AppColumnDef<EndpointMonitor>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -83,16 +81,9 @@ export const columns: AppColumnDef<z.infer<typeof endpointMonitorsSelectSchema>>
     headerLabel: "Latency",
     maxSize: 300,
     cell: ({ row }) => {
-      const lastRefreshed = useDataTableStore((state) => state.lastRefreshed)
-
       return (
         <div className="w-[300px]">
-          <LatencyLimitChart
-            key={`${row.original.id}-${lastRefreshed}`}
-            endpointMonitorId={row.original.id}
-            limit={30}
-            height={40}
-          />
+          <LatencyLimitChart endpointMonitorId={row.original.id} limit={30} height={40} />
         </div>
       )
     },
