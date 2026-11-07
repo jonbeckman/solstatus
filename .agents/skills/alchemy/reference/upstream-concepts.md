@@ -72,7 +72,9 @@ In app deploys, prefer provider-supported `bindings` fields and typed helpers ov
 
 ## Effect runtime rules
 
-Apply these upstream `AGENTS.md` rules when writing deployable runtime logic or tests:
+Apply these upstream `AGENTS.md` rules when writing deployable runtime logic or tests.
+General Effect service, error, and config patterns are in
+[effect-typescript](../../effect-typescript/SKILL.md).
 
 - Use Effect platform services for files, paths, HTTP, clocks, sleeps, and retries.
 - Wrap sync Node APIs in `Effect.sync` or `Effect.try` so they participate in tracing and interruption.
