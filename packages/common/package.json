@@ -30,7 +30,6 @@
     "./drizzle": "./src/db/drizzle.config.ts",
     "./db": "./src/db/index.ts",
     "./db/schema": "./src/db/schema/index.ts",
-    "./db/zod-schema": "./src/db/zod-schema.ts",
     "./utils": "./src/utils/index.ts",
     "./utils/*": "./src/utils/*.ts"
   },
@@ -41,8 +40,7 @@
     "@alchemy.run/cloudflare": "2.0.0-beta.85",
     "alchemy": "2.0.0-beta.85",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
-    "nanoid": "^5.1.5",
-    "zod": "4.6.7"
+    "nanoid": "^5.1.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261022.1",

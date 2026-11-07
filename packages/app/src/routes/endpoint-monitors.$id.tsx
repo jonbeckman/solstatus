@@ -1,18 +1,9 @@
-import { endpointMonitorsSelectSchema, uptimeChecksSelectSchema } from "@solstatus/common/db"
 import { msToHumanReadable, secsToHumanReadable } from "@solstatus/common/utils"
 import { IconPointFilled } from "@tabler/icons-react"
-import { createFileRoute, Link, useLocation, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
-import {
-  startTransition,
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
-import { z } from "zod"
+import * as Schema from "effect/Schema"
+import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react"
 import { PolkaDots } from "@/components/bg-patterns/polka-dots"
 import { EndpointMonitorDetailHeader } from "@/components/endpoint-monitor-detail-header"
 import { EndpointMonitorSectionCards } from "@/components/endpoint-monitor-section-cards"
@@ -21,6 +12,12 @@ import { TimeRangeTabs } from "@/components/time-range-tabs"
 import { UptimeChart } from "@/components/uptime-chart"
 import { defaultHeaderContent, useHeaderContentOnly } from "@/context/header-context"
 import { useAutoRefresh } from "@/hooks/use-auto-refresh"
+import {
+  refreshEndpointMonitors,
+  useEndpointMonitor,
+  useLatestCheck,
+  useUptimeRange,
+} from "@/lib/api-queries"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/registry/new-york-v4/ui/badge"
 import { Button } from "@/registry/new-york-v4/ui/button"
@@ -31,13 +28,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/registry/new-york-v4/ui/tooltip"
-import { useDialogStore } from "@/store/dialog-store"
-import { isTimeRange, type TimeRange } from "@/types/endpointMonitor"
-
-// Define the type for a single uptime check
-type LatestUptimeCheck = z.infer<typeof uptimeChecksSelectSchema>
+import { TimeRange, type UptimeCheck } from "@/server/api/schemas"
 
 // Helper function to calculate default time range based on monitor age
+const noChecks: readonly UptimeCheck[] = []
+
 function calculateDefaultTimeRange(createdAt: Date): TimeRange {
   const now = new Date()
   const ageInMs = now.getTime() - createdAt.getTime()
@@ -69,7 +64,12 @@ function calculateDefaultTimeRange(createdAt: Date): TimeRange {
   return "2d"
 }
 
+const DetailSearch = Schema.Struct({
+  range: Schema.optionalKey(TimeRange),
+})
+
 export const Route = createFileRoute("/endpoint-monitors/$id")({
+  validateSearch: Schema.toStandardSchemaV1(DetailSearch),
   component: EndpointMonitorDetailPage,
 })
 
@@ -77,37 +77,21 @@ function EndpointMonitorDetailPage() {
   const { id: endpointMonitorId } = Route.useParams()
   const navigate = useNavigate()
   const { setHeaderLeftContent, setHeaderRightContent } = useHeaderContentOnly()
-  const searchStr = useLocation({ select: (location) => location.searchStr })
+  const { range: rangeInUrl } = Route.useSearch()
 
-  const searchParams = new URLSearchParams(
-    searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
-  )
+  const monitorQuery = useEndpointMonitor(endpointMonitorId)
+  const endpointMonitor = monitorQuery.data ?? null
+  const latestUptimeCheck = useLatestCheck(endpointMonitorId).data ?? null
 
-  const { isEditEndpointMonitorDialogOpen } = useDialogStore()
+  // Without a range in the URL, a young monitor opens on a range that its checks fill.
+  const timeRange: TimeRange =
+    rangeInUrl ?? (endpointMonitor ? calculateDefaultTimeRange(endpointMonitor.createdAt) : "1d")
 
-  const [endpointMonitor, setEndpointMonitor] = useState<z.infer<
-    typeof endpointMonitorsSelectSchema
-  > | null>(null)
-
-  const [isLoading, setIsLoading] = useState(true)
-
-  // Initialize timeRange with a temporary default
-  const [timeRange, setTimeRange] = useState<TimeRange>(() => {
-    const rangeParam = searchParams.get("range")
-
-    return isTimeRange(rangeParam) ? rangeParam : "1d"
-  })
-
-  // Track if we've set the default based on monitor age
-  const hasSetDefaultTimeRange = useRef(false)
-
-  const [uptimeData, setUptimeData] = useState<z.infer<typeof uptimeChecksSelectSchema>[]>([])
-  const [latestUptimeCheck, setLatestUptimeCheck] = useState<LatestUptimeCheck | null>(null) // New state for latest check
-
-  const [isUptimeDataLoading, setIsUptimeDataLoading] = useState(true)
-  const [uptimeDataError, setUptimeDataError] = useState<string | null>(null)
-  const isInitialRender = useRef(true)
-  const [hasLoadedDataOnce, setHasLoadedDataOnce] = useState(false)
+  const uptimeQuery = useUptimeRange(endpointMonitorId, timeRange)
+  const uptimeData = uptimeQuery.data ?? noChecks
+  const isUptimeDataLoading = uptimeQuery.isFetching
+  const uptimeDataError = uptimeQuery.isError ? "Failed to load uptime data." : null
+  const hasLoadedDataOnce = uptimeQuery.isFetched
   const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Defer chart data updates to prevent blocking tab animations
@@ -115,145 +99,18 @@ function EndpointMonitorDetailPage() {
   const deferredTimeRange = useDeferredValue(timeRange)
   const deferredIsTransitioning = useDeferredValue(isTransitioning)
 
-  const fetchWebsite = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/endpoint-monitors/${endpointMonitorId}`)
+  const isNotFound = monitorQuery.data === null
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          void navigate({ href: "/" })
-
-          return
-        }
-
-        throw new Error(`Failed to fetch endpointMonitor: ${response.statusText}`)
-      }
-
-      const monitor = endpointMonitorsSelectSchema.parse(await response.json())
-      setEndpointMonitor(monitor)
-
-      // Set default time range based on monitor age if URL doesn't have a range.
-      // Depend on the search string, not a new URLSearchParams, so this callback stays stable.
-      const rangeInUrl = new URLSearchParams(
-        searchStr.startsWith("?") ? searchStr.slice(1) : searchStr,
-      ).get("range")
-
-      if (!rangeInUrl && !hasSetDefaultTimeRange.current && monitor.createdAt) {
-        hasSetDefaultTimeRange.current = true
-        const defaultRange = calculateDefaultTimeRange(new Date(monitor.createdAt))
-        setTimeRange(defaultRange)
-      }
-    } catch (error) {
-      console.error("Error fetching endpointMonitor:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [endpointMonitorId, navigate, searchStr])
-
-  const fetchUptimeData = useCallback(async () => {
-    if (!endpointMonitorId) {
-      return
-    }
-
-    // Check if we have existing data before starting the fetch
-    const hasExistingData = uptimeData.length > 0
-
-    setIsUptimeDataLoading(true)
-    setUptimeDataError(null)
-
-    try {
-      const response = await fetch(
-        `/api/endpoint-monitors/${endpointMonitorId}/uptime/range?range=${timeRange}`,
-      )
-
-      if (!response.ok) {
-        console.error(
-          `Failed to fetch combined data for endpointMonitor ${endpointMonitorId} with error: ${response.statusText}`,
-        )
-
-        // Don't clear existing data on error during refresh
-        if (!hasExistingData) {
-          setUptimeData([])
-        }
-
-        setUptimeDataError(`Failed to load data: ${response.statusText}`)
-
-        return
-      }
-
-      const responseData = z.array(uptimeChecksSelectSchema).parse(await response.json())
-
-      setUptimeData(responseData)
-      setUptimeDataError(null)
-      setHasLoadedDataOnce(true)
-    } catch (error) {
-      console.error("Error fetching combined uptime/latency data:", error)
-
-      // Don't clear existing data on error during refresh
-      if (!hasExistingData) {
-        setUptimeData([])
-      }
-
-      setUptimeDataError("An error occurred while loading endpointMonitor data.")
-    } finally {
-      setIsUptimeDataLoading(false)
-    }
-  }, [endpointMonitorId, timeRange, uptimeData.length])
-
-  const fetchLatestUptimeCheck = useCallback(async () => {
-    if (!endpointMonitorId) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/endpoint-monitors/${endpointMonitorId}/uptime`)
-
-      if (!response.ok) {
-        if (response.status !== 404) {
-          console.error(`Failed to fetch latest uptime check: ${response.statusText}`)
-        }
-
-        setLatestUptimeCheck(null)
-
-        return
-      }
-
-      setLatestUptimeCheck(uptimeChecksSelectSchema.parse(await response.json()))
-    } catch (error) {
-      console.error("Error fetching latest uptime check:", error)
-      setLatestUptimeCheck(null)
-    }
-  }, [endpointMonitorId])
-
-  // Create a ref to hold the latest fetchUptimeData function.
-  // This allows refreshAllData to remain stable while still calling the latest fetchUptimeData.
-  const fetchUptimeDataRef = useRef(fetchUptimeData)
   useEffect(() => {
-    fetchUptimeDataRef.current = fetchUptimeData
-  }, [fetchUptimeData])
-
-  const refreshAllData = useCallback(async () => {
-    if (endpointMonitorId) {
-      await Promise.all([fetchWebsite(), fetchUptimeDataRef.current(), fetchLatestUptimeCheck()])
+    if (isNotFound) {
+      void navigate({ href: "/" })
     }
-  }, [endpointMonitorId, fetchWebsite, fetchLatestUptimeCheck])
+  }, [isNotFound, navigate])
 
   useAutoRefresh({
-    onRefresh: refreshAllData,
-    enabled: !!endpointMonitorId && !isEditEndpointMonitorDialogOpen,
+    onRefresh: refreshEndpointMonitors,
+    enabled: !!endpointMonitorId,
   })
-
-  // This effect is now responsible for fetching uptime data when the timeRange changes.
-  // It skips the initial render because useAutoRefresh handles the initial data load.
-  useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false
-
-      return
-    }
-
-    fetchUptimeData()
-  }, [fetchUptimeData])
 
   useEffect(() => {
     // The useAutoRefresh hook now handles the initial data fetch.
@@ -333,7 +190,7 @@ function EndpointMonitorDetailPage() {
     [uptimeData],
   )
 
-  if (isLoading) {
+  if (monitorQuery.isPending) {
     return (
       <div className="container mx-auto py-8 px-4">
         <div className="h-[400px] flex items-center justify-center">
@@ -365,10 +222,7 @@ function EndpointMonitorDetailPage() {
     <div className="container mx-auto pt-2 pb-8 px-4">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
-          <EndpointMonitorDetailHeader
-            endpointMonitor={endpointMonitor}
-            onStatusChange={fetchWebsite}
-          />
+          <EndpointMonitorDetailHeader endpointMonitor={endpointMonitor} />
 
           <TimeRangeTabs
             value={timeRange}
@@ -381,15 +235,11 @@ function EndpointMonitorDetailPage() {
               // Delay the state update to allow tab animation to complete
               requestAnimationFrame(() => {
                 startTransition(() => {
-                  setTimeRange(newTimeRange)
-
-                  // Update URL
-                  const newPath =
-                    newTimeRange === "1d"
-                      ? `/endpoint-monitors/${endpointMonitorId}`
-                      : `/endpoint-monitors/${endpointMonitorId}?range=${newTimeRange}`
-
-                  void navigate({ href: newPath })
+                  void navigate({
+                    to: "/endpoint-monitors/$id",
+                    params: { id: endpointMonitorId },
+                    search: { range: newTimeRange },
+                  })
 
                   // Clear transitioning state after a delay
                   setTimeout(() => {

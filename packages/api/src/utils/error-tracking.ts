@@ -1,12 +1,11 @@
-import type {
-  endpointMonitorsPatchSchema,
-  endpointMonitorsSelectSchema,
-} from "@solstatus/common/db"
-import { EndpointMonitorsTable } from "@solstatus/common/db/schema"
+import {
+  type EndpointMonitorPatch,
+  type EndpointMonitorRow,
+  EndpointMonitorsTable,
+} from "@solstatus/common/db/schema"
 import { endpointSignature } from "@solstatus/common/utils"
 import { eq } from "drizzle-orm"
 import type { DrizzleD1Database } from "drizzle-orm/d1"
-import type { z } from "zod"
 import type { MonitorExecEnv } from "../../infra/types/env"
 import { createEndpointMonitorDownAlert } from "./opsgenie"
 
@@ -14,7 +13,7 @@ export async function handleFailureTracking(
   isExpectedStatus: boolean,
   status: number,
   errorMessage: string,
-  endpointMonitor: z.infer<typeof endpointMonitorsSelectSchema>,
+  endpointMonitor: EndpointMonitorRow,
   db: DrizzleD1Database,
   env: MonitorExecEnv,
 ) {
@@ -32,7 +31,7 @@ export async function handleFailureTracking(
       `${endpointSignature(endpointMonitor)} has ${consecutiveFailures} consecutive failures`,
     )
 
-    const endpointMonitorPatch: z.infer<typeof endpointMonitorsPatchSchema> = {
+    const endpointMonitorPatch: EndpointMonitorPatch = {
       consecutiveFailures: consecutiveFailures,
     }
 
@@ -51,7 +50,7 @@ export async function handleFailureTracking(
 async function sendAlert(
   status: number,
   errorMessage: string,
-  endpointMonitor: z.infer<typeof endpointMonitorsSelectSchema>,
+  endpointMonitor: EndpointMonitorRow,
   env: MonitorExecEnv,
 ) {
   if (!env.OPSGENIE_API_KEY) {

@@ -1,4 +1,3 @@
-import type { uptimeChecksSelectSchema } from "@solstatus/common/db"
 import { msToHumanReadable } from "@solstatus/common/utils"
 import {
   format,
@@ -14,9 +13,8 @@ import {
 import type React from "react"
 import { memo, useMemo } from "react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import type { z } from "zod"
 import { chartTimeDomain } from "@/lib/chart-time-domain"
-import type { TimeRange } from "@/types/endpointMonitor"
+import type { TimeRange, UptimeCheck } from "@/server/api/schemas"
 import { ChartLoadingOverlay } from "./chart-loading-overlay"
 
 const getTimeBucketStart = (timestampMs: number, range: TimeRange): number => {
@@ -98,10 +96,7 @@ interface ProcessedDataPoint {
   maxLatency: number | null
 }
 
-const processData = (
-  data: z.infer<typeof uptimeChecksSelectSchema>[],
-  range: TimeRange,
-): ProcessedDataPoint[] => {
+const processData = (data: readonly UptimeCheck[], range: TimeRange): ProcessedDataPoint[] => {
   const now = Date.now()
   let startTime: Date
   const endTime = new Date(now)
@@ -397,7 +392,7 @@ const CustomTooltip = ({
 }
 
 interface LatencyRangeChartProps {
-  data: z.infer<typeof uptimeChecksSelectSchema>[]
+  data: readonly UptimeCheck[]
   timeRange: TimeRange
   isLoading?: boolean
   error?: string | null

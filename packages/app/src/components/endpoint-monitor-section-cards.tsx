@@ -1,4 +1,3 @@
-import type { endpointMonitorsSelectSchema } from "@solstatus/common/db"
 import { msToHumanReadable } from "@solstatus/common/utils"
 import {
   IconAlertTriangle,
@@ -11,7 +10,7 @@ import {
   IconTrendingDown,
   IconTrendingUp,
 } from "@tabler/icons-react"
-import type { z } from "zod"
+import type { EndpointMonitor } from "@/server/api/schemas"
 import { Badge } from "@/registry/new-york-v4/ui/badge"
 import {
   Card,
@@ -23,7 +22,7 @@ import {
 } from "@/registry/new-york-v4/ui/card"
 
 interface WebsiteSectionCardsProps {
-  endpointMonitor: z.infer<typeof endpointMonitorsSelectSchema>
+  endpointMonitor: EndpointMonitor
   avgResponseTime: number
   uptimePercentage: number
   loading?: boolean

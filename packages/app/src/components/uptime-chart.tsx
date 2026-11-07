@@ -1,4 +1,3 @@
-import type { uptimeChecksSelectSchema } from "@solstatus/common/db"
 import {
   format,
   getUnixTime,
@@ -13,9 +12,8 @@ import {
 import type React from "react"
 import { memo, useMemo } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import type { z } from "zod"
 import { chartTimeDomain } from "@/lib/chart-time-domain"
-import type { TimeRange } from "@/types/endpointMonitor"
+import type { TimeRange, UptimeCheck } from "@/server/api/schemas"
 import { PolkaDots } from "./bg-patterns/polka-dots"
 import { ChartLoadingOverlay } from "./chart-loading-overlay"
 
@@ -110,7 +108,7 @@ interface ProcessedUptimeDataPoint {
 }
 
 const processUptimeData = (
-  data: z.infer<typeof uptimeChecksSelectSchema>[],
+  data: readonly UptimeCheck[],
   range: TimeRange,
   // checkIntervalSeconds: number // Needed to calculate expected checks
 ): ProcessedUptimeDataPoint[] => {
@@ -165,7 +163,7 @@ const processUptimeData = (
 
   const aggregatedData: {
     [key: number]: {
-      checks: z.infer<typeof uptimeChecksSelectSchema>[]
+      checks: UptimeCheck[]
     }
   } = {}
 
@@ -462,7 +460,7 @@ const CustomUptimeTooltip: React.FC<CustomUptimeTooltipProps> = ({
 }
 
 interface UptimeChartProps {
-  data: z.infer<typeof uptimeChecksSelectSchema>[]
+  data: readonly UptimeCheck[]
   timeRange: TimeRange
   isLoading?: boolean
   error?: string | null

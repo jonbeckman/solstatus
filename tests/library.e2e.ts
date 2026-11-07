@@ -1,5 +1,6 @@
 import { test, expect } from "e2e"
-import { endpointMonitorsPatchSchema } from "../packages/common/src/db/zod-schema"
+import * as Schema from "effect/Schema"
+import { UpdateEndpointMonitor } from "../packages/app/src/server/api/schemas"
 import { PRE_ID, createId } from "../packages/common/src/utils/ids"
 
 const quotedUrl = "https://example.com/o'reilly"
@@ -15,8 +16,10 @@ test(
   },
 )
 
-test("endpointMonitorsPatchSchema validates url and drops id", { platforms: ["cli"] }, async () => {
-  const parsed = endpointMonitorsPatchSchema.parse({
+test("UpdateEndpointMonitor validates url and drops id", { platforms: ["cli"] }, async () => {
+  const decode = Schema.decodeUnknownSync(UpdateEndpointMonitor)
+
+  const parsed = decode({
     id: "endp_should_not_stick",
     name: "Renamed",
     url: quotedUrl,
@@ -26,5 +29,5 @@ test("endpointMonitorsPatchSchema validates url and drops id", { platforms: ["cl
     name: "Renamed",
     url: quotedUrl,
   })
-  expect(endpointMonitorsPatchSchema.safeParse({ url: "not a url" }).success).toBe(false)
+  expect(Schema.is(UpdateEndpointMonitor)({ url: "not a url" })).toBe(false)
 })

@@ -1,10 +1,12 @@
 import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router"
+import { QueryClientProvider } from "@tanstack/react-query"
 import type { CSSProperties, ReactNode } from "react"
 import { ActiveThemeProvider } from "@/components/active-theme"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { ThemeProvider } from "@/components/theme-provider"
 import { HeaderProvider } from "@/context/header-context"
+import { queryClient } from "@/lib/api-queries"
 import { siteConfig } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import { SidebarInset, SidebarProvider } from "@/registry/new-york-v4/ui/sidebar"
@@ -36,22 +38,29 @@ const sidebarStyle: CSSProperties & { "--sidebar-width": string } = {
 function RootComponent() {
   return (
     <RootDocument>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <ActiveThemeProvider initialTheme={siteConfig.defaultTheme}>
-          <HeaderProvider>
-            <SidebarProvider defaultOpen style={sidebarStyle}>
-              <AppSidebar variant="inset" />
-              <SidebarInset>
-                <SiteHeader />
-                <div className="flex flex-1 flex-col">
-                  <Outlet />
-                </div>
-              </SidebarInset>
-            </SidebarProvider>
-          </HeaderProvider>
-          <Toaster />
-        </ActiveThemeProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ActiveThemeProvider initialTheme={siteConfig.defaultTheme}>
+            <HeaderProvider>
+              <SidebarProvider defaultOpen style={sidebarStyle}>
+                <AppSidebar variant="inset" />
+                <SidebarInset>
+                  <SiteHeader />
+                  <div className="flex flex-1 flex-col">
+                    <Outlet />
+                  </div>
+                </SidebarInset>
+              </SidebarProvider>
+            </HeaderProvider>
+            <Toaster />
+          </ActiveThemeProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </RootDocument>
   )
 }

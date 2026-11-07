@@ -1,15 +1,15 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import {
-  endpointMonitorsInsertDTOSchema,
-  type endpointMonitorsSelectSchema,
-} from "@solstatus/common/db"
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { IconPlus } from "@tabler/icons-react"
-import { StatusCodes } from "http-status-codes"
-import React, { useEffect } from "react"
+import { useMutation } from "@tanstack/react-query"
+import * as Effect from "effect/Effect"
+import * as Schema from "effect/Schema"
+import React from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import type { z } from "zod"
+import { runApi } from "@/lib/api-client"
+import { refreshEndpointMonitors } from "@/lib/api-queries"
 import { DEFAULT_TOAST_OPTIONS } from "@/lib/toasts"
+import { CreateEndpointMonitor, type EndpointMonitor } from "@/server/api/schemas"
 import { Button } from "@/registry/new-york-v4/ui/button"
 import {
   Dialog,
@@ -38,29 +38,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/registry/new-york-v4/ui/select"
-import { useDialogStore } from "@/store/dialog-store"
-import type { ConflictEndpointMonitorResponse } from "@/types/endpointMonitor"
 
-type WebsiteFormData = z.infer<typeof endpointMonitorsInsertDTOSchema>
+type MonitorFormValues = typeof CreateEndpointMonitor.Type
 
-type WebsiteData = z.infer<typeof endpointMonitorsSelectSchema>
+const monitorFormResolver = standardSchemaResolver(Schema.toStandardSchemaV1(CreateEndpointMonitor))
+
+const newMonitorValues: MonitorFormValues = {
+  name: "",
+  url: "",
+  checkInterval: 60,
+  isRunning: true,
+  expectedStatusCode: 200,
+  alertThreshold: 2,
+}
+
+function formValues(endpointMonitor: EndpointMonitor | undefined): MonitorFormValues {
+  if (!endpointMonitor) {
+    return newMonitorValues
+  }
+
+  return {
+    name: endpointMonitor.name,
+    url: endpointMonitor.url,
+    checkInterval: endpointMonitor.checkInterval,
+    isRunning: endpointMonitor.isRunning,
+    expectedStatusCode: endpointMonitor.expectedStatusCode,
+    alertThreshold: endpointMonitor.alertThreshold,
+  }
+}
 
 interface AddWebsiteDialogProps {
   trigger?: React.ReactNode
-  endpointMonitor?: WebsiteData
-  onSuccess?: () => void
+  endpointMonitor?: EndpointMonitor
 }
 
-export function AddEndpointMonitorDialog({
-  trigger,
-  endpointMonitor,
-  onSuccess,
-}: AddWebsiteDialogProps) {
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+export function AddEndpointMonitorDialog({ trigger, endpointMonitor }: AddWebsiteDialogProps) {
   const [open, setOpen] = React.useState(false)
   const formId = "add-endpoint-monitor-form"
   const isEditing = !!endpointMonitor
-  const { setEditEndpointMonitorDialogOpen } = useDialogStore()
 
   const checkIntervalOptions = [
     { label: "10 seconds", value: 10 },
@@ -78,110 +93,30 @@ export function AddEndpointMonitorDialog({
     { label: "1 day", value: 86400 },
   ]
 
-  const form = useForm<WebsiteFormData>({
-    resolver: zodResolver(endpointMonitorsInsertDTOSchema),
-    defaultValues: isEditing
-      ? {
-          name: endpointMonitor.name ?? "",
-          url: endpointMonitor.url ?? "",
-          checkInterval: endpointMonitor.checkInterval ?? 60,
-          isRunning: endpointMonitor.isRunning ?? true,
-          expectedStatusCode: endpointMonitor.expectedStatusCode ?? undefined,
-          alertThreshold: endpointMonitor.alertThreshold ?? 2,
-        }
-      : {
-          name: "",
-          url: "",
-          checkInterval: 60,
-          isRunning: true,
-          expectedStatusCode: 200,
-          alertThreshold: 2,
-        },
+  const values = React.useMemo(() => formValues(endpointMonitor), [endpointMonitor])
+
+  // `values` follows the monitor as it refreshes. Fields the user changed keep their value.
+  const form = useForm<MonitorFormValues>({
+    resolver: monitorFormResolver,
+    values,
+    resetOptions: { keepDirtyValues: true },
   })
 
-  React.useEffect(() => {
-    if (open) {
-      form.reset(
-        isEditing
-          ? {
-              name: endpointMonitor.name ?? "",
-              url: endpointMonitor.url ?? "",
-              checkInterval: endpointMonitor.checkInterval ?? 60,
-              isRunning: endpointMonitor.isRunning ?? true,
-              expectedStatusCode: endpointMonitor.expectedStatusCode ?? undefined,
-              alertThreshold: endpointMonitor.alertThreshold ?? 2,
-            }
-          : {
-              name: "",
-              url: "",
-              checkInterval: 60,
-              isRunning: true,
-              expectedStatusCode: 200,
-              alertThreshold: 2,
-            },
-      )
-    }
-  }, [open, endpointMonitor, isEditing, form])
-
-  // Sync dialog state with store
-  useEffect(() => {
-    if (isEditing) {
-      setEditEndpointMonitorDialogOpen(open)
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (isEditing) {
-        setEditEndpointMonitorDialogOpen(false)
-      }
-    }
-  }, [open, isEditing, setEditEndpointMonitorDialogOpen])
-
-  const onSubmit = async (data: WebsiteFormData) => {
-    setIsSubmitting(true)
-
-    const url = isEditing
-      ? `/api/endpoint-monitors/${endpointMonitor.id}`
-      : "/api/endpoint-monitors"
-
-    const method = isEditing ? "PATCH" : "POST"
-
-    try {
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      })
-
-      const successStatus = isEditing ? StatusCodes.OK : StatusCodes.CREATED
-      const successMessage = isEditing ? "Endpoint Monitor Updated" : "Endpoint Monitor Added"
-
-      const successDescription = isEditing
-        ? `${data.url} has been updated successfully.`
-        : `${data.url} has been added successfully.`
-
-      if (response.status === successStatus) {
-        toast.success(successMessage, {
-          description: successDescription,
-          ...DEFAULT_TOAST_OPTIONS,
-        })
-        setOpen(false)
-        onSuccess?.()
-      } else if (response.status === StatusCodes.CONFLICT && !isEditing) {
-        const error: ConflictEndpointMonitorResponse = await response.json()
+  const save = useMutation({
+    mutationFn: (data: MonitorFormValues) =>
+      runApi((client) =>
+        (endpointMonitor
+          ? client.endpointMonitors.update({ params: { id: endpointMonitor.id }, payload: data })
+          : client.endpointMonitors.create({ payload: data })
+        ).pipe(
+          Effect.map(() => ({ conflict: null })),
+          Effect.catchTag("ConflictError", (error) => Effect.succeed({ conflict: error.message })),
+        ),
+      ),
+    onSuccess: ({ conflict }, data) => {
+      if (conflict) {
         toast.info("Similar endpoint monitor already exists", {
-          description: error.message,
-          ...DEFAULT_TOAST_OPTIONS,
-          duration: 10000,
-        })
-
-        return
-      } else {
-        const errorText = await response.text()
-        toast.error(`Error response: ${response.status}`, {
-          description: `Failed to ${isEditing ? "update" : "add"} endpoint monitor. ${errorText || "Unexpected response from server."}`,
+          description: conflict,
           ...DEFAULT_TOAST_OPTIONS,
           duration: 10000,
         })
@@ -189,18 +124,26 @@ export function AddEndpointMonitorDialog({
         return
       }
 
-      form.reset()
-    } catch (error) {
+      toast.success(isEditing ? "Endpoint Monitor Updated" : "Endpoint Monitor Added", {
+        description: `${data.url} has been ${isEditing ? "updated" : "added"} successfully.`,
+        ...DEFAULT_TOAST_OPTIONS,
+      })
+      setOpen(false)
+      form.reset(values)
+    },
+    onError: (error) => {
       console.error(`Error ${isEditing ? "updating" : "creating"} endpoint monitor:`, error)
-      toast.error("UNKNOWN_ERROR", {
-        description: `Failed to ${isEditing ? "update" : "create"} endpoint monitor.`,
+      toast.error(`Failed to ${isEditing ? "update" : "add"} endpoint monitor`, {
+        description: `${error}`,
         ...DEFAULT_TOAST_OPTIONS,
         duration: 10000,
       })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+    },
+    onSettled: () => refreshEndpointMonitors(),
+  })
+
+  const isSubmitting = save.isPending
+  const onSubmit = (data: MonitorFormValues) => save.mutate(data)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

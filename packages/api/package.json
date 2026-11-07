@@ -42,8 +42,7 @@
     "@solstatus/common": "workspace:*",
     "diffable-objects": "^0.1.1",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
-    "http-status-codes": "^2.3.0",
-    "zod": "4.6.7"
+    "http-status-codes": "^2.3.0"
   },
   "devDependencies": {
     "@alchemy.run/cloudflare": "2.0.0-beta.85",

@@ -1,5 +1,5 @@
 import { getUnixTime, subDays, subHours, subMinutes, subWeeks } from "date-fns"
-import type { TimeRange } from "@/types/endpointMonitor"
+import type { TimeRange } from "@/server/api/schemas"
 
 type ChartDomain = [number | "auto", number | "auto"]
 

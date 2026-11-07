@@ -1,5 +1,8 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/animated-tabs"
-import { isTimeRange, type TimeRange } from "@/types/endpointMonitor"
+import * as Schema from "effect/Schema"
+import { TimeRange } from "@/server/api/schemas"
+
+const isTimeRange = Schema.is(TimeRange)
 
 interface TimeRangeTabsProps {
   value: TimeRange

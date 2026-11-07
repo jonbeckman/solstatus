@@ -80,8 +80,11 @@ A cloud-agent pull request that changes user-visible behavior must attach proof.
 ## Architecture
 
 - SolStatus keeps these choices: better-auth (not Clerk), Cloudflare D1 (not PlanetScale), no turbo, the Effect CLI stack in `src/`, deploy on release, and the Tegami release gate.
-- API handlers live under `packages/app/src/app/api/` as method exports (`GET`, `POST`, `PATCH`, `DELETE`). `dispatchApi` in `packages/app/src/lib/dispatch-api.ts` matches the pathname and method. `/api/auth` and `/api/auth/*` go to Better Auth. Every other `/api` request requires a Better Auth session.
-- Define handlers with `createRoute` from `@/lib/api-utils`. Validate params, query, and body with the Zod schemas in `@/lib/route-schemas` or `@solstatus/common/db`. Use `StatusCodes` from `http-status-codes`, read Cloudflare bindings with `getWorkerEnv()`, and open Drizzle with `useDrizzle(env.DB)`.
+- The API is an Effect `HttpApi` in `packages/app/src/server/api/`. `schemas.ts` holds the Effect Schema request, response, and error types. `api.ts` declares the endpoints. `handlers.ts` implements them. `index.ts` serves the API, the OpenAPI document at `/api/openapi.json`, and the Scalar docs at `/api/docs`.
+- `dispatchApi` in `packages/app/src/lib/dispatch-api.ts` sends `/api/auth` and `/api/auth/*` to Better Auth. Every other `/api` request requires a Better Auth session.
+- In a handler, return a typed error such as `NotFoundError` or `ConflictError`. Wrap D1 and RPC calls with `attempt` so that a failure becomes `InternalServerError` with a log and a span. Read Cloudflare bindings with `getWorkerEnv()`, and open Drizzle with `useDrizzle(env.DB)`.
+- The app calls the API only through `runApi` in `@/lib/api-client`, which uses the derived `HttpApiClient`. Read server state with the TanStack Query hooks in `@/lib/api-queries`, and write it with `useMutation`. After a write, call `refreshEndpointMonitors()`. Do not add a client store for server state.
+- Validate forms with Effect Schema through `standardSchemaResolver`, and validate route search params with `Schema.toStandardSchemaV1`. Keep list filters, sorting, paging, and the detail time range in the URL.
 
 ## Security and observability
 

@@ -25,3 +25,7 @@ export const UptimeChecksTable = sqliteTable("uptimeChecks", {
   responseTime: integer("responseTime"),
   isExpectedStatus: integer("isExpectedStatus", { mode: "boolean" }).notNull(),
 })
+
+export type EndpointMonitorRow = typeof EndpointMonitorsTable.$inferSelect
+
+export type EndpointMonitorPatch = Partial<Omit<typeof EndpointMonitorsTable.$inferInsert, "id">>
