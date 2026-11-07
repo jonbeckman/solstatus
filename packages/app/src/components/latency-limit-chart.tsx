@@ -220,25 +220,20 @@ export function LatencyLimitChart({
 
   return (
     <div className="rounded-lg" style={{ height }}>
-      {/* <ResponsiveContainer width="100%" height="100%"> */}
       <ChartContainer config={chartConfig} className="w-full h-full">
         <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
           <defs>
             {/* Vertical gradient for stroke color (Inverted) */}
             {/* y1=100% (bottom), y2=0% (top) */}
             <linearGradient id="colorResponseTime" x1="0%" y1="100%" x2="0%" y2="0%">
-              {gradientStops.map((stop, i) => {
-                console.log("stop", stop)
-
-                return (
-                  <stop
-                    key={`stroke-${i}-${stop.offset}`}
-                    offset={stop.offset}
-                    stopColor={stop.color}
-                    stopOpacity={1}
-                  />
-                )
-              })}
+              {gradientStops.map((stop, i) => (
+                <stop
+                  key={`stroke-${i}-${stop.offset}`}
+                  offset={stop.offset}
+                  stopColor={stop.color}
+                  stopOpacity={1}
+                />
+              ))}
             </linearGradient>
           </defs>
 
@@ -287,7 +282,6 @@ export function LatencyLimitChart({
           />
         </LineChart>
       </ChartContainer>
-      {/* </ResponsiveContainer> */}
     </div>
   )
 }

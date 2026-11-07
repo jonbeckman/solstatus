@@ -4,6 +4,20 @@
 Each call is one bounded invocation: fresh redacted observation, deadline,
 model-call budget, no shared transcript. No agent step, no model calls.
 
+## Contents
+
+- Configure a model
+- act: one goal
+- assert, waitFor, extract: one question
+- Write instructions the model can execute
+- What the model sees
+- Budgets and cost
+- The replay cache
+- Inspect what the model did
+- Make the agent yours
+- Beyond the built-in agent
+- In CI
+
 ## Configure a model
 
 Put an AI SDK model under `agents.default`. You can use all AI SDK providers
@@ -25,9 +39,24 @@ export default {
 } satisfies E2EConfig;
 ```
 
-Subscription logins and local models:
-[setup](setup.md#subscriptions-and-api-keys). Keep `ai@^7` installed with
-any provider.
+Subscription logins and local models: topic `setup`, section "Subscriptions
+and API keys". Keep `ai@^7` installed with any provider.
+
+Decision models pick actions from choices the executor builds: install
+`@e2e-dev/decision` and put `decisionExecutor({ model:
+typeSafeAi.decisionModel('jev-latest'), textModel: openrouter('inception/mercury-2.5') })`
+under `executor`. `openai.decisionModel('gpt-6-luna')` from `@ai-sdk/openai`
+4.0.90 or later works too and takes the `vision: true` screenshot.
+Tests stay plain language with no params. The text model writes field values
+and upload paths. See the shipped `docs/decision-models.mdx` or
+[the online guide](https://e2e.tester.army/docs/decision-models) for setup,
+gates, and limits.
+
+A coding agent the user already signs in to runs agent steps over ACP:
+install `@e2e-dev/acp` and its adapter, and put
+`claudeCode({ model: 'sonnet' })` or `codex()` under
+`executor`; no model provider is needed. See the shipped `docs/acp.mdx` or
+[the online guide](https://e2e.tester.army/docs/acp).
 
 - Pass a model instance, not a string (`INVALID_CONFIG`).
 - An agents entry is one plain object of `model`, `judge`, `system`,
@@ -36,13 +65,17 @@ any provider.
   for a custom brain; none inherits `model` or `context` from `default`.
 - `model` drives `agent.act`. Judgments use `judge` when set, else `model`.
 - A missing model for the built-in agent raises one run-level
-  `MODEL_UNAVAILABLE` when the first test acquires `agent`, exit 2; auth
-  failures surface on the first model call as `MODEL_PROVIDER_FAILED`, or as
-  `CONFIG_LOAD_FAILED` for a provider that reads its key when the config loads.
+  `MODEL_UNAVAILABLE` when the first test acquires `agent`, exit 2, and so
+  does a model GitHub Copilot does not serve to the account, at the first
+  call; auth failures surface on the first model call as
+  `MODEL_PROVIDER_FAILED`, or as `CONFIG_LOAD_FAILED` for a provider that
+  reads its key when the config loads.
 - `context` is what the app calls things, sent to every model call, judges
   included; `system` is how the acting agent works, read only by the act
   loop. Both live on the agents entry; `agentContext` on a test or group
-  adds more.
+  adds more. Under `e2e run`, every prompt opens with the test's title path
+  (`Test: billing > upgrades the tier`), judges included, so name a test
+  for what it covers, not for the verdict it expects.
 
 ### Choose an agent
 
@@ -62,9 +95,12 @@ context, so each persona records and replays its own steps.
 ## act: one goal
 
 ```ts
-import { credentials } from 'e2e';
+import { credentials, expect } from 'e2e';
 
-await agent.act('add a todo named "Buy milk" and mark it done');
+await agent.act('add a todo named "Buy milk"');
+await expect(screen.getByRole('listitem', 'Buy milk')).toBeVisible();
+await agent.act('mark the "Buy milk" todo as done');
+await expect(screen.getByRole('checkbox', 'Buy milk')).toBeChecked();
 await agent.act('invite {email} as an editor', { params: { email: 'ada@example.test' } });
 
 const member = credentials.user('member');
@@ -85,7 +121,8 @@ why: `ACTION_FAILED` (product failure); `STEP_BUDGET_EXHAUSTED`,
 `SECRET_UNAVAILABLE`, `ENVIRONMENT_UNAVAILABLE`, `SEED_DATA_MISSING`,
 `TEST_SETUP_FAILED`, `AUTOMATION_UNSUPPORTED`, `POLICY_DENIED` (blocked
 from outside);
-`MODEL_OUTPUT_INVALID` (unusable answer). Full list: topic debugging.
+`MODEL_OUTPUT_INVALID` (unusable answer), `MODEL_REFUSED` (the model refused
+the prompt). Full list: topic debugging.
 
 Options:
 
@@ -113,25 +150,28 @@ The tools, one per engine action. Name the target as the screen names it
 - `scroll`: viewport or one scrollable node, a screen or a few.
 - `scroll_to`: a listed node into view, or by `text` page a list to a row.
 - `drag`: one node onto another.
-- `upload`: project-root files to a file input; outside it or hidden (`.env`)
-  is `POLICY_DENIED`.
+- `upload`: project-root files to a file input or a visible control that opens a
+  native file chooser; outside it or hidden (`.env`) is `POLICY_DENIED`.
 - `navigate`: a URL or app-relative path.
 - `back`: browser history or in-app back.
 - `type_secret`: a declared secret by name; plaintext never reaches the model.
   Offered only when the step declares secrets and the engine can fill them.
 - `screenshot`: attach viewport pixels; every later result then carries one.
 - `tap_at`/`hover_at`/`press_at`/`select_at`/`type_at`: a screenshot point.
+- `drag_at`: from one screenshot point to another (`to_x`, `to_y`).
 - `dismiss_keyboard` (device): hide the on-screen keyboard.
 
 The focused field's selected text is listed as `selection="..."` (never for
 a secret), so a repeated `Shift+ArrowLeft` selects one word with visible
 feedback. Point tools serve a canvas shape, map pin, image region, or system
-sheet control, hit-testing the tree first so a listed control underneath is
-acted on by id; `type_at` on nothing listed taps, then types. A screen with
+sheet control. `tap_at`, `hover_at`, and `drag_at` act at the point
+(`drag_at` by id between two different listed controls on an engine without
+a bare-point drag); `press_at`, `select_at`, and `type_at` hit-test the
+tree first so a listed control underneath is acted on by id, and `type_at`
+on nothing listed taps, then types. A screen with
 nothing to tap by id opens with a screenshot attached. A device has no
-`right_click`, `select`, `upload`, or `scroll_to` by node id. Pixels are
-masked and withheld after a secret fill (topic writing-tests): act on pixels
-before signing in, or in a test of its own. A result says when an action
+`right_click`, `select`, `upload`, or `scroll_to` by node id. Pixels mask
+secure fields only (topic writing-tests). A result says when an action
 closed an on-screen keyboard; on a touch screen that tap was often spent
 closing it, so act again.
 
@@ -159,17 +199,48 @@ expect(data.titles).toContain('Buy milk');
   screen first and ask about what is visible. Judged from the tree alone,
   it adds `pass vision: true when the answer is in pixels`, as does
   `waitFor`'s timeout after an inconclusive round.
-- Judgments see the assertion and the current screen only, never prior
-  steps or the act loop's summaries; malformed output gets one repair
-  round, then `MODEL_OUTPUT_INVALID`.
+- Judgments see the assertion, its params, the agent's context, the test
+  title, and the current screen, never prior steps or the act loop's
+  summaries; malformed output gets one repair round, then
+  `MODEL_OUTPUT_INVALID`.
+- `assert` and `waitFor` take `params` like `act`:
+  `assert('the table lists {name}', { params: { name } })`. The judge sees a
+  `Secret` by name only; check a secret's value with a locator assertion.
+- A value shown in more than one place (a total in the summary and on the
+  pay button) must agree everywhere, or the judgment fails. Name the one
+  you mean (`'the order summary total is $42.00'`) when only it matters.
 - `waitFor` observes every `interval` (default 3 s), judges only when the
   screen changed, and is `STEP_TIMEOUT` after `timeout` (default 30 s).
+- Never sleep for a fixed time to let the app settle. A sleep is too short
+  on a slow run and wasted time on a fast one; `waitFor` returns as soon as
+  the state appears:
+
+```ts
+// BAD: guesses how long the export takes.
+await new Promise((resolve) => setTimeout(resolve, 10_000));
+
+// GOOD: waits for the state, up to the timeout.
+await agent.waitFor('the export finished and a download link appeared', { timeout: 60_000 });
+```
+
+- `waitFor` needs a model even under a custom executor and is never cached,
+  so each run spends judgments on it. It judges again on every screen
+  change, up to `maxModelCalls` (25): for a long wait on a screen that keeps
+  changing (a progress counter), raise `interval`. The test timeout still
+  caps its `timeout`.
+
 - `extract` takes any Standard Schema validator (zod works); the model sees
   the schema's shape, never its value rules (`min`, `max`, lengths,
   patterns), which check what it read. Data the screen does not show is
   `ASSERTION_INCONCLUSIVE` naming what was missing, never `""` or `0`; to
   accept absence, ask for it (`'the phone, or null when none is shown'`
   with `.nullable()`).
+
+For a debug view that pairs each action with the screen it started on, give
+`agent.act` an `onBeforeAction` hook that calls `app.screenshot`, and match
+each capture to `onAction` by `index`, which restarts at 1 in each `act` call.
+It runs before replayed actions too, does not wait for the screen to settle,
+and a failed action gets a capture but no `onAction`.
 
 `vision` on a judgment picks the evidence: `false` (default) the tree;
 `true` the tree plus a masked screenshot; `'only'` the screenshot alone, for
@@ -180,6 +251,28 @@ masked pixels fail with `POLICY_DENIED`.
 ## Write instructions the model can execute
 
 - One goal per `act`; goal order is the test's, the path the model's.
+- Keep each goal atomic: one outcome that one check confirms. When two
+  parts of an instruction each leave a state worth checking, they are two
+  goals: give each its own `act` and check. Steps toward a single outcome
+  are the path, not more goals: scrolling to a control, closing a banner,
+  opening the menu that holds it, filling the fields of one form.
+- A split flow fails at the goal that broke. Each goal replays from its own
+  recording and gets its own `maxSteps` and `maxModelCalls`; the test
+  timeout still caps them all.
+
+```ts
+// BAD: three goals in one instruction, one recording, no check between them.
+await agent.act('open the Pro plan, set the seats to {seats}, and check out', { params: { seats: 3 } });
+
+// GOOD: three atomic goals, each pinned before the next.
+await agent.act('open the Pro plan');
+await expect(screen.getByRole('heading', 'Pro plan')).toBeVisible();
+await agent.act('set the seats to {seats}', { params: { seats: 3 } });
+await expect(screen.getByRole('status', 'Seats')).toHaveText('3 seats');
+await agent.act('check out');
+await expect(screen.getByText('Order confirmed')).toBeVisible();
+```
+
 - Use the words on screen: `'open the Billing tab'`, not `'upgrade'`.
 - Values go in `params`, never expanded: `act('rename to {name}', { params })`.
 - Do not describe mechanics the runner handles: waiting, scrolling, retries.
@@ -203,10 +296,14 @@ values, or a `Secret`'s value; password fields masked. The first
 screen of a step arrives whole; later action results report what changed,
 keyed by node ids stable while an element exists, or the whole screen when
 most changed. Pixels arrive through `vision` on a judgment or the act loop's
-`screenshot` and point tools, masked and withheld after a secret fill. When
+`screenshot` and point tools, with secure fields masked. When
 the browser engine's tree capture times out, the model gets a screenshot and
 a warning, a judgment needs `vision: true`, and no control may be inferred
-absent nor old node ids reused. Nothing the model returns runs as code or
+absent nor old node ids reused. The browser engine's tree shows a frame
+from another site (a hosted card field) as its `iframe` node with none of
+its content, so the agent reaches it only through pixels: script steps
+there with `browser.frameLocator`, and judge it with `vision`. Nothing the
+model returns runs as code or
 selectors: the runner validates and authorizes every tool call first.
 
 ## Budgets and cost
@@ -227,6 +324,9 @@ selectors: the runner validates and authorizes every tool call first.
   artifacts.
 
 ## The replay cache
+
+Replay reports expose the original model as `step.cache.recordedBy` when
+available; older recordings omit it. Use `--no-cache` to evaluate a new model.
 
 A passing `agent.act` saves its actions once a later check verifies the
 outcome; the next run replays them without model calls, and the live agent
@@ -250,24 +350,40 @@ matches. Misses and hand-offs use the model; `agent.assert`,
   every control that appeared (with its checked or selected state) is
   there, every one that went away is gone, at least one of those changed
   during the replay, and no new alert showed; otherwise the agent takes
-  over mid-step. Entries are keyed per agent and per `agentContext`. `step.cache.reason` says why: `no-entry`,
+  over mid-step. The web engine does not observe Next.js App Router's route
+  announcer, so its title echo never counts. An entry's key holds the test
+  file and title path, the target, the instruction and params, the agent,
+  its `context`, and the test's `agentContext`, so renaming the test or its
+  file records every goal in it again, and rewording a goal records that
+  goal again. `step.cache.reason` says why: `no-entry`,
   `wrong-context`, `target-not-found`, `target-ambiguous`, `end-mismatch`,
   and so on.
-- A step recording no actions, or changing nothing on screen or in the
-  route, creates no entry; one whose `unique()` value
-  equals, is spelled inside, or is the encoded form of another param's value
-  is not recorded either (`step.cache.notRecorded`: `param-collision`).
+- A step changing nothing on screen or in the route creates no entry
+  (`step.cache.write`: `no-change`) and runs live every run, strict
+  included; a change only inside a frame from another site counts as
+  nothing, since the tree leaves it out. A step recording no actions
+  creates no entry either. A step whose
+  `unique()` value equals, is spelled inside, or is the encoded form of
+  another param's value is not recorded either (`step.cache.notRecorded`:
+  `param-collision`).
 - `e2e init` gitignores `.e2e/cache/`; remove that line to commit entries
   and share replays with CI and teammates (CI stays `read-only` unless
   `cache: 'read-write'` is set).
-- A failing run evicts the entries it implicates; `--no-cache` rules the
-  cache out of a failure. A cancelled run and a failure where no model
-  answered (`MODEL_PROVIDER_FAILED`, `MODEL_UNAVAILABLE`) implicate nothing
-  and evict nothing.
+- A failing run keeps the entries a check confirmed before the failure. It
+  evicts a replay that ran into the failure and any recording no check
+  confirmed. A cancelled run and a failure where no model answered
+  (`MODEL_PROVIDER_FAILED`, `MODEL_UNAVAILABLE`) implicate nothing and evict
+  nothing.
+- While you fix a test, keep the cache on: each rerun replays the goals
+  whose check passed instead of calling the model for them (SKILL.md,
+  "Rerunning a test while you fix it"). `--no-cache` is for ruling out a
+  stale replay (topic debugging, "Tools"), and for one live run once the
+  test passes.
 - With committed recordings, `--strict-cache` in CI fails a recording that
   no longer replays with `REPLAY_STALE` instead of quietly spending model
-  calls every run; re-record locally and commit. Unrecorded steps still run
-  live.
+  calls every run; re-record with a `read-write` run without the flag and
+  with `cache.strict` off, then commit. Unrecorded steps still run live;
+  retries replay too, and a strict run never writes the cache.
 
 ## Inspect what the model did
 
@@ -306,7 +422,8 @@ make no model calls.
   `defineTool(tool({ ... }), { mutates: true })` from `e2e/agent` for a
   test API a flow calls mid-step.
 - `createToolLoopExecutor` keeps the loop and replaces prompt and tool
-  vocabulary.
+  vocabulary; spread `createGrammarTools(ctx, { guard })` into its tools and
+  start its `system` with `BASE_RULES` to keep the built-in actions.
 - Any `StepExecutor` (`{ name, version?, cache?, runStep(ctx) }`) goes under
   `executor`; the runner still owns observations, actions, budgets, and the
   report, and `system` or `tools` beside `executor` is `INVALID_CONFIG`.
