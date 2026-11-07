@@ -5,9 +5,9 @@ Use this reference when contributing **upstream to `alchemy-effect`** — adding
 The upstream `AGENTS.md` is the canonical source for contributions to that
 repository. This file records upstream-specific shapes; it does not prescribe
 them for Darkmatter application packages. Re-check the pinned upstream source
-before landing a PR. App packages follow
-[codebase-design](../../codebase-design/SKILL.md) and the layout in
-[the Alchemy skill](../SKILL.md#effect-native-provider-module-layout).
+before landing a PR. App packages follow the "Readability and module design"
+section in the repository's AGENTS.md and the layout in
+[the Alchemy skill](../SKILL.md#provider-module-layout).
 
 ## Core vocabulary
 
