@@ -170,7 +170,6 @@ export function AddEndpointMonitorDialog({
         setOpen(false)
         onSuccess?.()
       } else if (response.status === StatusCodes.CONFLICT && !isEditing) {
-        console.log("Endpoint Monitor already exists")
         const error: ConflictEndpointMonitorResponse = await response.json()
         toast.info("Similar endpoint monitor already exists", {
           description: error.message,

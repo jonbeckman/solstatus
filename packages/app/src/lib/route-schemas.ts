@@ -15,8 +15,8 @@ export const paginationQuerySchema = (orderBy = "createdAt", order: "asc" | "des
 export const endpointMonitorsListQuerySchema = paginationQuerySchema().extend({
   search: z.string().optional(),
   isRunning: z.string().optional(),
-  checkIntervalMin: z.number().optional(),
-  checkIntervalMax: z.number().optional(),
+  checkIntervalMin: z.coerce.number().optional(),
+  checkIntervalMax: z.coerce.number().optional(),
 })
 
 export const uptimeLimitQuerySchema = z.object({

@@ -7,7 +7,7 @@ import {
 } from "@solstatus/common/db"
 import { EndpointMonitorsTable } from "@solstatus/common/db/schema"
 import { createId, PRE_ID } from "@solstatus/common/utils"
-import { and, asc, count, desc, eq, like, sql } from "drizzle-orm"
+import { and, asc, count, desc, eq, gte, like, lte, or, sql } from "drizzle-orm"
 import type { SQLiteColumn } from "drizzle-orm/sqlite-core"
 import { StatusCodes } from "http-status-codes"
 import type { z } from "zod"
@@ -39,28 +39,13 @@ export const GET = createRoute
     const {
       pageSize,
       page,
-      orderBy: orderByParam,
-      order: orderParam,
-      search,
-      isRunning,
-      checkIntervalMin,
-      checkIntervalMax,
-    } = context.query
-
-    // Set default sorting if not provided
-    const orderBy = orderByParam ?? "consecutiveFailures"
-    const order = orderParam ?? "desc"
-
-    console.log(
-      pageSize,
-      page,
       orderBy,
       order,
       search,
       isRunning,
       checkIntervalMin,
       checkIntervalMax,
-    )
+    } = context.query
 
     const orderByCol = getColumn(orderBy)
     const orderDir = getOrderDirection(order)
@@ -69,16 +54,19 @@ export const GET = createRoute
     const whereConditions = () =>
       and(
         search
-          ? sql`(${like(EndpointMonitorsTable.name, `%${search}%`)} OR ${like(EndpointMonitorsTable.url, `%${search}%`)})`
+          ? or(
+              like(EndpointMonitorsTable.name, `%${search}%`),
+              like(EndpointMonitorsTable.url, `%${search}%`),
+            )
           : undefined,
         isRunning !== undefined
           ? eq(EndpointMonitorsTable.isRunning, isRunning === "true")
           : undefined,
         checkIntervalMin !== undefined
-          ? sql`${EndpointMonitorsTable.checkInterval} >= ${checkIntervalMin}`
+          ? gte(EndpointMonitorsTable.checkInterval, checkIntervalMin)
           : undefined,
         checkIntervalMax !== undefined
-          ? sql`${EndpointMonitorsTable.checkInterval} <= ${checkIntervalMax}`
+          ? lte(EndpointMonitorsTable.checkInterval, checkIntervalMax)
           : undefined,
       )
 
