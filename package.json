@@ -83,7 +83,7 @@
     "@types/pngjs": "6.0.5",
     "@yielded/effect-tsrs": "0.2.3",
     "ai": "7.0.160",
-    "concurrently": "^9.2.0",
+    "concurrently": "^10.0.0",
     "e2e": "0.22.0",
     "jpeg-js": "0.4.4",
     "lefthook": "^2.2.2",
