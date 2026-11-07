@@ -39,17 +39,13 @@ export const GET = createRoute
     const {
       pageSize,
       page,
-      orderBy: orderByParam,
-      order: orderParam,
+      orderBy,
+      order,
       search,
       isRunning,
       checkIntervalMin,
       checkIntervalMax,
     } = context.query
-
-    // Set default sorting if not provided
-    const orderBy = orderByParam ?? "consecutiveFailures"
-    const order = orderParam ?? "desc"
 
     const orderByCol = getColumn(orderBy)
     const orderDir = getOrderDirection(order)

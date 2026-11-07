@@ -220,7 +220,6 @@ export function LatencyLimitChart({
 
   return (
     <div className="rounded-lg" style={{ height }}>
-      {/* <ResponsiveContainer width="100%" height="100%"> */}
       <ChartContainer config={chartConfig} className="w-full h-full">
         <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
           <defs>
@@ -283,7 +282,6 @@ export function LatencyLimitChart({
           />
         </LineChart>
       </ChartContainer>
-      {/* </ResponsiveContainer> */}
     </div>
   )
 }
