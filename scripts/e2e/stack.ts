@@ -4,9 +4,7 @@ import { existsSync, mkdirSync, realpathSync, rmSync } from "node:fs"
 import { createConnection } from "node:net"
 import { resolve } from "node:path"
 
-for (const file of [".env", "packages/infra/.dev.vars"]) {
-  if (existsSync(file)) process.loadEnvFile(file)
-}
+if (existsSync(".env")) process.loadEnvFile(".env")
 
 if (!process.env.BETTER_AUTH_SECRET) {
   process.env.BETTER_AUTH_SECRET = randomBytes(16).toString("hex")

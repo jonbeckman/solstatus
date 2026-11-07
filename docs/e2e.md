@@ -42,8 +42,8 @@ directory. The launcher stops its processes and removes the directory on exit. I
 `alchemy deploy` or `alchemy destroy`, and it does not read `CLOUDFLARE_API_TOKEN`. Ports 3000,
 8787, and 8788 must be free.
 
-`BETTER_AUTH_SECRET` comes from the environment or `packages/infra/.dev.vars`. When both are
-empty, the launcher generates one for that run.
+`BETTER_AUTH_SECRET` comes from the environment or `.env`. When both are empty, the launcher
+generates one for that run.
 
 ## Models
 

@@ -8,6 +8,19 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const appRoot = resolve(__dirname, "..")
 
+// Better Auth signs sessions with this value. An empty secret is not safe, so the stack stops.
+function requiredEnv(name: string) {
+  const value = process.env[name]
+
+  if (!value) {
+    throw new Error(
+      `${name} is not set. Generate one with \`openssl rand -hex 32\` and add it to .env.`,
+    )
+  }
+
+  return value
+}
+
 export function createApp(
   resPrefix: string,
   db: DBResource,
@@ -36,7 +49,7 @@ export function createApp(
     env: {
       DB: db,
       SESSIONS_KV: sessionsStorageKV,
-      BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || "",
+      BETTER_AUTH_SECRET: requiredEnv("BETTER_AUTH_SECRET"),
       MONITOR_EXEC: monitorExecWorker,
       MONITOR_TRIGGER_RPC: monitorTriggerWorker,
       MONITOR_EXEC_NAME: `${resPrefix}-monitor-exec`,

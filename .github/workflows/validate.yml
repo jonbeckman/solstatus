@@ -185,7 +185,7 @@ jobs:
           secret=$(openssl rand -hex 32)
           echo "::add-mask::$secret"
           umask 077
-          printf 'APP_ENV=test\nBETTER_AUTH_SECRET=%s\n' "$secret" > packages/infra/.dev.vars
+          printf 'BETTER_AUTH_SECRET=%s\n' "$secret" > .env
       - name: Initialize AI usage accounting
         id: ai-usage-init
         env:

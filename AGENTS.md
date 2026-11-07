@@ -7,8 +7,9 @@ Use Plain Language in introductory, expository, friendly, and other sensible com
 
 ## Local development
 
-- Use `nub run dev` from the repository root. It starts the API workers and the TanStack Start app together.
-- Copy `.env.example` to `.env` and `packages/infra/.dev.vars.example` to `packages/infra/.dev.vars` before local infra work.
+- Use `nub run dev` from the repository root. It runs the complete stack with `alchemy dev`: the TanStack Start app on port 3000 and the monitor workers on ports 8787 and 8788, with local D1 and KV.
+- Copy `.env.example` to `.env` and set `BETTER_AUTH_SECRET` before you run `nub run dev`. Local dev does not need Cloudflare credentials.
+- Do not add a mock API or a stub for `cloudflare:workers`. Debug against the `alchemy dev` stack.
 - Do not deploy production infrastructure from a cloud agent without explicit approval.
 - Project skills live in `.agents/skills`. `.claude/skills` links to the project-owned skills (`e2e` and `verify-*`). `skills-lock.json` records the third-party skills.
 - When the Alchemy skill disagrees with this repository, follow the installed package imports.
