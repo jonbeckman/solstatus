@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@alchemy.run/cloudflare": "2.0.0-beta.84",
-    "@cloudflare/workers-types": "^4.20250702.0",
+    "@cloudflare/workers-types": "^5.20261022.1",
     "@libsql/client": "0.18.0",
     "@types/node": "^24.12.4",
     "alchemy": "2.0.0-beta.84",
