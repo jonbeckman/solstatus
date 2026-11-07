@@ -7,8 +7,6 @@ import { ignoreUnobservedChanges } from "./scripts/e2e/filters"
 import { e2eModels } from "./scripts/e2e/models"
 
 // Node's dotenv loader preserves environment overrides supplied by CI.
-if (existsSync("packages/infra/.dev.vars")) process.loadEnvFile("packages/infra/.dev.vars")
-
 if (existsSync(".env")) process.loadEnvFile(".env")
 
 // The suite calls the account's existing default AI Gateway with CF_AI_GATEWAY_E2E_TOKEN.

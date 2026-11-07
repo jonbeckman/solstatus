@@ -21,10 +21,8 @@
   },
   "files": [
     "src",
-    "scripts",
     "README.md",
-    "drizzle.config.ts",
-    "wrangler*.jsonc"
+    "drizzle.config.ts"
   ],
   "type": "module",
   "imports": {
@@ -37,16 +35,9 @@
     "infra:up": "alchemy deploy ./src/alchemy.run.ts --stage dev",
     "infra:destroy": "alchemy destroy ./src/alchemy.run.ts --stage dev",
     "infra:plan": "alchemy plan ./src/alchemy.run.ts --stage dev",
-    "infra:dev": "alchemy dev ./src/alchemy.run.ts --stage dev",
-    "db:create": "wrangler d1 execute solstatus-local --local --command='SELECT 1' --persist-to=./.wrangler/state --config ./wrangler.jsonc",
-    "db:create:prod": "wrangler d1 create solstatus-prod",
+    "dev": "node --env-file-if-exists=../../.env ../../node_modules/alchemy/bin/cli.js dev ./src/alchemy.run.ts --stage dev",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "wrangler d1 migrations apply DB --local --persist-to=./.wrangler/state --config ./wrangler.jsonc",
-    "db:migrate:prod": "wrangler d1 migrations apply DB --env prod --remote --config ./wrangler.jsonc",
-    "db:seed": "tsx scripts/seed.ts",
-    "db:setup": "nub run db:create && nub run db:generate && nub run db:migrate && nub run db:seed",
     "db:studio": "drizzle-kit studio",
-    "db:studio:prod": "APP_ENV=prod drizzle-kit studio",
     "types": "tsrs"
   },
   "dependencies": {
@@ -58,17 +49,14 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261022.1",
-    "@libsql/client": "0.18.0",
     "@types/node": "^24.12.4",
     "dotenv": "18.0.9",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
-    "drizzle-seed": "1.0.0-rc.5-ab785fc",
     "react": "^19.1.0",
     "tsrs": "0.20.1-ts7.1.0-beta",
     "typescript": "7.0.2",
     "vite": "^8.0.13",
-    "wrangler": "^4.22.0",
     "zod": "4.6.7"
   }
 }

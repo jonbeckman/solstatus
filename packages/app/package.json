@@ -32,7 +32,6 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 3000",
-    "dev:mock": "SOLSTATUS_DEV_MOCK_API=1 vite --host 127.0.0.1 --port 3000",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 3000",
     "types": "tsrs --noEmit --incremental false",

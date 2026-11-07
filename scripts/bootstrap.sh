@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-cp packages/infra/.dev.vars.example packages/infra/.dev.vars
-cp .env.example .env
+if [ ! -f .env ]; then
+  cp .env.example .env
+  # Each checkout signs local sessions with its own secret.
+  sed -i.bak "s/^BETTER_AUTH_SECRET=\"\"/BETTER_AUTH_SECRET=\"$(openssl rand -hex 32)\"/" .env
+  rm -f .env.bak
+fi
 
-# Install dependencies
 nub install --frozen-lockfile
-
-# Run migrations
-yes | nub run db:setup

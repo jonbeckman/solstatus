@@ -37,73 +37,25 @@ nub run cli -- --fqdn uptime.example.com --phase destroy
 
 ## Local Dev
 
-For a holistic dev experience, it is best to run dev from the root of the repo.
-
-### Init
-
-First, copy the `./packages/infra/.dev.vars.example` file to `./packages/infra/.dev.vars`.
-
-Then confirm the Cloudflare account:
-```sh
-nub exec wrangler whoami
-```
-
-Create the local database, generate migrations, apply them, and seed:
-```sh
-# db:setup runs db:create, db:generate, db:migrate, and db:seed
-nub run db:setup
-```
-
-### Dev
-This repo uses multiple workers, each split into their own workspace. To run everything together:
+`nub run dev` runs the whole stack on your machine with `alchemy dev`: the dashboard, both monitor workers, D1, and KV. It does not need a Cloudflare account.
 
 ```sh
-# Start both the API (monitor workers) and the TanStack Start app
+cp .env.example .env
+# Set BETTER_AUTH_SECRET in .env, for example with `openssl rand -hex 32`.
+nub install
 nub run dev
 ```
 
-If you need to run components separately:
+The dashboard is at http://127.0.0.1:3000. The monitor workers use ports 8787 and 8788. Alchemy applies the D1 migrations when the stack starts, and keeps local state under `packages/infra/.alchemy`.
 
-```sh
-# Run just the API (includes both executor and trigger workers)
-nub run dev:api
-
-# Run just the TanStack Start app
-nub run dev:app
-
-# Run the API executor worker
-nub run --filter '@solstatus/api' dev:api-exec
-
-# Run the API trigger worker
-nub run --filter '@solstatus/api' dev:api-trigger
-```
+The dashboard signs in with an email one-time code. No mailer is configured, so the code is printed in the `alchemy dev` log.
 
 ### Deployment
 
-Production workers and the dashboard deploy through Alchemy, not Wrangler:
+Production workers and the dashboard deploy through Alchemy:
 
 ```sh
 nub run cli -- --fqdn uptime.example.com --stage prod
-```
-
-To deploy components separately:
-```sh
-# Deploy just the TanStack Start app
-nub run deploy:prod:app
-
-# Deploy just the API workers
-nub run deploy:prod:api
-```
-
-Wrangler stays for local D1 (`nub run db:setup`) and local API workers (`nub run dev:api`). Those commands share D1 state under `packages/infra/.wrangler/state`.
-
-### Maintenance
-Update dependencies
-
-Dependabot automatically creates pull requests for dependency updates weekly. For manual updates:
-```sh
-nub exec ncu -t minor -u
-nub install
 ```
 
 ## Database Management
@@ -113,10 +65,7 @@ See the [infra README](./packages/infra/README.md#database-management) for more 
 ## CI/CD
 
 ### Dependency Management
-This repository uses Dependabot to keep dependencies up to date:
-- npm dependencies are checked weekly (grouped as minor and patch updates)
-- GitHub Actions are checked monthly
-- PR limits are set to avoid overwhelming with dependency updates
+Renovate opens dependency pull requests from the shared `SolZeroAI/renovate-config` preset and merges them when CI passes.
 
 ### npm Publishing
 Tegami versions and publishes the npm packages after Validate succeeds on `master`:
