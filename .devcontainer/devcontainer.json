@@ -1,5 +1,5 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:24",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:26",
   "postStartCommand": "scripts/bootstrap.sh",
   "customizations": {
     "vscode": {
