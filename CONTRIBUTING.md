@@ -1,7 +1,7 @@
 # Contributing to SolStatus
 
 This repository is the AGPL-3.0 SolStatus uptime monitor:
-[github.com/jonbeckman/solstatus](https://github.com/jonbeckman/solstatus).
+[github.com/SolZeroAI/solstatus](https://github.com/SolZeroAI/solstatus).
 Read the [README](README.md) for the product picture and local setup.
 
 SolStatus is a self-hosted Cloudflare uptime monitor. The repository publishes

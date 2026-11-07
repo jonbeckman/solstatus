@@ -12,7 +12,7 @@ const release = tegami({
   },
   plugins: [
     github({
-      repo: "jonbeckman/solstatus",
+      repo: "SolZeroAI/solstatus",
       release: {
         eager: false,
       },

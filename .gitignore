@@ -49,5 +49,6 @@ src/.alchemy
 # nub
 .nub/
 
-# e2e
-.e2e/
+# e2e. Action replay recordings in .e2e/cache are committed.
+.e2e/*
+!.e2e/cache/

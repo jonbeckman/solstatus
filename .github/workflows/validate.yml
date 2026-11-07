@@ -2,41 +2,49 @@ name: Validate
 
 on:
   pull_request:
+    branches:
+      - master
     types:
       - opened
       - synchronize
       - reopened
       - ready_for_review
-    branches:
-      - master
   push:
     branches:
       - master
   workflow_dispatch:
     inputs:
-      e2e_lifecycle:
-        description: "Run owned-resource lifecycle regressions after core flows"
+      e2e_record:
+        description: "Record action replays and upload .e2e/cache instead of strict replay"
         type: boolean
         default: false
-      e2e_live:
-        description: "Force live decisions (bypass action replay and Gateway response cache)"
+      e2e_commit:
+        description: "Commit the e2e_record recordings to the dispatched branch"
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: read
   actions: read
-  checks: write
-  pull-requests: write
 
+# A new push to a pull request cancels the run on the commit it replaces. Pushes to master
+# and dispatches each get their own group here; on master the jobs below cancel the older
+# commit's checks.
 concurrency:
-  group: validate-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-{1}', github.workflow, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   validate:
     name: Repository validation
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    # A newer release cancels the older release's validation. That release is never
+    # published, and the newer one tests its changes too.
+    concurrency:
+      group: ${{ github.event_name == 'push' && format('{0}-validate-master', github.workflow) || format('{0}-validate-{1}', github.workflow, github.run_id) }}
+      cancel-in-progress: ${{ github.event_name == 'push' }}
+    # The Tegami version pull request skips this job. On master only its merge runs it (see
+    # release below).
+    if: ${{ !(github.event_name == 'pull_request' && github.head_ref == 'tegami/version-packages' && github.event.pull_request.user.login == 'solzero-bot[bot]') && (github.event_name != 'push' || (startsWith(github.event.head_commit.message, 'Version Packages') && github.event.head_commit.author.email == '341870119+solzero-bot[bot]@users.noreply.github.com')) && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -44,7 +52,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
-          fetch-depth: 0
 
       - name: Set up Nub
         uses: nubjs/setup-nub@v0
@@ -65,145 +72,158 @@ jobs:
       - name: Check formatting
         run: nub run format
 
+      # The kjanat/actionlint binary prints findings and fails this step, so the Repository
+      # validation check reports actionlint. ubuntu-latest already has shellcheck.
+      - name: Lint GitHub Actions workflows
+        run: |
+          set -euo pipefail
+          dest="${RUNNER_TEMP}/actionlint"
+          mkdir -p "${dest}"
+          curl -fsSL https://raw.githubusercontent.com/kjanat/actionlint/master/distribution/install/download-actionlint.bash | bash -s -- latest "${dest}"
+          "${dest}/actionlint"
+
       - name: Collect end-to-end tests
         run: nub run test:e2e:list
 
-  e2e:
-    name: Cloudflare end-to-end flows
-    concurrency:
-      group: solstatus-e2e-cloudflare-${{ github.repository }}
-      cancel-in-progress: false
-    if: >-
-      (github.event_name != 'pull_request' || github.event.pull_request.draft == false) &&
-      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+  release:
+    name: Detect release commit
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    env:
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-      CF_AI_GATEWAY_E2E_TOKEN: ${{ secrets.CF_AI_GATEWAY_E2E_TOKEN }}
-      CF_AI_GATEWAY_E2E_ID: default
-      E2E_AI_USAGE: "1"
-      E2E_TELEMETRY_DISABLED: "1"
-      CF_AI_GATEWAY_E2E_SKIP_CACHE: ${{ inputs.e2e_live && '1' || '0' }}
+    timeout-minutes: 5
+    outputs:
+      release: ${{ steps.check.outputs.release }}
+      since: ${{ steps.since.outputs.since }}
     steps:
-      - name: Check out repository
+      # Pull requests run their checks. On master only the merge of the Tegami version pull
+      # request runs them, so each release ships a green suite, and Release publishes only
+      # after this run passes. The version pull request is known by its branch and the
+      # release GitHub App that opens it. Its squash merge is known by its title and that App
+      # as the commit author. Renovate pull requests have the same author, so the author alone
+      # is not enough. On a push this job still runs, because a run whose jobs all skip is
+      # not a success.
+      - id: check
+        env:
+          RELEASE: ${{ startsWith(github.event.head_commit.message, 'Version Packages') && github.event.head_commit.author.email == '341870119+solzero-bot[bot]@users.noreply.github.com' }}
+        run: |
+          echo "Version Packages merge: $RELEASE"
+          echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
+      - if: steps.check.outputs.release == 'true'
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
           fetch-depth: 0
+          filter: blob:none
+          persist-credentials: false
+      # The release tests the changes since the last release that passed its tests: the
+      # newest earlier version commit whose Validate run passed. Without one, every test runs.
+      - id: since
+        if: steps.check.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          since=""
+          for sha in $(git log --format=%H --max-count=20 --grep='^Version Packages' HEAD^); do
+            count="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/validate.yml/runs?event=push&status=success&head_sha=${sha}&per_page=1" --jq .total_count)"
+            if [ "$count" != "0" ]; then
+              since="$sha"
+              break
+            fi
+          done
+          echo "Release changes since: ${since:-no tested release, so every test runs}"
+          echo "since=$since" >> "$GITHUB_OUTPUT"
 
-      - name: Set up Nub
-        uses: nubjs/setup-nub@v0
+  e2e:
+    name: Cloudflare end-to-end flows
+    needs: release
+    # Each run boots its own local Alchemy stack and creates no remote resources, so runs do
+    # not share a queue. A newer push to the same pull request, or a newer release,
+    # supersedes a run.
+    concurrency:
+      group: ${{ github.event_name == 'push' && format('{0}-e2e-master', github.workflow) || format('{0}-e2e-{1}', github.workflow, github.event.pull_request.number || github.run_id) }}
+      cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+    if: ${{ !cancelled() && (github.event_name != 'push' || needs.release.outputs.release == 'true') && !(github.event_name == 'pull_request' && github.head_ref == 'tegami/version-packages' && github.event.pull_request.user.login == 'solzero-bot[bot]') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # The github reporter edits one pull request comment. Artifact recovery reads Actions APIs.
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_AI_GATEWAY_E2E_TOKEN: ${{ secrets.CF_AI_GATEWAY_E2E_TOKEN }}
+      E2E_DECISION_MODEL: ${{ vars.E2E_DECISION_MODEL }}
+      E2E_LANGUAGE_MODEL: ${{ vars.E2E_LANGUAGE_MODEL }}
+      E2E_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          # The decision filter needs the base branch and the merge base.
+          fetch-depth: 0
+          # Blobless: full history, file contents on demand.
+          filter: blob:none
+      - uses: nubjs/setup-nub@v0
         with:
           nub-version: 0.9.6
           node-version-file: .nvmrc
           cache-dependency-path: nub.lock
-
       - name: Install dependencies
-        id: e2e-dependencies
         run: nub install --frozen-lockfile
-
-      - name: Generate better-auth secret when omitted
-        shell: bash
-        run: |
-          if [ -z "${BETTER_AUTH_SECRET:-}" ]; then
-            secret=$(openssl rand -hex 16)
-            echo "::add-mask::$secret"
-            echo "BETTER_AUTH_SECRET=$secret" >> "$GITHUB_ENV"
-          fi
-          mkdir -p packages/infra
-          if [ ! -f packages/infra/.dev.vars ]; then
-            {
-              echo "APP_ENV=test"
-              echo "BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}"
-            } > packages/infra/.dev.vars
-            chmod 600 packages/infra/.dev.vars
-          fi
-
+      # The browser download is the same for every run of one lockfile. The system
+      # libraries still install on each fresh runner.
+      - name: Restore browser
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: e2e-chromium-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('nub.lock') }}
       - name: Install browser
         run: nub run test:e2e:install
-
-      - name: Restore action replay cache
-        id: action-replay-cache
-        uses: actions/cache/restore@v4
-        with:
-          path: .e2e/cache
-          key: e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:${{ hashFiles('nub.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:${{ hashFiles('nub.lock') }}-
-            e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:
-
+      # Each run signs sessions with its own generated better-auth secret.
+      - name: Write local stack variables
+        run: |
+          secret=$(openssl rand -hex 32)
+          echo "::add-mask::$secret"
+          umask 077
+          printf 'APP_ENV=test\nBETTER_AUTH_SECRET=%s\n' "$secret" > packages/infra/.dev.vars
       - name: Initialize AI usage accounting
         id: ai-usage-init
         env:
-          E2E_ACTION_CACHE_RESTORED: ${{ steps.action-replay-cache.outputs.cache-matched-key != '' }}
+          E2E_ACTION_CACHE_RESTORED: ${{ hashFiles('.e2e/cache/**') != '' }}
         run: |
           E2E_AI_VALIDATED_SHA="$(git rev-parse HEAD)"
           export E2E_AI_VALIDATED_SHA
           echo "E2E_AI_VALIDATED_SHA=$E2E_AI_VALIDATED_SHA" >> "$GITHUB_ENV"
           node scripts/e2e/ai-report.mjs init
-
       - name: Run core real-stack flows
         id: e2e-run
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          E2E_EVENT_NAME: ${{ github.event_name }}
-          E2E_BASE_REF: ${{ github.base_ref }}
+          E2E_RECORD: ${{ github.event_name == 'workflow_dispatch' && inputs.e2e_record }}
+          # Pull requests run the tests the decision filter says the diff can affect. A
+          # release runs the tests its changes can affect. Manual runs run every test.
+          E2E_CHANGED_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || needs.release.outputs.since || '' }}
+        # Committed recordings replay strictly. A stale recording fails the run.
         run: |
-          changed_since=""
-          if [ "$E2E_EVENT_NAME" = "pull_request" ]; then
-            changed_since="origin/${E2E_BASE_REF}"
-          fi
-          if [ "${{ inputs.e2e_live }}" = "true" ]; then
-            if [ -n "$changed_since" ]; then
-              nub exec e2e run --no-cache --changed-since "$changed_since"
-            else
-              nub run test:e2e:live
-            fi
-          elif [ -n "$changed_since" ]; then
-            nub exec e2e run --changed-since "$changed_since"
-          else
+          if [ "$E2E_RECORD" = "true" ]; then
             nub run test
+          elif [ -n "$E2E_CHANGED_SINCE" ]; then
+            nub run test:e2e:cache-strict --changed-since "$E2E_CHANGED_SINCE" --pass-with-no-tests
+          else
+            nub run test:e2e:cache-strict
           fi
-
-      - name: Verify cleanup lifecycle after core flows
-        if: github.event_name == 'workflow_dispatch' && inputs.e2e_lifecycle
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          echo "No owned lifecycle suite yet; core cleanup remains in test:e2e:cleanup."
-          nub run test:e2e:cleanup
-
-      - name: Remove owned local emulation state
-        if: always() && steps.e2e-dependencies.outcome == 'success'
-        run: |
-          cleanup_status=0
-          nub run test:e2e:cleanup || cleanup_status=$?
-          node <<'NODE'
-          const fs = require("node:fs");
-          const path = ".e2e/cleanup-summary.json";
-          if (fs.existsSync(path)) {
-            fs.appendFileSync(
-              process.env.GITHUB_STEP_SUMMARY,
-              "### Owned test cleanup\n\n```json\n" + fs.readFileSync(path, "utf8") + "\n```\n",
-            );
-          }
-          NODE
-          exit "$cleanup_status"
-
       - name: Summarize measured AI usage
         if: always() && steps.ai-usage-init.outcome == 'success'
-        id: ai-usage-summary
         run: node scripts/e2e/ai-report.mjs summarize
-
-      - name: Preserve successful replay recordings
-        if: success() && steps.e2e-run.outcome == 'success'
-        uses: actions/cache/save@v4
+      - name: Upload recorded action replays
+        if: github.event_name == 'workflow_dispatch' && inputs.e2e_record && steps.e2e-run.outcome == 'success'
+        uses: actions/upload-artifact@v7
         with:
+          name: solstatus-e2e-replays-${{ github.run_id }}-${{ github.run_attempt }}
           path: .e2e/cache
-          key: e2e-replay-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.head_ref || github.ref_name }}:${{ hashFiles('nub.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
-
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload diagnostic reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
@@ -212,7 +232,6 @@ jobs:
           path: |
             .e2e/report.json
             .e2e/junit.xml
-            .e2e/cleanup-summary.json
             .e2e/summary.md
             .e2e/failures
             .e2e/screens
@@ -220,3 +239,52 @@ jobs:
             .e2e/ai-usage/summary.md
           if-no-files-found: warn
           retention-days: 7
+
+  commit-replays:
+    name: Commit recorded action replays
+    needs: e2e
+    # A dispatched e2e_record run commits its recordings to the branch it ran on.
+    # The App token push starts pull request CI; a GITHUB_TOKEN push would not.
+    if: github.event_name == 'workflow_dispatch' && inputs.e2e_record && inputs.e2e_commit && github.ref_name != github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+      - name: Check out the recorded commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          token: ${{ steps.app-token.outputs.token }}
+      - name: Download recorded action replays
+        uses: actions/download-artifact@v8
+        with:
+          name: solstatus-e2e-replays-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .e2e/cache
+      - name: Commit and push changed recordings
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          BRANCH: ${{ github.ref_name }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          git add .e2e/cache
+          if git diff --cached --quiet; then
+            echo "The recordings did not change."
+            exit 0
+          fi
+          user_id="$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)"
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git commit -m "Update e2e action replay recordings" -m "Recorded by Validate run ${GITHUB_RUN_ID}."
+          # The push fails when the branch moved after the recorded commit.
+          # Run e2e_record again on the new head.
+          git push origin "HEAD:refs/heads/${BRANCH}"

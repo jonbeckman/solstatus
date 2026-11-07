@@ -1,15 +1,24 @@
 import { existsSync } from "node:fs"
-import { decisionFilter } from "@e2e-dev/decision"
+import { decisionExecutor, decisionFilter } from "@e2e-dev/decision"
 import { web } from "@e2e-dev/web"
 import { github } from "@e2e-dev/github"
 import type { E2EConfig } from "e2e"
-import { createClefDecisionModel } from "./scripts/e2e/cf-clef-decision-model"
-import { createClefExecutor } from "./scripts/e2e/cf-clef-executor"
+import { ignoreUnobservedChanges } from "./scripts/e2e/filters"
+import { e2eModels } from "./scripts/e2e/models"
 
 // Node's dotenv loader preserves environment overrides supplied by CI.
 if (existsSync("packages/infra/.dev.vars")) process.loadEnvFile("packages/infra/.dev.vars")
 
 if (existsSync(".env")) process.loadEnvFile(".env")
+
+// The suite calls the account's existing default AI Gateway with CF_AI_GATEWAY_E2E_TOKEN.
+// Placeholders let secret-free test collection load this module. scripts/e2e/models.ts
+// selects the models.
+const { decisionModel, languageModel } = e2eModels({
+  accountId: process.env.CLOUDFLARE_ACCOUNT_ID || "unconfigured",
+  gatewayId: process.env.CF_AI_GATEWAY_E2E_ID || "default",
+  token: process.env.CF_AI_GATEWAY_E2E_TOKEN || "unconfigured",
+})
 
 const runnerMetadata = new Set([
   "NODE_CHANNEL_FD",
@@ -32,7 +41,7 @@ const inherited = Object.fromEntries(
 
 export default {
   projectId: "solstatus",
-  tests: ["tests/**/*.e2e.ts", "!tests/lifecycle/**"],
+  tests: "tests/**/*.e2e.ts",
   targets: [
     {
       name: "chromium",
@@ -55,7 +64,7 @@ export default {
     },
     { name: "cli", platform: "cli", trace: "off" },
   ],
-  filters: [decisionFilter({ model: createClefDecisionModel() })],
+  filters: [ignoreUnobservedChanges(decisionFilter({ model: decisionModel }))],
   workers: 1,
   retries: 0,
   timeout: 120_000,
@@ -64,19 +73,13 @@ export default {
   // Raw browser traces can capture session cookies and generated secrets.
   trace: "off",
   reporters: ["list", "junit", "markdown", github({ key: "solstatus-core" })],
-  credentials: {
-    disposable: {
-      username: "solstatus-e2e@example.test",
-      password: "E2e-disposable-only-4f94dc7!",
-    },
-  },
   secrets: {
     "cloudflare-ai-gateway": () => process.env.CF_AI_GATEWAY_E2E_TOKEN ?? "",
     "better-auth-secret": () => process.env.BETTER_AUTH_SECRET ?? "",
   },
   agents: {
     default: {
-      executor: createClefExecutor(),
+      executor: decisionExecutor({ model: decisionModel, textModel: languageModel }),
       maxSteps: 20,
       maxModelCalls: 20,
       context:

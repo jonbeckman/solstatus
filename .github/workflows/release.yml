@@ -12,8 +12,11 @@ on:
 permissions:
   contents: read
 
+# The release of a version commit has its own group. A newer pending run in one group
+# replaces the older pending run, so a later master merge must not replace the only run
+# that publishes a release.
 concurrency:
-  group: release-master
+  group: ${{ github.workflow }}-${{ github.ref }}${{ startsWith(github.event.workflow_run.head_commit.message, 'Version Packages') && '-publish' || '' }}
   cancel-in-progress: false
 
 jobs:
@@ -26,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # Writes go through the release app token. This job's GITHUB_TOKEN stays read-only.
-    # id-token: write stays for the existing npm publish step.
+    # id-token: write stays for the npm publish step.
     permissions:
       contents: read
       id-token: write
@@ -36,7 +39,7 @@ jobs:
         id: release-token
         uses: actions/create-github-app-token@v3
         with:
-          client-id: ${{ secrets.RELEASE_APP_ID }}
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
@@ -65,8 +68,17 @@ jobs:
       - name: Build
         run: nub run build
 
+      # Only the merge of the Tegami version pull request publishes, because only its Validate
+      # run tests the release. Another master push only opens or updates the version pull
+      # request. To publish again after a failure, re-run the Release run of the version commit.
       - name: Version or publish release
-        run: nub run tegami ci
+        run: |
+          if [ "$RELEASE_COMMIT" = "true" ]; then
+            nub run tegami ci
+          else
+            nub run tegami version --no-checks
+          fi
         env:
           GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_COMMIT: ${{ startsWith(github.event.workflow_run.head_commit.message, 'Version Packages') && github.event.workflow_run.head_commit.author.email == '341870119+solzero-bot[bot]@users.noreply.github.com' }}

@@ -1,8 +1,8 @@
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/jonbeckman/solstatus)
-![GitHub](https://img.shields.io/github/license/jonbeckman/solstatus)
-![GitHub release (with filter)](https://img.shields.io/github/v/release/jonbeckman/solstatus)
-![GitHub contributors](https://img.shields.io/github/contributors/jonbeckman/solstatus)
-![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/jonbeckman/solstatus/latest)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/SolZeroAI/solstatus)
+![GitHub](https://img.shields.io/github/license/SolZeroAI/solstatus)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/SolZeroAI/solstatus)
+![GitHub contributors](https://img.shields.io/github/contributors/SolZeroAI/solstatus)
+![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/SolZeroAI/solstatus/latest)
 
 # SolStatus
 

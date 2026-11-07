@@ -2,6 +2,8 @@ name: Tegami PR Preview
 
 on:
   pull_request:
+    branches:
+      - master
     types:
       - opened
       - synchronize
@@ -11,35 +13,14 @@ on:
 permissions:
   contents: read
 
+# A new push cancels the preview of the commit it replaces.
+concurrency:
+  group: tegami-pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   preview:
-    name: Build release preview
     if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Check out pull request
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Set up Nub
-        uses: nubjs/setup-nub@v0
-        with:
-          nub-version: 0.9.6
-          node-version-file: .nvmrc
-          cache-dependency-path: nub.lock
-
-      - name: Install dependencies
-        run: nub install --frozen-lockfile
-
-      - name: Build release preview
-        run: nub run tegami pr preview --artifact tegami-pr-preview.md
-
-      - name: Upload release preview
-        uses: actions/upload-artifact@v7
-        with:
-          name: tegami-pr-preview
-          path: tegami-pr-preview.md
-          if-no-files-found: error
-          retention-days: 1
+    uses: SolZeroAI/.github/.github/workflows/tegami-pr-preview.yml@master
+    with:
+      runs-on: '"ubuntu-latest"'

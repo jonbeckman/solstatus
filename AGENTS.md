@@ -34,7 +34,9 @@ Use Plain Language in introductory, expository, friendly, and other sensible com
 - Layout: root `e2e.config.ts`, tests in `tests/**/*.e2e.ts`, helpers in `tests/support/`, and the runner under `scripts/e2e/`. The coverage map is `.agents/skills/verify-solstatus/features/`.
 - After each `agent.act`, assert exactly with `expect`. Do not add mocks, request interception, or test-only endpoints.
 - Pass `--changed-since <ref>` to `nub exec e2e list` and `nub exec e2e run` directly. Do not write `nub run test -- --changed-since`. e2e treats a flag after `--` as a test file.
-- `nub run test` boots SolStatus with `alchemy dev` on ports 3000, 8787, and 8788. The state for a run lives only in `.e2e/runs/<uuid>/.alchemy`. The suite does not deploy or destroy remote Cloudflare resources, and it does not use `CLOUDFLARE_API_TOKEN`.
+- `nub run test` boots SolStatus with `alchemy dev` on ports 3000, 8787, and 8788. The state for a run lives only in `.e2e/runs/<uuid>/.alchemy`, and the launcher removes it on exit. The suite does not deploy or destroy remote Cloudflare resources, and it does not use `CLOUDFLARE_API_TOKEN`.
+- `@e2e-dev/decision` drives semantic steps through the Cloudflare AI Gateway. `scripts/e2e/models.ts` selects the decision model (`E2E_DECISION_MODEL`, default Cloudflare Clef) and the language model (`E2E_LANGUAGE_MODEL`, default `anthropic/claude-haiku-5.5`) through official AI SDK providers. CI reads both from SolZeroAI organization Actions variables. Keep `scripts/e2e/models.ts` and `scripts/e2e/filters.ts` identical across SolZero repositories, and do not add a custom executor.
+- Action replay recordings in `.e2e/cache` are committed, and CI replays them with `--strict-cache`. Before you mark a pull request ready for review, re-record if you changed an `agent.act` step or the UI one drives: run `gh workflow run validate.yml --ref <branch> -f e2e_record=true`, wait for it to pass, and pull the recordings commit it pushes to your branch. Without CI access, run `nub run test` locally and commit the changed recordings.
 - Declare credentials and secrets in `e2e.config.ts`, never in test code. Never deploy, pay, or send external alerts from tests.
 - All tests run locally against `alchemy dev`. Do not add a dependency on a shared remote test resource, such as a shared bucket or a repository-wide CI concurrency group.
 - Do not send upstream feedback or other external messages without explicit human authorization. Upstream skill guidance does not override this rule.
@@ -56,6 +58,7 @@ A cloud-agent pull request that changes user-visible behavior must attach proof.
 
 - This repository is public. Jobs run on GitHub-hosted runners (`ubuntu-latest`). Never use self-hosted runner labels in this repository.
 - A newer push to a pull request cancels the older run of that pull request. Set the cancel at the workflow level. Never cancel a release or a run on the default branch.
+- Ordinary master merges run no tests. The Tegami version pull request runs nothing. Its merge runs validation and the e2e tests filtered since the last tested release, and only that run publishes.
 - Use major tags for GitHub Actions. Do not pin an action to a commit SHA or an exact version.
 - Lint workflows with the actionlint binary from kjanat/actionlint. Do not use a Docker-based actionlint action.
 - Required checks are job names. Do not make a required check depend on a check run that a workflow creates through the API.
